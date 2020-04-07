@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Xml;
+using System.Xml.XmlConfiguration;
 using HarmonyLib;
 using TaleWorlds.GauntletUI.PrefabSystem;
 
@@ -27,11 +29,8 @@ namespace UIExtenderLibModule.Prefab.Patches
             additions.Add(new CodeInstruction(OpCodes.Call, processIfNeeded));
             additions.Add(new CodeInstruction(OpCodes.Pop));
 
-            var xmlSettingsCtor = "System.Xml.XmlReaderSettings..ctor()";
-            var widgetPrefabCtor = "TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab..ctor()";
-
-            var from = input.TakeWhile(i => !(i.opcode == OpCodes.Newobj && (i.operand as ConstructorInfo).FullDescription() == xmlSettingsCtor)).Count() + 2;
-            var to = from + input.Skip(from).TakeWhile(i => !(i.opcode == OpCodes.Newobj && (i.operand as ConstructorInfo).FullDescription() == widgetPrefabCtor)).Count();
+            var from = input.TakeWhile(i => !(i.opcode == OpCodes.Newobj && (i.operand as ConstructorInfo).DeclaringType == typeof(XmlReaderSettings))).Count() + 2;
+            var to = from + input.Skip(from).TakeWhile(i => !(i.opcode == OpCodes.Newobj && (i.operand as ConstructorInfo).DeclaringType == typeof(WidgetPrefab))).Count();
             var count = to - from;
 
             instructions.RemoveRange(from, count);
