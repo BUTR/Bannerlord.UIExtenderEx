@@ -46,6 +46,14 @@ namespace UIExtenderLibModule
                             WidgetComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                             break;
                         
+                        case PrefabExtensionReplacePatch patch:
+                            WidgetComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                            break;
+                        
+                        case PrefabExtensionInsertAsSiblingPatch patch:
+                            WidgetComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                            break;
+                        
                         case CustomPatch<XmlDocument> patch:
                             WidgetComponent.RegisterPatch(xmlExtension.Movie, patch.Apply);
                             break;

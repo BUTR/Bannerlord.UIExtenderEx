@@ -27,7 +27,7 @@ namespace UIExtenderLibModule.Prefab
         internal void RegisterPatch(string movie, Action<XmlDocument> patcher)
         {
             Debug.Assert(movie != null && !movie.IsEmpty(), $"Invalid movie name: {movie}!");
-            
+
             _moviePatches.Get(movie, () => new List<Action<XmlDocument>>()).Add(patcher);
         }
 
@@ -50,7 +50,7 @@ namespace UIExtenderLibModule.Prefab
         }
 
         /**
-         * Register Gauntlet movie XML insert patch.
+         * Register XML insert patch
          */
         internal void RegisterPatch(string movie, string xpath, PrefabExtensionInsertPatch patch)
         {
@@ -58,26 +58,51 @@ namespace UIExtenderLibModule.Prefab
 
             RegisterPatch(movie, xpath, (node) =>
             {
-                var path = _prefabExtensionPaths[patch.Name];
-                var doc = new XmlDocument();
-                
-                using (var reader = XmlReader.Create(path, new XmlReaderSettings
-                {
-                    IgnoreComments = true,
-                    IgnoreWhitespace = true,
-                }))
-                {
-                    doc.Load(reader);
-                }
-                
-                Debug.Assert(doc.HasChildNodes, $"Failed to parse extension ({patch.Name}) XML!");
-                var newNode = node.OwnerDocument.ImportNode(doc.DocumentElement, true);
+                var extensionNode = LoadPrefabExtension(patch.Name);
+                var importedExtensionNode = node.OwnerDocument.ImportNode(extensionNode, true);
                 var position = Math.Min(patch.Position, node.ChildNodes.Count - 1);
                 position = Math.Max(position, 0);
                 Debug.Assert(position >= 0 && position < node.ChildNodes.Count, $"Invalid position ({position}) for insert (patching in {patch.Name})");
 
-                node.InsertAfter(newNode, node.ChildNodes[position]);
+                node.InsertAfter(importedExtensionNode, node.ChildNodes[position]);
             });
+        }
+
+        /**
+         * Register XML replace patch
+         */
+        internal void RegisterPatch(string movie, string xpath, PrefabExtensionReplacePatch patch)
+        {
+            RegisterPatch(movie, xpath, (node) =>
+            {
+                var extensionNode = LoadPrefabExtension(patch.Name);
+                var importedExtensionNode = node.OwnerDocument.ImportNode(extensionNode, true);
+
+                node.ParentNode.ReplaceChild(importedExtensionNode, node);
+            });
+        }
+
+        /**
+         * Register XML sibling insert patch
+         */
+        internal void RegisterPatch(string movie, string xpath, PrefabExtensionInsertAsSiblingPatch patch)
+        {
+            RegisterPatch(movie, xpath, (node) =>
+            {
+                var extensionNode = LoadPrefabExtension(patch.Name);
+                var importedExtensionNode = node.OwnerDocument.ImportNode(extensionNode, true);
+
+                switch (patch.Type)
+                {
+                    case PrefabExtensionInsertAsSiblingPatch.InsertType.Append:
+                        node.ParentNode.InsertAfter(importedExtensionNode, node);
+                        break;
+                        
+                    case PrefabExtensionInsertAsSiblingPatch.InsertType.Prepend:
+                        node.ParentNode.InsertBefore(importedExtensionNode, node);
+                        break;
+                }
+            });           
         }
 
         /**
@@ -99,6 +124,27 @@ namespace UIExtenderLibModule.Prefab
                     _prefabExtensionPaths[name] = file.FullName;
                 }
             }
+        }
+
+        /**
+         * Load and parse prefab extension
+         */
+        private XmlNode LoadPrefabExtension(string name)
+        {
+            var path = _prefabExtensionPaths[name];
+            var doc = new XmlDocument();
+                
+            using (var reader = XmlReader.Create(path, new XmlReaderSettings
+            {
+                IgnoreComments = true,
+                IgnoreWhitespace = true,
+            }))
+            {
+                doc.Load(reader);
+            }
+                
+            Debug.Assert(doc.HasChildNodes, $"Failed to parse extension ({name}) XML!");
+            return doc.DocumentElement;
         }
 
         /**
