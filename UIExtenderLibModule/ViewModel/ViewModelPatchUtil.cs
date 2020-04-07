@@ -37,5 +37,11 @@ namespace UIExtenderLibModule.ViewModel
 		{
 			UIExtenderLibModule.SharedInstance.ViewModelComponent.InitializeMixinsForViewModelInstance(t, instance);
 		}
+
+		public static void ProxyExecuteCall(string name, object instance)
+		{
+			var method = instance.GetType().BaseType.GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			method.Invoke(instance, null);
+		}
 	}
 }
