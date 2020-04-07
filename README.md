@@ -69,7 +69,7 @@ The last thing is to call `UIExtender.Register();` to register your attributed c
 ```
 
 ### Documentation
-Rest of the documentation is located on [wiki](https://github.com/shdwp/BannerlordCampMod/wiki).
+Rest of the documentation is located on [wiki](https://github.com/shdwp/UIExtenderLib/wiki).
 
 
 ### Examples
