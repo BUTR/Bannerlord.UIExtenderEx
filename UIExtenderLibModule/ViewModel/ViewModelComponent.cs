@@ -160,19 +160,6 @@ namespace UIExtenderLibModule.ViewModel
                 }
             }
 
-            foreach (var method in t.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(m => m.Name.StartsWith("Execute")))
-            {
-                var newMethod = builder.DefineMethod(method.Name, MethodAttributes.Public, method.ReturnType, method.GetParameters().Select(p => p.ParameterType).ToArray());
-                var gen = newMethod.GetILGenerator();
-
-                // body
-                var proxyExecuteCall = typeof(ViewModelPatchUtil).GetMethod(nameof(ViewModelPatchUtil.ProxyExecuteCall));
-                gen.Emit(OpCodes.Ldstr, method.Name);
-                gen.Emit(OpCodes.Ldarg_0);
-                gen.Emit(OpCodes.Call, proxyExecuteCall);
-                gen.Emit(OpCodes.Ret);
-            }
-
             foreach (var mixin in _mixins[t])
             {
                 // properties

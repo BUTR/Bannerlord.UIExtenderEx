@@ -10,6 +10,10 @@ namespace UIExtenderLibModule.ViewModel
 {
 	public static class ViewModelPatchUtil
 	{
+		/**
+		 * Generalized transpiler which will replace standard view models with their extended counterparts.
+		 * Should be applied to methods that call constructors of view models after extensions have been registered.
+		 */
 		internal static IEnumerable<CodeInstruction> TranspilerForVMInstantiation(IEnumerable<CodeInstruction> input)
 		{
 			return input.Select(op =>
@@ -38,10 +42,15 @@ namespace UIExtenderLibModule.ViewModel
 			UIExtenderLibModule.SharedInstance.ViewModelComponent.InitializeMixinsForViewModelInstance(t, instance);
 		}
 
-		public static void ProxyExecuteCall(string name, object instance)
+		public static MethodInfo FindExecuteCommandMethod(Type t, string name, BindingFlags flags)
 		{
-			var method = instance.GetType().BaseType.GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			method.Invoke(instance, null);
+			if (t == null)
+			{
+				return null;
+			}
+			
+			var method = t.GetMethod(name, flags | BindingFlags.FlattenHierarchy);
+			return method != null ? method : FindExecuteCommandMethod(t.BaseType, name, flags);
 		}
 	}
 }
