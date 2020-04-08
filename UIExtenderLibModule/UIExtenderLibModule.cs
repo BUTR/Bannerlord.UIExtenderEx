@@ -23,9 +23,27 @@ namespace UIExtenderLibModule
         // view model component instance
         internal readonly ViewModelComponent ViewModelComponent = new ViewModelComponent();
 
+        // flag to check for single process call
+        private static bool _processedExtensions = false;
+
         protected override void OnBeforeInitialModuleScreenSetAsRoot()
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
+
+            /*
+             * This method is run every time MainMenu appears, which could happen multiple times
+             * during single application run.
+             * 
+             * Code to apply extensions should be run after all of the mods has been loaded, therefore it could not
+             * be placed in `OnSubModuleLoad`.
+             *
+             * In order to only run it once this flag is implemented.
+             */
+            if (_processedExtensions)
+            {
+                return;
+            }
+            _processedExtensions = true;
             
             // apply registered extensions
             foreach (var extensionType in UIExtender.Extensions)
