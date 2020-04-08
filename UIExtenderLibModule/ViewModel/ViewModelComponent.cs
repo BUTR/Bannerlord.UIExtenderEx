@@ -15,7 +15,7 @@ namespace UIExtenderLibModule.ViewModel
     {
         private readonly Dictionary<Type, List<Type>> _mixins = new Dictionary<Type, List<Type>>();
         private readonly Dictionary<Type, Type> _extendedTypeCache = new Dictionary<Type, Type>();
-        private readonly Dictionary<Type, IViewModelMixin> _mixinInstanceCache = new Dictionary<Type, IViewModelMixin>();
+        private readonly Dictionary<object, IViewModelMixin> _mixinInstanceCache = new Dictionary<object, IViewModelMixin>();
         private readonly Dictionary<Type, object> _extendedTypeInstanceCache = new Dictionary<Type, object>();
 
         private readonly AssemblyBuilder _assemblyBuilder;
@@ -68,10 +68,10 @@ namespace UIExtenderLibModule.ViewModel
          * Used to proxy calls to specific mixins in extended VM methods.
          * Requires extended VM constructor to be run first, should only be used internally.
          */
-        internal IViewModelMixin MixinInstanceForType(Type t)
+        internal IViewModelMixin MixinInstanceForObject(object o)
         {
-            Debug.Assert(_mixinInstanceCache.ContainsKey(t), $"Mixin instance is not (yet) created for type {t}");
-            return _mixinInstanceCache[t];
+            Debug.Assert(_mixinInstanceCache.ContainsKey(o), $"Mixin instance is not (yet) created for object type {o.GetType()}");
+            return _mixinInstanceCache[o];
         }
         
         /**
@@ -92,7 +92,7 @@ namespace UIExtenderLibModule.ViewModel
         {
             foreach (var mixinType in _mixins[t])
             {
-                _mixinInstanceCache[mixinType] = (IViewModelMixin)Activator.CreateInstance(mixinType, new [] { instance });
+                _mixinInstanceCache[instance] = (IViewModelMixin)Activator.CreateInstance(mixinType, new [] { instance });
             }
         }
 
@@ -101,19 +101,9 @@ namespace UIExtenderLibModule.ViewModel
          */
         internal void RefreshMixinsForTypes(Type[] types)
         {
-            foreach (Type t in types)
+            foreach (var kv in _mixinInstanceCache.Where(kv => types.Contains(kv.Key.GetType().BaseType)))
             {
-                if (_mixins.ContainsKey(t))
-                {
-                    foreach (var mixinType in _mixins[t])
-                    {
-                        IViewModelMixin mixinInstance;
-                        if (_mixinInstanceCache.TryGetValue(mixinType, out mixinInstance))
-                        {
-                            mixinInstance.Refresh();
-                        }
-                    }
-                }
+                kv.Value.Refresh();
             }
         }
 
@@ -176,12 +166,10 @@ namespace UIExtenderLibModule.ViewModel
                     var gen = newMethod.GetILGenerator();
                     
                     // body
-                    var getTypeFromHandle = typeof(Type).GetMethod("GetTypeFromHandle");
                     var getInstance = typeof(ViewModelPatchUtil).GetMethod(nameof(ViewModelPatchUtil.GetMixinInstanceForType));
                     var method = property.GetGetMethod();
                     
-                    gen.Emit(OpCodes.Ldtoken, mixin);
-                    gen.Emit(OpCodes.Call, getTypeFromHandle);
+                    gen.Emit(OpCodes.Ldarg_0);
                     gen.Emit(OpCodes.Call, getInstance);
                     gen.Emit(OpCodes.Call, method);
                     gen.Emit(OpCodes.Ret);
@@ -196,11 +184,9 @@ namespace UIExtenderLibModule.ViewModel
                     var gen = newMethod.GetILGenerator();
 
                     // body
-                    var getTypeFromHandle = typeof(Type).GetMethod("GetTypeFromHandle");
                     var getInstance = typeof(ViewModelPatchUtil).GetMethod(nameof(ViewModelPatchUtil.GetMixinInstanceForType));
                     
-                    gen.Emit(OpCodes.Ldtoken, mixin);
-                    gen.Emit(OpCodes.Call, getTypeFromHandle);
+                    gen.Emit(OpCodes.Ldarg_0);
                     gen.Emit(OpCodes.Call, getInstance);
                     gen.Emit(OpCodes.Call, method);
                     gen.Emit(OpCodes.Ret);

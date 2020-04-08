@@ -32,9 +32,9 @@ namespace UIExtenderLibModule.ViewModel
 			});
 		}
 
-		public static object GetMixinInstanceForType(Type t)
+		public static object GetMixinInstanceForType(object o)
 		{
-			return UIExtenderLibModule.SharedInstance.ViewModelComponent.MixinInstanceForType(t);
+			return UIExtenderLibModule.SharedInstance.ViewModelComponent.MixinInstanceForObject(o);
 		}
 
 		public static void InitializeMixinsForModel(Type t, object instance)

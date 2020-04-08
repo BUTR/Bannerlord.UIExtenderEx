@@ -29,7 +29,7 @@ namespace UIExtenderLibModule
         protected override void OnBeforeInitialModuleScreenSetAsRoot()
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
-
+            
             /*
              * This method is run every time MainMenu appears, which could happen multiple times
              * during single application run.
