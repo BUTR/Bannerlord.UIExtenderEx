@@ -172,6 +172,8 @@
     <Compile Include="UIExtenderLibModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="ViewModel\Patches\GauntletPartyScreenCallsites.cs" />
+    <Compile Include="ViewModel\Patches\CharacterDeveloperVMCallsites.cs" />
     <Compile Include="ViewModel\Patches\ViewModelExecuteCommandPatch.cs" />
     <Compile Include="ViewModel\ViewModelComponent.cs" />
     <Compile Include="ViewModel\Patches\GauntletMapBarGlobalLayerCallsites.cs" />
