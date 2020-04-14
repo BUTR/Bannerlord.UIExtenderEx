@@ -1,0 +1,18 @@
+﻿@startuml
+
+SubModule --* UIExtender
+SubModule --* ViewModelMixinClasses
+SubModule --* PrefabExtensionClasses
+
+class ViewModelMixinClasses {
+[ViewModelMixin]
+}
+
+class PrefabExtensionClasses {
+[PrefabExtension("Movie", "XPath")]
+}
+
+ViewModelMixinClasses --|> BaseViewModelMixin
+PrefabExtensionClasses --|> IPrefabExtension
+
+@enduml

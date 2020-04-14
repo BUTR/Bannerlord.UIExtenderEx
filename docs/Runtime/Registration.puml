@@ -1,0 +1,40 @@
+﻿@startuml
+
+actor UserLibrary
+
+UserLibrary -> UIExtender: Register()
+
+UIExtender -> UIExtender: Find attributed types in calling assembly
+UIExtender -> UIExtender: Create runtime for module and store it
+UIExtender -> UIExtenderRuntime: Register()
+loop for each type
+    alt prefab extension
+        UIExtenderRuntime -> PrefabComponent: RegisterPatch()
+        PrefabComponent --> UIExtenderRuntime
+        PrefabComponent -> PrefabComponent: store extension for later
+        PrefabComponent --> UIExtenderRuntime
+    else if view model extension
+        UIExtenderRuntime -> ViewModelComponent: RegisterViewModelMixin()
+        ViewModelComponent -> ViewModelComponent: store mixin for later
+        ViewModelComponent --> UIExtenderRuntime
+    end
+end
+UIExtenderRuntime  -> UIExtenderRuntime: <b>Patching</b> (see separate diagram)
+note over UIExtenderRuntime
+    See `VMPatching` and `PrefabPatching` diagrams.
+endnote
+UIExtenderRuntime --> UIExtender
+UIExtender --> UserLibrary
+
+...
+
+UserLibrary -> UIExtender: Verify()
+UIExtender -> UIExtenderRuntime: Verify()
+alt any errors encountered during registration
+UIExtenderRuntime -> UIExtenderRuntime: display errors to the user
+end
+UIExtenderRuntime --> UIExtender
+UIExtender --> UserLibrary
+
+
+@enduml

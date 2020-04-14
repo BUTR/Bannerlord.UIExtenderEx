@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>UIExtenderLib</id>
+    <version>$version$</version>
+    <title>UIExtenderLib</title>
+    <authors>shdwp</authors>
+    <owners>shdwp</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">LGPL-3.0-or-later</license>
+    <projectUrl>https://github.com/shdwp/UIExtenderLib</projectUrl>
+    <description>$description$</description>
+    <releaseNotes>Initial v2 release.</releaseNotes>
+    <copyright>Copyright 2020</copyright>
+    <tags></tags>
+  </metadata>
+</package>

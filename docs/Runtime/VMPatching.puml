@@ -1,0 +1,41 @@
+﻿@startuml
+UIExtenderRuntime -> StandardPatchLibrary: AddPatches()
+StandardPatchLibrary -> CodePatcher: add standard patches
+CodePatcher --> StandardPatchLibrary
+StandardPatchLibrary --> UIExtenderRuntime
+alt errors encountered
+    UIExtenderRuntime -> UIExtenderRuntime: store user error message for later
+end
+
+UIExtenderRuntime -> CodePatcher: ApplyPatches()
+
+loop for each Patch
+    CodePatcher -> Patch: apply with Harmony
+    alt view model instantiation callsite transpiler
+        Patch -> Patch: search for `newobj` calls in code
+        Patch -> ViewModelComponent: ExtendsViewModelType()
+        ViewModelComponent --> Patch
+        alt component extends this view model type
+            Patch -> ViewModelComponent: ExtendedViewModelTypeForType()
+            ViewModelComponent -> ViewModelComponent: generate extended view model type
+            ViewModelComponent --> Patch
+            Patch -> Patch: replace original VM type in `newobj`\nwith extended VM type, making game\ncreate extended VM instances in place\nof original (base) ones
+        end
+    else view model refresh callsite postfix
+        Patch -> Patch: add refresh postfix
+        note over Patch
+            See `ExtendedVMRuntime` diagram.
+        endnote
+    else otherwise
+        note over Patch
+            See `PrefabPatching` diagram.
+        endnote
+     end
+end
+
+CodePatcher --> UIExtenderRuntime
+
+UIExtenderRuntime -> ViewModelComponent: SaveDebugImages()
+ViewModelComponent --> UIExtenderRuntime
+
+@enduml

@@ -1,0 +1,59 @@
+﻿@startuml
+
+class UIExtender {
+- _runtime
+}
+
+class UIExtenderRuntime {
++ ModuleName
+- _userMessages
+}
+
+class PrefabComponent {
+- _moviePatches
+~ RegisterPatch()
+~ ProcessMovieIfNeeded()
+~ ForceReloadMovies()
+}
+
+class ViewModelComponent {
+- _assemblyBuilder
+- _mixins
+- _mixinInstanceCache
+~ RegisterViewModelMixin()
+~ ExtendsViewModelType()
+~ ExtendedViewModelForType()
+~ MixinInstanceForObject()
+~ InitializeMixinsForVMInstance()
+~ RefreshMixinsForVMInstance()
+~ FinalizeMixinsForVMInstance()
+~ DestructMixinsForVMInstance()
+}
+
+class CodePatcherComponent {
+- _harmony
+- _patchesAssemblyBuilder
+- _transpilers
+- _postfixes
+~ AddViewModelInstantiationPatch()
+~ AddViewModelRefreshPatch()
+~ AddWidgetLoadPatch()
+~ AddViewModelExecutePatch()
+~ ApplyPatches()
+}
+
+class CodePatchesAssemblyBuilder {
+- _assemblyBuilder
+~ AddTranspiler()
+~ AddPostfix()
+~ SaveAndLoadLibraryType()
+}
+
+UIExtender --* UIExtenderRuntime
+UIExtenderRuntime --* PrefabComponent
+UIExtenderRuntime --* ViewModelComponent
+UIExtenderRuntime --* CodePatcherComponent
+
+CodePatcherComponent --* CodePatchesAssemblyBuilder
+
+@enduml

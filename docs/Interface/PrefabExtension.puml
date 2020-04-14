@@ -1,0 +1,33 @@
+﻿@startuml
+
+interface IPrefabPatch {
+}
+
+abstract class InsertPatch {
++ Position
+}
+
+class PrefabExtensionInsertAsSiblingPatch {
++ Type
++ Name
+}
+
+class PrefabExtensionInsertPatch {
++ Name
+}
+
+class PrefabExtensionReplacePatch {
++ Name
+}
+
+class CustomPatch<T: XmlNode> {
+}
+
+CustomPatch --|> IPrefabPatch
+InsertPatch --|> IPrefabPatch
+
+PrefabExtensionInsertPatch --|> InsertPatch
+PrefabExtensionReplacePatch --|> IPrefabPatch
+PrefabExtensionInsertAsSiblingPatch --|> IPrefabPatch
+
+@enduml

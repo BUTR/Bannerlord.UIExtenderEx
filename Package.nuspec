@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>Package</id>
+    <version>2.0.0.0</version>
+    <authors>shdwp</authors>
+    <owners>shdwp</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">LGPLv3</license>
+    <projectUrl>https://github.com/shdwp/UIExtenderLib</projectUrl>
+    <description>Library for Mount And Blade II: Bannerlord mods to enable multiple mods changing standard UI of the game</description>
+    <releaseNotes>Initial v2.0.0 release</releaseNotes>
+    <copyright>Copyright 2020</copyright>
+    <tags></tags>
+    <dependencies>
+      <group targetFramework="net472">
+        <dependency id="Lib.Harmony" version="2.0.0.10" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

@@ -1,0 +1,17 @@
+﻿@startuml
+loop for each Patch
+    CodePatcher -> Patch: apply with Harmony
+    alt widget load patch transpiler
+        Patch -> Patch: find marks of existing patch
+        alt existing patch found
+            Patch -> Patch: replace existing call with new DynamicMethod\nwhich calls both both previous and current `ProcessMovieDocumentIfNeeded`
+        else otherwise
+            Patch -> Patch: replace beginning of method with mark,\ncall to `LoadXmlDocument` and `ProcessMovieDocumentIfNeeded`
+        end
+    else otherwise
+        note over Patch
+            See `VMPatching` diagram.
+        endnote
+    end
+end
+@enduml

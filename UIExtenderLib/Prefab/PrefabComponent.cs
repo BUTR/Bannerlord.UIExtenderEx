@@ -2,28 +2,40 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using NonGenericCollections = System.Collections;
 using System.Reflection;
 using System.Xml;
 using TaleWorlds.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
-using TaleWorlds.MountAndBlade.Source.Objects.Siege;
-using UIExtenderLib.Prefab;
+using UIExtenderLib.Interface;
+using NonGenericCollections = System.Collections;
 using Path = System.IO.Path;
 
-namespace UIExtenderLibModule.Prefab
+namespace UIExtenderLib.Prefab
 {
-    internal class PrefabComponent
+    /// <summary>
+    /// Component that deals with Gauntlet prefab XML files
+    /// </summary>
+    public class PrefabComponent
     {
+        private readonly string _moduleName;
+        
+        /// <summary>
+        /// Registered movie patches
+        /// </summary>
         private Dictionary<string, List<Action<XmlDocument>>> _moviePatches = new Dictionary<string, List<Action<XmlDocument>>>();
-        private Dictionary<string, string> _prefabExtensionPaths = new Dictionary<string, string>();
 
-        /**
-         * Register general patcher.
-         * Patcher is an lambda function returning patched XmlDocument.
-         */
+        public PrefabComponent(string moduleName)
+        {
+            _moduleName = moduleName;
+        }
+
+        /// <summary>
+        /// Register general XmlDocument patch
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="patcher"></param>
         internal void RegisterPatch(string movie, Action<XmlDocument> patcher)
         {
             Debug.Assert(movie != null && !movie.IsEmpty(), $"Invalid movie name: {movie}!");
@@ -31,9 +43,12 @@ namespace UIExtenderLibModule.Prefab
             _moviePatches.Get(movie, () => new List<Action<XmlDocument>>()).Add(patcher);
         }
 
-        /**
-         * Register custom patch for node at xpath
-         */
+        /// <summary>
+        /// Register patch operating at node specified by XPath
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="xpath"></param>
+        /// <param name="patcher"></param>
         internal void RegisterPatch(string movie, string xpath, Action<XmlNode> patcher)
         {
             RegisterPatch(movie, (document) =>
@@ -41,7 +56,7 @@ namespace UIExtenderLibModule.Prefab
                 var node = document.SelectSingleNode(xpath);
                 if (node == null)
                 {
-                    Utils.UserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
+                    Utils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
                     return;
                 }
 
@@ -49,13 +64,14 @@ namespace UIExtenderLibModule.Prefab
             });
         }
 
-        /**
-         * Register XML insert patch
-         */
+        /// <summary>
+        /// Register snippet insert patch
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="xpath"></param>
+        /// <param name="patch"></param>
         internal void RegisterPatch(string movie, string xpath, PrefabExtensionInsertPatch patch)
         {
-            Debug.Assert(_prefabExtensionPaths.ContainsKey(patch.Name), $"Prefab extension with name {patch.Name} does not exist!");
-
             RegisterPatch(movie, xpath, (node) =>
             {
                 var extensionNode = LoadPrefabExtension(patch.Name);
@@ -68,9 +84,12 @@ namespace UIExtenderLibModule.Prefab
             });
         }
 
-        /**
-         * Register XML replace patch
-         */
+        /// <summary>
+        /// Register snippet replace patch
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="xpath"></param>
+        /// <param name="patch"></param>
         internal void RegisterPatch(string movie, string xpath, PrefabExtensionReplacePatch patch)
         {
             RegisterPatch(movie, xpath, (node) =>
@@ -82,9 +101,12 @@ namespace UIExtenderLibModule.Prefab
             });
         }
 
-        /**
-         * Register XML sibling insert patch
-         */
+        /// <summary>
+        /// Register snippet insert as sibling patch
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="xpath"></param>
+        /// <param name="patch"></param>
         internal void RegisterPatch(string movie, string xpath, PrefabExtensionInsertAsSiblingPatch patch)
         {
             RegisterPatch(movie, xpath, (node) =>
@@ -106,32 +128,16 @@ namespace UIExtenderLibModule.Prefab
         }
 
         /**
-         * Search loaded modules for PrefabExtensions and save them for further reference
-         */
-        internal void FindPrefabExtensions()
-        {
-            foreach (var module in Utilities.GetModulesNames())
-            {
-                var info = new DirectoryInfo(Path.Combine(Utilities.GetBasePath(), "Modules", module, "GUI", "PrefabExtensions"));
-                if (!info.Exists)
-                {
-                    continue;
-                }
-
-                foreach (var file in info.GetFiles("*.xml", SearchOption.AllDirectories))
-                {
-                    var name = Path.GetFileNameWithoutExtension(file.FullName);
-                    _prefabExtensionPaths[name] = file.FullName;
-                }
-            }
-        }
-
-        /**
          * Load and parse prefab extension
          */
+        /// <summary>
+        /// Load snippet extension XML. Will search for the file in MODULE\GUI\PrefabExtensions\NAME.xml
+        /// </summary>
+        /// <param name="name">name of the extension (without .xml)</param>
+        /// <returns>document element</returns>
         private XmlNode LoadPrefabExtension(string name)
         {
-            var path = _prefabExtensionPaths[name];
+            var path = Path.Combine(Utilities.GetBasePath(), "Modules", _moduleName, "GUI", "PrefabExtensions", name + ".xml");
             var doc = new XmlDocument();
                 
             using (var reader = XmlReader.Create(path, new XmlReaderSettings
@@ -147,20 +153,19 @@ namespace UIExtenderLibModule.Prefab
             return doc.DocumentElement;
         }
 
-        /**
-         * Make WidgetFactory reload Movies that were extended by _moviePatches.
-         * 
-         * WidgetFactory loads Movies during SandBox module loading phase, which occurs even before
-         * our module gets loaded, hence once we get control we need to force it to reload XMLs that
-         * are getting patched by extensions.
-         */
+        /// <summary>
+        /// Make WidgetFactory reload Movies that were extended by _moviePatches.
+        /// WidgetFactory loads Movies during SandBox module loading phase, which occurs even before
+        /// our module gets loaded, hence once we get control we need to force it to reload XMLs that
+        /// are getting patched by extensions.
+        /// </summary>
         internal void ForceReloadMovies()
         {
             // @TODO: figure out a method more prone to game updates
             
             // get internal dict of loaded Widgets
             var dict =  UIResourceManager.WidgetFactory.PrivateValue<NonGenericCollections.IDictionary>("_customTypes");
-            Utils.CompatiblityAssert(dict != null, "WidgetFactory._customTypes == null");
+            Utils.CompatAssert(dict != null, "WidgetFactory._customTypes == null");
             
             foreach (var movie in _moviePatches.Keys)
             {
@@ -174,26 +179,30 @@ namespace UIExtenderLibModule.Prefab
             }
         }
 
-        /**
-         * Get path for movie from WidgetFactory
-         */
+        /// <summary>
+        /// Get path for movie from WidgetFactory
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <returns></returns>
         private string PathForMovie(string movie)
         {
             // @TODO: figure out a method more prone to game updates
             var prefabNamesMethod = typeof(WidgetFactory).GetMethod("GetPrefabNamesAndPathsFromCurrentPath", BindingFlags.Instance | BindingFlags.NonPublic);
-            Utils.CompatiblityAssert(prefabNamesMethod != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath");
+            Utils.CompatAssert(prefabNamesMethod != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath");
             
             // get names and paths of loaded Widgets
             var paths = prefabNamesMethod.Invoke(UIResourceManager.WidgetFactory, new object[] { }) as Dictionary<string, string>;
-            Utils.CompatiblityAssert(paths != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath == null");
+            Utils.CompatAssert(paths != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath == null");
             
             return paths[movie];
         }
 
-        /**
-         * Apply patches to movie
-         */
-        private void ProcessMovieIfNeeded(string movie, XmlDocument document)
+        /// <summary>
+        /// Apply patches to movie (if any is registered)
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="document"></param>
+        public void ProcessMovieIfNeeded(string movie, XmlDocument document)
         {
             if (_moviePatches.ContainsKey(movie))
             {
@@ -202,28 +211,6 @@ namespace UIExtenderLibModule.Prefab
                     patch(document);
                 }
             }
-        }
-
-        /**
-         * Method that is called by transpiled `WidgetPrefab.LoadFrom`
-         *
-         * Called from generated IL in `WidgetPrefabLoadPatch` transpiler
-         */
-        public static void ProcessMovieDocumentIfNeeded(string path, XmlDocument document)
-        {
-            // equivalent XML parsing code from `WidgetPrefab.LoadFrom`
-            // needs to be duplicated here since original gets patched out to free up space in IL
-            using (XmlReader xmlReader = XmlReader.Create(path, new XmlReaderSettings
-            {
-                IgnoreComments = true,
-                IgnoreWhitespace = true,
-            }))
-            {
-                document.Load(xmlReader);
-            }
-
-            // actually apply patches to document
-            UIExtenderLibModule.SharedInstance.WidgetComponent.ProcessMovieIfNeeded(Path.GetFileNameWithoutExtension(path), document);
         }
     }
 }

@@ -1,12 +1,12 @@
 Library for Mount & Blade: Bannerlord that enables multiple mods to alter standard game interface.
 
-### Introduction
-* `UIExtenderLib` is a library that you use in your project, which provides a number of attributes to decorate your classes with, which will
-enable those classes to alter _Gauntlet_ prefabs and make additions to default `ViewModel`s.
-* `UIExtenderLibModule` which should be loaded on target computer will then collect all of the extensions, and will patch them in on startup of the game.
-
 ### Installation
-Download latest version of __UIExtenderLibModule__ from [releases](https://github.com/shdwp/UIExtenderLib/releases) and drop it into your `Modules` folder. `UIExtenderLib` doesn't need to be installed as it comes with the mods.
+Install from NuGet: package name `UIExtenderLib`.
+
+Alternatively you can download pacakge from [NuGet page](https://www.nuget.org/packages/UIExtenderLib/) and open it to find `dll` in the `lib/` folder.
+
+### Updating from version 1.0.x
+UIExtenderLib doesn't include `UIExtenderLibModule` now, meaning that all you need to do is add `dll` as a dependency. Mixing v1 modules and v2 modules are not supported, meaning that you absolutely need to update dependent mods. API stayed the same except for small changes in registration routine.
 
 ### When you should use it
 If you change any of the game standard _prefab_ `.xml` files you should use this library or similar approach in order to not overwrite changes to the same elements by other mods.
@@ -41,7 +41,7 @@ In order to add data to the prefab, you need to add properties to the target dat
         {
         }
         
-        public override void Refresh()
+        public override void OnRefresh()
         {
             var horses = MobileParty.MainParty.ItemRoster.Where(i => i.EquipmentElement.Item.ItemCategory.Id == new MBGUID(671088673));
             var newTooltip = horses.Aggregate("Horses: ", (s, element) => $"{s}\n{element.EquipmentElement.Item.Name}: {element.Amount}");
@@ -51,20 +51,28 @@ In order to add data to the prefab, you need to add properties to the target dat
                 _horsesAmount = horses.Sum(item => item.Amount);
                 _horsesTooltip = newTooltip;
 
-                _vm.OnPropertyChanged(nameof(HorsesAmount));
+                if (_vm.TryGetTarget(out var vm))
+                {
+                    vm.OnPropertyChanged(nameof(HorsesAmount));
+                }
             }
         }
     }
 ```
 
-The last thing is to call `UIExtender.Register();` to register your attributed classes:
+The last thing is to call `UIExtender.Register` and `UIExtender.Verify` to apply your extensions:
 ```cs
 
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
             
-            UIExtender.Register();
+            _extender = new UIExtender("ModuleName");
+            _extender.Register();
+        }
+
+        protected override void OnBeforeInitialScreenSetAsRoot() {
+            _extender.Verify();
         }
 ```
 

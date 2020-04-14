@@ -1,0 +1,12 @@
+﻿@startuml
+class BaseViewModelMixin<T: ViewModel> {
+
+}
+
+interface IViewModelMixin {
+
+}
+
+BaseViewModelMixin --|> IViewModelMixin
+
+@enduml

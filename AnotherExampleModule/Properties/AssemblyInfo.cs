@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("UIExtenderLibModule")]
+[assembly: AssemblyTitle("AnotherExampleModule")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("UIExtenderLibModule")]
+[assembly: AssemblyProduct("AnotherExampleModule")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("A95DA311-E680-41A5-978F-64B12764EEEC")]
+[assembly: Guid("AE5A7DED-AA14-4F54-9566-AC6A8323CB41")]
 
 // Version information for an assembly consists of the following four values:
 //

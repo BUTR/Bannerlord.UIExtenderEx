@@ -1,0 +1,45 @@
+﻿@startuml
+
+actor Game
+
+Game -> ExtendedVM: Instantiation (constructor called)
+ExtendedVM -> BaseVM: base constructor
+BaseVM --> ExtendedVM
+
+ExtendedVM -> ViewModelComponent: InitializeMixinsForVMInstance()
+ViewModelComponent -> ViewModelComponent: instantiate all mixins associated with this VM
+ViewModelComponent --> ExtendedVM
+ExtendedVM --> Game
+
+...
+Game -> ExtendedVM: Destructor
+ExtendedVM -> BaseVM: original destructor
+BaseVM --> ExtendedVM
+
+ExtendedVM -> ViewModelComponent: DestructMixinsForVMInstance
+ViewModelComponent --> ExtendedVM
+ExtendedVM --> Game
+...
+
+...
+Game -> ExtendedVM: OnFinalize
+ExtendedVM -> BaseVM: original OnFinalize
+BaseVM --> ExtendedVM
+
+ExtendedVM -> ViewModelComponent: FinalizeMixinsForVMInstance
+ViewModelComponent --> ExtendedVM
+ExtendedVM --> Game
+...
+
+Game -> ExtendedVM: method access (and getters/setters)
+alt original method
+    ExtendedVM -> BaseVM: property access
+else mixin method
+    ExtendedVM -> ViewModelComponent: MixinInstanceForVMInstance
+    ViewModelComponent -> ExtendedVM
+    ExtendedVM -> Mixin: property access
+    Mixin --> ExtendedVM
+end
+ExtendedVM --> Game
+
+@enduml
