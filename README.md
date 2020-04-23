@@ -23,7 +23,7 @@ You mark your _prefab extensions_ based on one of the `IPrefabPatch` descendants
         public override string Name => "HorseAmountIndicator";
     }
 ```
-This specific extension will load prefab `HorseAmountIndicator.xml` from `Mod/GUI/PrefabExtensions/` folder.
+This specific extension will load prefab `HorseAmountIndicator.xml` from `MODULE/GUI/PrefabExtensions/` folder.
 
 In order to add data to the prefab, you need to add properties to the target datasource class, which in case of `BottomInfoBar` is `MapInfoVM`, this is done by making a _mixin_ class, inheriting from `BaseViewModelMixin<T>` and marking it with `ViewModelMixin` attribute. This class will be mixed in to the target view model `T`, making fields and methods accessible in the prefab:
 
@@ -78,7 +78,6 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Verify` to apply
 
 ### Documentation
 Rest of the documentation is located on [wiki](https://github.com/shdwp/UIExtenderLib/wiki).
-
 
 ### Examples
 * [CampMod](https://github.com/shdwp/BannerlordCampMod) - mod that adds player camps
