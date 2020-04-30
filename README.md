@@ -3,7 +3,7 @@ Library for Mount & Blade: Bannerlord that enables multiple mods to alter standa
 ### Installation
 Install from NuGet: package name `UIExtenderLib`.
 
-Alternatively you can download pacakge from [NuGet page](https://www.nuget.org/packages/UIExtenderLib/) and open it to find `dll` in the `lib/` folder.
+Alternatively you can download package from [NuGet page](https://www.nuget.org/packages/UIExtenderLib/) and open it to find `dll` in the `lib/` folder.
 
 ### Updating from version 1.0.x
 UIExtenderLib doesn't include `UIExtenderLibModule` now, meaning that all you need to do is add `dll` as a dependency. Mixing v1 modules and v2 modules are not supported, meaning that you absolutely need to update dependent mods. API stayed the same except for small changes in registration routine.
