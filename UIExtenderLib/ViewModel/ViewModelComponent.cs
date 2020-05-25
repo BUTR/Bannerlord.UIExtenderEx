@@ -295,9 +295,9 @@ namespace UIExtenderLib.ViewModel
                 // properties
                 foreach (var property in mixin.GetProperties().Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceProperty))))
                 {
-                    var newProperty = builder.DefineProperty(property.Name, PropertyAttributes.None, property.PropertyType, new Type[] {});
-                    var attributeConstructor = typeof(DataSourceProperty).GetConstructor(new Type[] { });
-                    var customBuilder = new CustomAttributeBuilder(attributeConstructor, new object[] {});
+                    var newProperty = builder.DefineProperty(property.Name, PropertyAttributes.None, property.PropertyType, Type.EmptyTypes);
+                    var attributeConstructor = typeof(DataSourceProperty).GetConstructor(Type.EmptyTypes);
+                    var customBuilder = new CustomAttributeBuilder(attributeConstructor, Array.Empty<object>());
                     newProperty.SetCustomAttribute(customBuilder);
                     
                     // getter
@@ -322,7 +322,7 @@ namespace UIExtenderLib.ViewModel
                 // methods
                 foreach (var method in mixin.GetMethods().Where(m => m.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceMethod))))
                 {
-                    var newMethod = builder.DefineMethod(method.Name, MethodAttributes.Public, null, new Type[] { });
+                    var newMethod = builder.DefineMethod(method.Name, MethodAttributes.Public, null, Type.EmptyTypes);
                     var gen = newMethod.GetILGenerator();
 
                     // body

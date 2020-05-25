@@ -94,8 +94,7 @@ namespace UIExtenderLib
         /// <returns></returns>
         public static V Get<K, V>(this IDictionary<K, V> o, K key, Func<V> def)
         {
-            V value;
-            if (o.TryGetValue(key, out value))
+            if (o.TryGetValue(key, out var value))
             {
                 return value;
             }
