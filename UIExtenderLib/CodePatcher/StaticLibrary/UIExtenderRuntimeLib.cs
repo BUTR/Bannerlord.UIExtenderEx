@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using TaleWorlds.Library;
 
 namespace UIExtenderLib.CodePatcher.StaticLibrary
 {
@@ -71,14 +69,12 @@ namespace UIExtenderLib.CodePatcher.StaticLibrary
         /// <param name="document"></param>
         public static void LoadXmlDocument(string moduleName, string path, XmlDocument document)
         {
-            using (XmlReader xmlReader = XmlReader.Create(path, new XmlReaderSettings
+            using XmlReader xmlReader = XmlReader.Create(path, new XmlReaderSettings
             {
                 IgnoreComments = true,
                 IgnoreWhitespace = true,
-            }))
-            {
-                document.Load(xmlReader);
-            }
+            });
+            document.Load(xmlReader);
         }
 
         /// <summary>
@@ -105,15 +101,18 @@ namespace UIExtenderLib.CodePatcher.StaticLibrary
         /// <param name="name"></param>
         /// <param name="flags"></param>
         /// <returns></returns>
-        public static MethodInfo FindExecuteCommandTargetMethod(Type t, string name, BindingFlags flags)
+        public static MethodInfo? FindExecuteCommandTargetMethod(Type t, string name, BindingFlags flags)
         {
-            if (t == null)
+            while (true)
             {
-                return null;
+                if (t == null)
+                    return null;
+
+                if (t.GetMethod(name, flags | BindingFlags.FlattenHierarchy) is { } method)
+                    return method;
+
+                t = t.BaseType;
             }
-			
-            var method = t.GetMethod(name, flags | BindingFlags.FlattenHierarchy);
-            return method != null ? method : FindExecuteCommandTargetMethod(t.BaseType, name, flags);
         }
     }
 }

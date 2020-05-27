@@ -15,7 +15,7 @@ namespace UIExtenderLib.CodePatcher.StaticLibrary
     /// Most of those methods require additional positional argument `moduleName`, hence they're not usable
     /// in itself with Harmony. Instead they are used in generated assembly managed by `CodePatcherComponent`.
     /// </summary>
-    public class UIExtenderPatchLib
+    public static class UIExtenderPatchLib
     {
         /// <summary>
         /// Transpiler which replaces constructors of view models with their expanded counterparts.
@@ -181,10 +181,10 @@ namespace UIExtenderLib.CodePatcher.StaticLibrary
         /// <returns></returns>
         public static IEnumerable<CodeInstruction> ViewModelExecuteTranspiler(IEnumerable<CodeInstruction> input)
         {
-            var replacedMethod = typeof(Type).GetMethod(nameof(Type.GetMethod), new Type[] {typeof(string), typeof(BindingFlags)});
+            var replacedMethod = typeof(Type).GetMethod(nameof(Type.GetMethod), new[] { typeof(string), typeof(BindingFlags) });
             var targetMethod = typeof(UIExtenderRuntimeLib).GetMethod(nameof(UIExtenderRuntimeLib.FindExecuteCommandTargetMethod));
             
-            var index = input.TakeWhile(i => !(i.opcode == OpCodes.Callvirt && (i.operand as MethodInfo) == replacedMethod)).Count();
+            var index = input.TakeWhile(i => !(i.opcode == OpCodes.Callvirt && i.operand as MethodInfo == replacedMethod)).Count();
             if (index >= input.Count())
             {
                 // already patched

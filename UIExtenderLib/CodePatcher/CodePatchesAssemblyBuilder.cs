@@ -6,8 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using TaleWorlds.Engine;
-using Path = System.IO.Path;
 
 namespace UIExtenderLib.PatchAssembly
 {
@@ -56,7 +54,7 @@ namespace UIExtenderLib.PatchAssembly
                 name,
                 MethodAttributes.Static | MethodAttributes.Public,
                 typeof(IEnumerable<CodeInstruction>),
-                new Type[] {typeof(IEnumerable<CodeInstruction>)}
+                new [] {typeof(IEnumerable<CodeInstruction>)}
             );
 
             var gen = method.GetILGenerator();
@@ -78,7 +76,7 @@ namespace UIExtenderLib.PatchAssembly
                 name,
                 MethodAttributes.Static | MethodAttributes.Public,
                 null,
-                new Type[] {typeof(object)}
+                new [] {typeof(object)}
             );
 
             // state name of the parameter in order for Harmony to recognize it
@@ -129,17 +127,21 @@ namespace UIExtenderLib.PatchAssembly
                         gen.EmitCall(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle)), null);
                         break;
                     case IEnumerable<Type> ta:
-                        gen.Emit(OpCodes.Ldc_I4, ta.Count());
+                        var enumerable = ta.ToList();
+
+                        gen.Emit(OpCodes.Ldc_I4, enumerable.Count());
                         gen.Emit(OpCodes.Newarr, typeof(Type));
                         gen.Emit(OpCodes.Dup);
-                        for (int i = 0; i < ta.Count(); i++)
+                        for (var i = 0; i < enumerable.Count(); i++)
                         {
-                            var value = ta.ElementAt(i);
+                            var value = enumerable.ElementAt(i);
                             gen.Emit(OpCodes.Ldc_I4, i);
                             gen.Emit(OpCodes.Ldtoken, value);
                             gen.EmitCall(OpCodes.Call, typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle)), null);
                             gen.Emit(OpCodes.Stelem_Ref);
                         }
+
+                        enumerable.Clear();
                         break;
                     default:
                         Debug.Fail($"Type of {arg} is not supported by this method!");

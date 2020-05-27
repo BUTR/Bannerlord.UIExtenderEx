@@ -7,7 +7,6 @@ using System.Reflection.Emit;
 using TaleWorlds.Library;
 using UIExtenderLib.Interface;
 using UIExtenderLib.CodePatcher.StaticLibrary;
-using UIExtenderLib.PatchAssembly;
 using Debug = System.Diagnostics.Debug;
 
 namespace UIExtenderLib.ViewModel
@@ -58,7 +57,7 @@ namespace UIExtenderLib.ViewModel
          /// <param name="mixinType">mixin type, should be a subclass of ViewModelMixin<T> where T specify view model to extend</param>
         internal void RegisterViewModelMixin(Type mixinType)
         {
-            Type viewModelType = null;
+            Type? viewModelType = null;
             var node = mixinType;
             while (node != null)
             {
@@ -83,10 +82,7 @@ namespace UIExtenderLib.ViewModel
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        internal bool ExtendsViewModelType(Type t)
-        {
-            return _mixins.ContainsKey(t);
-        }
+        internal bool ExtendsViewModelType(Type t) => _mixins.ContainsKey(t);
 
         /// <summary>
         /// Find base type for type that was possibly extended by other instances.
@@ -95,7 +91,7 @@ namespace UIExtenderLib.ViewModel
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
-        internal Type BaseTypeForPossiblyExtendedType(Type t)
+        internal Type? BaseTypeForPossiblyExtendedType(Type t)
         {
             while (t != null)
             {
@@ -126,7 +122,7 @@ namespace UIExtenderLib.ViewModel
             Debug.Assert(mixinInstance != null, $"Mixin instance (of type {mixinType}) not (yet) created for {instance}!");
             return mixinInstance;
         }
-        
+
         /// <summary>
         /// Get extended view model type for specified base type (view model).
         /// Generates that type if it is not found in cache, setting it's parent type to the `parentType`
@@ -137,14 +133,11 @@ namespace UIExtenderLib.ViewModel
         /// <param name="baseType">original type of VM (found in game)</param>
         /// <param name="parentType">parent type for newly generated type (can either equal to base to to extended VM from another instance)</param>
         /// <returns></returns>
-        internal Type ExtendedViewModelTypeForType(Type baseType, Type parentType)
+        internal Type ExtendedViewModelTypeForType(Type baseType, Type parentType) => _extendedTypeCache.Get(baseType, () =>
         {
-            return _extendedTypeCache.Get(baseType, () =>
-            {
-                var type = GenerateExtendedVMTypeFor(baseType, parentType);
-                return type;
-            });
-        }
+            var type = GenerateExtendedVMTypeFor(baseType, parentType);
+            return type;
+        });
 
         /// <summary>
         /// Initialize mixin instances for specified view model instance, called in extended VM constructor.
@@ -154,11 +147,7 @@ namespace UIExtenderLib.ViewModel
         internal void InitializeMixinsForVMInstance(Type baseType, object instance)
         {
             var list = mixinCacheList(instance);
-            
-            foreach (var mixinType in _mixins[baseType])
-            {
-                list.Add((IViewModelMixin)Activator.CreateInstance(mixinType, new [] { instance }));
-            }
+            list.AddRange(_mixins[baseType].Select(mixinType => (IViewModelMixin) Activator.CreateInstance(mixinType, instance)));
         }
 
         /// <summary>
@@ -220,34 +209,36 @@ namespace UIExtenderLib.ViewModel
             
             {
                 // constructor
-                var defaultConstructor = parentType.GetConstructors().First();
-                var constructorSignature = defaultConstructor.GetParameters().Select(p => p.ParameterType).ToArray();
-
-                var constructor = builder.DefineConstructor(
-                    MethodAttributes.Public,
-                    CallingConventions.Standard,
-                    constructorSignature
-                );
-
+                foreach (var constructorInfo in parentType.GetConstructors())
                 {
-                    var gen = constructor.GetILGenerator();
+                    var constructorSignature = constructorInfo.GetParameters().Select(p => p.ParameterType).ToArray();
 
-                    // call base constructor
-                    for (int i = 0; i < constructorSignature.Length + 1; i++)
+                    var constructor = builder.DefineConstructor(
+                        MethodAttributes.Public,
+                        CallingConventions.Standard,
+                        constructorSignature
+                    );
+
                     {
-                        gen.Emit(OpCodes.Ldarg, i);
+                        var gen = constructor.GetILGenerator();
+
+                        // call base constructor
+                        for (int i = 0; i < constructorSignature.Length + 1; i++)
+                        {
+                            gen.Emit(OpCodes.Ldarg, i);
+                        }
+
+                        gen.Emit(OpCodes.Call, constructorInfo);
+
+                        // instaniate mixins of this type
+                        var instantiateMixins = typeof(UIExtenderRuntimeLib).GetMethod(nameof(UIExtenderRuntimeLib.InitializeMixinsForVMInstance));
+                        gen.Emit(OpCodes.Ldstr, _moduleName);
+                        gen.Emit(OpCodes.Ldtoken, baseType);
+                        gen.Emit(OpCodes.Ldarg_0);
+                        gen.Emit(OpCodes.Call, instantiateMixins);
+
+                        gen.Emit(OpCodes.Ret);
                     }
-
-                    gen.Emit(OpCodes.Call, defaultConstructor);
-
-                    // instaniate mixins of this type
-                    var instantiateMixins = typeof(UIExtenderRuntimeLib).GetMethod(nameof(UIExtenderRuntimeLib.InitializeMixinsForVMInstance));
-                    gen.Emit(OpCodes.Ldstr, _moduleName);
-                    gen.Emit(OpCodes.Ldtoken, baseType);
-                    gen.Emit(OpCodes.Ldarg_0);
-                    gen.Emit(OpCodes.Call, instantiateMixins);
-
-                    gen.Emit(OpCodes.Ret);
                 }
             }
 
@@ -320,7 +311,7 @@ namespace UIExtenderLib.ViewModel
                 }
 
                 // methods
-                foreach (var method in mixin.GetMethods().Where(m => m.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceMethod))))
+                foreach (var method in mixin.GetMethods().Where(m => m.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceMethodAttribute))))
                 {
                     var newMethod = builder.DefineMethod(method.Name, MethodAttributes.Public, null, Type.EmptyTypes);
                     var gen = newMethod.GetILGenerator();
@@ -361,10 +352,7 @@ namespace UIExtenderLib.ViewModel
         /// </summary>
         /// <param name="instance"></param>
         /// <returns></returns>
-        private string mixinCacheKey(object instance)
-        {
-            return instance.GetType() + "_" + instance.GetHashCode();
-        }
+        private string mixinCacheKey(object instance) => $"{instance.GetType()}_{instance.GetHashCode()}";
 
         /// <summary>
         /// Get list of mixin instances from _mixinInstanceCache associated with VM instance

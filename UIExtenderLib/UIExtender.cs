@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using TaleWorlds.Engine;
-using TaleWorlds.Library;
 using UIExtenderLib.Interface;
 using Debug = System.Diagnostics.Debug;
 
@@ -22,7 +21,7 @@ namespace UIExtenderLib
         /// <summary>
         /// Name of the module this instance is assigned to
         /// </summary>
-        private string _moduleName;
+        private readonly string _moduleName;
         
         /// <summary>
         /// Runtime instance of this extender
@@ -47,6 +46,15 @@ namespace UIExtenderLib
             Register(Assembly.GetCallingAssembly());
         }
 
+        public void Enable()
+        {
+            _runtime.Enable();
+        }
+        public void Disable()
+        {
+            _runtime.Disable();
+        }
+
         /// <summary>
         /// Register extension types from specified assembly
         /// Should be called during `OnSubModuleLoad`, called by `Register`
@@ -58,7 +66,7 @@ namespace UIExtenderLib
             
             var types = assembly
                 .GetTypes()
-                .Where(t => t.CustomAttributes.Any(a => a.AttributeType.IsSubclassOf(typeof(UIExtenderLibExtension))));
+                .Where(t => t.CustomAttributes.Any(a => a.AttributeType.IsSubclassOf(typeof(UIExtenderLibExtensionAttribute))));
 
             if (RuntimeInstances.ContainsKey(_moduleName))
             {
@@ -90,15 +98,12 @@ namespace UIExtenderLib
         /// </summary>
         /// <param name="moduleName">name of the module that produced this patch</param>
         /// <returns></returns>
-        internal static UIExtenderRuntime RuntimeFor(string moduleName)
-        {
-            return RuntimeInstances[moduleName];
-        }
+        internal static UIExtenderRuntime RuntimeFor(string moduleName) => RuntimeInstances[moduleName];
 
         /// <summary>
         /// Check for previous not compatible versions of UIExtenderLib
         /// </summary>
-        private void CheckNotCompatibleVersions()
+        private static void CheckNotCompatibleVersions()
         {
             var mods = Utilities.GetModulesNames();
             if (mods.Contains("0UIExtenderLibModule") || mods.Contains("UIExtenderLibModule"))

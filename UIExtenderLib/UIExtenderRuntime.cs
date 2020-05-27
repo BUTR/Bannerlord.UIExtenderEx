@@ -35,7 +35,7 @@ namespace UIExtenderLib
         /// <summary>
         /// Instance of CodePatcherComponent, which deals with Harmony
         /// </summary>
-        internal readonly CodePatcherComponent CodePatcher;
+        internal readonly CodePatcherComponent CodePatcherComponent;
 
         /// <summary>
         /// Whether `Verify()` was actually called
@@ -57,7 +57,7 @@ namespace UIExtenderLib
             
             PrefabComponent = new PrefabComponent(moduleName);
             ViewModelComponent = new ViewModelComponent(moduleName);
-            CodePatcher = new CodePatcherComponent(this);
+            CodePatcherComponent = new CodePatcherComponent(this);
         }
 
         /// <summary>
@@ -89,19 +89,20 @@ namespace UIExtenderLib
         {
             foreach (var extensionType in types)
             {
-                var baseAttribute = Attribute.GetCustomAttribute(extensionType, typeof(UIExtenderLibExtension));
+                var baseAttribute = Attribute.GetCustomAttribute(extensionType, typeof(UIExtenderLibExtensionAttribute));
                 switch (baseAttribute)
                 {
-                    case PrefabExtension xmlExtension:
+                    case PrefabExtensionAttribute xmlExtension:
                     {
-                        var constructor = extensionType.GetConstructor(new Type[] { });
+                        var constructor = extensionType.GetConstructor(Type.EmptyTypes);
                         if (constructor == null)
                         {
                             Debug.Fail("Failed to find appropriate constructor for patch!");
+                            continue;
                         }
                     
                         // gauntlet xml extension
-                        switch (constructor.Invoke(new object[]{}))
+                        switch (constructor.Invoke(Array.Empty<object>()))
                         {
                             case PrefabExtensionInsertPatch patch:
                                 PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
@@ -131,48 +132,59 @@ namespace UIExtenderLib
                         break;
                     }
                     
-                    case ViewModelMixin _:
+                    case ViewModelMixinAttribute _:
                         // view model mixin
                         ViewModelComponent.RegisterViewModelMixin(extensionType);
                         break;
-                    
+
+                    case CodePatcherAttribute _:
+                        CodePatcherComponent.RegisterCustom(extensionType);
+                        break;
+
                     default:
                         Debug.Fail($"Failed to find appropriate clause for base type {extensionType} with attribute {baseAttribute}!");
                         break;
                 }
             }
 
-            var patchingResult = ViewModelPatches.Result.Success;
+            Enable();
+        }
+
+        internal void Enable()
+        {
             // add core patches (in order for UIExtender to actually work)
-            if (!CorePatches.AddTo(CodePatcher))
+            if (!CorePatches.AddTo(CodePatcherComponent))
             {
                 _userMessages.Add(new InformationMessage($"Failed to patch {ModuleName} (outdated).", Colors.Red));
                 return;
             }
 
-            patchingResult = ViewModelPatches.AddTo(CodePatcher);
-            switch (patchingResult)
-            {
-                case ViewModelPatches.Result.Success:
-                    break;
-                
-                case ViewModelPatches.Result.Partial:
-                    AddUserWarning($"There were errors on {ModuleName} patching. Some functionality may not work (module outdated).");
-                    break;
-                
-                case ViewModelPatches.Result.Failure:
-                    AddUserError($"Failed to patch {ModuleName} (outdated).");
-                    break;
-            }
-            
             // finalize code patcher and let harmony apply patches
-            CodePatcher.ApplyPatches();
-            
+            CodePatcherComponent.Enable();
+
             // save .dll for troubleshooting
             ViewModelComponent.SaveDebugImages();
 
             // force reload movies that should be patched by extensions
-            PrefabComponent.ForceReloadMovies();
+            PrefabComponent.Enable();
+        }
+        internal void Disable()
+        {
+            // add core patches (in order for UIExtender to actually work)
+            //if (!CorePatches.AddTo(CodePatcherComponent))
+            //{
+            //    _userMessages.Add(new InformationMessage($"Failed to patch {ModuleName} (outdated).", Colors.Red));
+            //    return;
+            //}
+
+            // finalize code patcher and let harmony apply patches
+            CodePatcherComponent.Disable();
+
+            // save .dll for troubleshooting
+            //ViewModelComponent.SaveDebugImages();
+
+            // force reload movies that should be patched by extensions
+            PrefabComponent.Disable();
         }
 
         /// <summary>

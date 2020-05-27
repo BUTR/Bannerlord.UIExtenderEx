@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
 using System.Xml;
 using TaleWorlds.Core;
-using TaleWorlds.Engine;
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
 using UIExtenderLib.Interface;
 using NonGenericCollections = System.Collections;
-using Path = System.IO.Path;
 
 namespace UIExtenderLib.Prefab
 {
@@ -20,6 +17,7 @@ namespace UIExtenderLib.Prefab
     public class PrefabComponent
     {
         private readonly string _moduleName;
+        private bool _enabled;
         
         /// <summary>
         /// Registered movie patches
@@ -74,11 +72,11 @@ namespace UIExtenderLib.Prefab
         {
             RegisterPatch(movie, xpath, (node) =>
             {
-                var extensionNode = LoadPrefabExtension(patch.Name);
+                var extensionNode = patch.GetPrefabExtension().DocumentElement;
                 var importedExtensionNode = node.OwnerDocument.ImportNode(extensionNode, true);
                 var position = Math.Min(patch.Position, node.ChildNodes.Count - 1);
                 position = Math.Max(position, 0);
-                Debug.Assert(position >= 0 && position < node.ChildNodes.Count, $"Invalid position ({position}) for insert (patching in {patch.Name})");
+                Debug.Assert(position >= 0 && position < node.ChildNodes.Count, $"Invalid position ({position}) for insert (patching in {patch.Id})");
 
                 node.InsertAfter(importedExtensionNode, node.ChildNodes[position]);
             });
@@ -94,7 +92,7 @@ namespace UIExtenderLib.Prefab
         {
             RegisterPatch(movie, xpath, (node) =>
             {
-                var extensionNode = LoadPrefabExtension(patch.Name);
+                var extensionNode = patch.GetPrefabExtension().DocumentElement;
                 var importedExtensionNode = node.OwnerDocument.ImportNode(extensionNode, true);
 
                 node.ParentNode.ReplaceChild(importedExtensionNode, node);
@@ -111,7 +109,7 @@ namespace UIExtenderLib.Prefab
         {
             RegisterPatch(movie, xpath, (node) =>
             {
-                var extensionNode = LoadPrefabExtension(patch.Name);
+                var extensionNode = patch.GetPrefabExtension().DocumentElement;
                 var importedExtensionNode = node.OwnerDocument.ImportNode(extensionNode, true);
 
                 switch (patch.Type)
@@ -127,39 +125,13 @@ namespace UIExtenderLib.Prefab
             });           
         }
 
-        /**
-         * Load and parse prefab extension
-         */
-        /// <summary>
-        /// Load snippet extension XML. Will search for the file in MODULE\GUI\PrefabExtensions\NAME.xml
-        /// </summary>
-        /// <param name="name">name of the extension (without .xml)</param>
-        /// <returns>document element</returns>
-        private XmlNode LoadPrefabExtension(string name)
-        {
-            var path = Path.Combine(Utilities.GetBasePath(), "Modules", _moduleName, "GUI", "PrefabExtensions", name + ".xml");
-            var doc = new XmlDocument();
-                
-            using (var reader = XmlReader.Create(path, new XmlReaderSettings
-            {
-                IgnoreComments = true,
-                IgnoreWhitespace = true,
-            }))
-            {
-                doc.Load(reader);
-            }
-                
-            Debug.Assert(doc.HasChildNodes, $"Failed to parse extension ({name}) XML!");
-            return doc.DocumentElement;
-        }
-
         /// <summary>
         /// Make WidgetFactory reload Movies that were extended by _moviePatches.
         /// WidgetFactory loads Movies during SandBox module loading phase, which occurs even before
         /// our module gets loaded, hence once we get control we need to force it to reload XMLs that
         /// are getting patched by extensions.
         /// </summary>
-        internal void ForceReloadMovies()
+        private void ForceReloadMovies()
         {
             // @TODO: figure out a method more prone to game updates
             
@@ -179,22 +151,15 @@ namespace UIExtenderLib.Prefab
             }
         }
 
-        /// <summary>
-        /// Get path for movie from WidgetFactory
-        /// </summary>
-        /// <param name="movie"></param>
-        /// <returns></returns>
-        private string PathForMovie(string movie)
+        public void Enable()
         {
-            // @TODO: figure out a method more prone to game updates
-            var prefabNamesMethod = typeof(WidgetFactory).GetMethod("GetPrefabNamesAndPathsFromCurrentPath", BindingFlags.Instance | BindingFlags.NonPublic);
-            Utils.CompatAssert(prefabNamesMethod != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath");
-            
-            // get names and paths of loaded Widgets
-            var paths = prefabNamesMethod.Invoke(UIResourceManager.WidgetFactory, new object[] { }) as Dictionary<string, string>;
-            Utils.CompatAssert(paths != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath == null");
-            
-            return paths[movie];
+            _enabled = true;
+            ForceReloadMovies();
+        }
+        public void Disable()
+        {
+            _enabled = false;
+            ForceReloadMovies();
         }
 
         /// <summary>
@@ -204,6 +169,9 @@ namespace UIExtenderLib.Prefab
         /// <param name="document"></param>
         public void ProcessMovieIfNeeded(string movie, XmlDocument document)
         {
+            if (!_enabled)
+                return;
+
             if (_moviePatches.ContainsKey(movie))
             {
                 foreach (var patch in _moviePatches[movie])
@@ -211,6 +179,24 @@ namespace UIExtenderLib.Prefab
                     patch(document);
                 }
             }
+        }
+
+        /// <summary>
+        /// Get path for movie from WidgetFactory
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <returns></returns>
+        private static string PathForMovie(string movie)
+        {
+            // @TODO: figure out a method more prone to game updates
+            var prefabNamesMethod = typeof(WidgetFactory).GetMethod("GetPrefabNamesAndPathsFromCurrentPath", BindingFlags.Instance | BindingFlags.NonPublic);
+            Utils.CompatAssert(prefabNamesMethod != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath");
+
+            // get names and paths of loaded Widgets
+            var paths = prefabNamesMethod.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) as Dictionary<string, string>;
+            Utils.CompatAssert(paths != null, "WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath == null");
+
+            return paths[movie];
         }
     }
 }

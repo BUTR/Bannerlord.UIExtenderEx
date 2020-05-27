@@ -15,4 +15,8 @@
     <PackageReference Include="Lib.Harmony" Version="2.0.0.10" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ViewModelExtender\" />
+  </ItemGroup>
+
 </Project>

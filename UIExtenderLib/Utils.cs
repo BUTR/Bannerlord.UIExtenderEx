@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using HarmonyLib;
 using TaleWorlds.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
@@ -111,7 +112,7 @@ namespace UIExtenderLib
     {
         public static T PrivateValue<T>(this object o, string fieldName)
         {
-            var field = o.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var field = AccessTools.Field(o.GetType(), fieldName);
             Utils.CompatAssert(field != null, $"private value getter on {o}.{fieldName}");
             return (T) field.GetValue(o);
         }

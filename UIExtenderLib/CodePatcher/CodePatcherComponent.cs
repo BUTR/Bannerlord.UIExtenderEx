@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Security.Principal;
-using System.Xml;
 using HarmonyLib;
-using TaleWorlds.Core;
-using TaleWorlds.GauntletUI.PrefabSystem;
 using UIExtenderLib.CodePatcher.StaticLibrary;
 using UIExtenderLib.PatchAssembly;
-using UIExtenderLib.ViewModel;
 
 namespace UIExtenderLib.CodePatcher
 {
@@ -20,7 +13,7 @@ namespace UIExtenderLib.CodePatcher
     /// Component that deals with code patching using Harmony.
     /// Adds static patches to PatchAssemblyBuilder later passing them to Harmony.
     /// </summary>
-    internal class CodePatcherComponent
+    public class CodePatcherComponent
     {
         private readonly Harmony _harmony;
         private readonly UIExtenderRuntime _runtime;
@@ -28,6 +21,8 @@ namespace UIExtenderLib.CodePatcher
         
         private readonly Dictionary<string, MethodBase> _transpilers = new Dictionary<string, MethodBase>();
         private readonly Dictionary<string, MethodBase> _postfixes = new Dictionary<string, MethodBase>();
+
+        private readonly List<CustomCodePatcher> _customCodePatchers = new List<CustomCodePatcher>();
 
         internal CodePatcherComponent(UIExtenderRuntime runtime)
         {
@@ -45,11 +40,11 @@ namespace UIExtenderLib.CodePatcher
         /// Doesn't do actual patching, which is done in `Apply()` method.
         /// </summary>
         /// <param name="callsite"></param>
-        internal void AddViewModelInstantiationPatch(MethodBase callsite)
+        public void AddViewModelInstantiationPatch(MethodBase callsite)
         {
             var patchName = nameof(UIExtenderPatchLib.InstantiationCallsiteTranspiler);
-            var name = patchName + Guid.NewGuid().ToString();
-            _patchesAssemblyBuilder.AddTranspiler(name, GetPatchLibMethod(patchName), new object[] {_runtime.ModuleName});
+            var name = patchName + Guid.NewGuid();
+            _patchesAssemblyBuilder.AddTranspiler(name, GetPatchLibMethod(patchName), _runtime.ModuleName);
             _transpilers[name] = callsite;
         }
 
@@ -58,16 +53,12 @@ namespace UIExtenderLib.CodePatcher
         /// Doesn't do actual patching, which is done in `Apply()` method.
         /// </summary>
         /// <param name="callsite"></param>
-        internal void AddViewModelRefreshPatch(MethodBase callsite)
+        public void AddViewModelRefreshPatch(MethodBase callsite)
         {
             var patchName = nameof(UIExtenderPatchLib.RefreshPostfix);
-            var name = patchName + Guid.NewGuid().ToString();
+            var name = patchName + Guid.NewGuid();
             
-            _patchesAssemblyBuilder.AddPostfix(
-                name, 
-                GetPatchLibMethod(patchName), 
-                new object[] {_runtime.ModuleName}
-            );
+            _patchesAssemblyBuilder.AddPostfix(name, GetPatchLibMethod(patchName), _runtime.ModuleName);
             _postfixes[name] = callsite;
         }
 
@@ -77,12 +68,12 @@ namespace UIExtenderLib.CodePatcher
         /// Doesn't do actual patching, which is done in `Apply()` method.
         /// </summary>
         /// <param name="callsite"></param>
-        internal void AddWidgetLoadPatch(MethodBase callsite)
+        public void AddWidgetLoadPatch(MethodBase callsite)
         {
             var patchName = nameof(UIExtenderPatchLib.PrefabLoadTranspiler);
-            var name = patchName + Guid.NewGuid().ToString();
+            var name = patchName + Guid.NewGuid();
             
-            _patchesAssemblyBuilder.AddTranspiler(name, GetPatchLibMethod(patchName), new object[] {_runtime.ModuleName});
+            _patchesAssemblyBuilder.AddTranspiler(name, GetPatchLibMethod(patchName), _runtime.ModuleName);
             _transpilers[name] = callsite;
         }
 
@@ -90,11 +81,11 @@ namespace UIExtenderLib.CodePatcher
         /// Adds Harmony patch running ViewModelExecuteTranspiler from PatchLib, fixing it's lookup issues brought by inheritance.
         /// Doesn't do actual patching, which is done in `Apply()` method.
         /// </summary>
-        /// <param name="executeCommandMethod"></param>
-        internal void AddViewModelExecutePatch(MethodBase callsite)
+        /// <param name="callsite"></param>
+        public void AddViewModelExecutePatch(MethodBase callsite)
         {
             var patchName = nameof(UIExtenderPatchLib.ViewModelExecuteTranspiler);
-            var name = patchName + Guid.NewGuid().ToString();
+            var name = patchName + Guid.NewGuid();
             _patchesAssemblyBuilder.AddTranspiler(name, GetPatchLibMethod(patchName));
             _transpilers[name] = callsite;
         }
@@ -103,8 +94,25 @@ namespace UIExtenderLib.CodePatcher
         /// Apply added patches (actually patch game code).
         /// After this call underlying assembly will be finalized and `AddX` methods can no longer be used.
         /// </summary>
-        internal void ApplyPatches()
+        internal void Enable()
         {
+            var patchingResult = CodePatcherResult.Success;
+            foreach (var customCodePatcher in _customCodePatchers)
+                patchingResult |= customCodePatcher.Apply(this);
+            switch (patchingResult)
+            {
+                case CodePatcherResult.Success:
+                    break;
+
+                case CodePatcherResult.Partial:
+                    _runtime.AddUserWarning($"There were errors on {_runtime.ModuleName} patching. Some functionality may not work (module outdated).");
+                    break;
+
+                case CodePatcherResult.Failure:
+                    _runtime.AddUserError($"Failed to patch {_runtime.ModuleName} (outdated).");
+                    break;
+            }
+
             // finalize assembly builder and load static library class from it
             var staticLibType = _patchesAssemblyBuilder.SaveAndLoadLibraryType();
 
@@ -120,23 +128,32 @@ namespace UIExtenderLib.CodePatcher
                 _harmony.Patch(kv.Value, postfix: new HarmonyMethod(method));
             }
         }
+        internal void Disable()
+        {
+            foreach (var kv in _transpilers)
+                _harmony.Unpatch(kv.Value, HarmonyPatchType.Transpiler);
+
+            foreach (var kv in _postfixes)
+                _harmony.Unpatch(kv.Value, HarmonyPatchType.Postfix);
+        }
+
+        internal void RegisterCustom(Type extensionType) =>
+            _customCodePatchers.Add((CustomCodePatcher)Activator.CreateInstance(extensionType));
 
         /// <summary>
         /// Helper method to find MethodInfo of specified patch from PatchLib
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        private MethodInfo GetPatchLibMethod(string name)
-        {
-            return typeof(UIExtenderPatchLib).GetMethod(name, BindingFlags.Static | BindingFlags.Public);
-        }
+        private static MethodInfo GetPatchLibMethod(string name) =>
+            typeof(UIExtenderPatchLib).GetMethod(name, BindingFlags.Static | BindingFlags.Public);
 
         /// <summary>
         /// Check loaded Harmony version.
         /// Bannerlord only loads first dll it can find without regards to it's version, meaning that the library can
         /// end up with outdated harmony at runtime.
         /// </summary>
-        private void CheckHarmonyVersion()
+        private static void CheckHarmonyVersion()
         {
             var version = typeof(Harmony).Assembly.ImageRuntimeVersion;
             var majorVersion = int.Parse("" + version.Skip(1).ElementAt(0));
