@@ -39,7 +39,7 @@ jobs:
     - name: Push Nupkg to GitHub Packages
       uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
       with:
-        nupkg-path: './Bannerlord.UIExtenderEx/packages/*.nupkg'
+        nupkg-path: './packages/*.nupkg'
         repo-owner: 'BUTR'
         gh-user: 'BUTR'
         token: ${{ secrets.GITHUB_TOKEN }}
