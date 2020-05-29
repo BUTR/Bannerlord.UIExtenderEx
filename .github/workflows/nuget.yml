@@ -1,0 +1,45 @@
+name: NuGet
+
+on:
+  push:
+    branches:
+      - rewrite
+
+jobs:
+  build-from-push:
+    name: Requested by Push
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+    - run: echo
+ 
+  build:
+    name: Publish to NuGet
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@master
+      with:
+        dotnet-version: 3.1.100
+        source-url: https://nuget.pkg.github.com/butr/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Build Solution (Release)
+      run: dotnet build --configuration Release
+      
+    - name: Pack MCM (Release)
+      run: dotnet pack Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -o "./packages" 
+
+    - name: Push Nupkg to GitHub Packages
+      uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
+      with:
+        nupkg-path: './Bannerlord.UIExtenderEx/packages/*.nupkg'
+        repo-owner: 'BUTR'
+        gh-user: 'BUTR'
+        token: ${{ secrets.GITHUB_TOKEN }}
