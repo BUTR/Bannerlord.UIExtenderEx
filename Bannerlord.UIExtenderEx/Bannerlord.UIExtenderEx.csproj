@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <Authors>shdwp, Aragas</Authors>
+    <PackageProjectUrl>https://github.com/BUTR/UIExtender.Ex</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/BUTR/UIExtender.Ex</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core.EarlyAccess" Version="1.4.0.229571-e" />
+    <PackageReference Include="Lib.Harmony" Version="2.0.0.10" />
+  </ItemGroup>
+
+</Project>
