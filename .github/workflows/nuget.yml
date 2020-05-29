@@ -36,10 +36,10 @@ jobs:
     - name: Pack MCM (Release)
       run: dotnet pack Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -o "./packages" 
 
-    - name: Publish (workaround)
-      run: |
-           for f in ./packages/*.nupkg
-           do
-             curl -vX PUT -u "vslee:${{secrets.GITHUB_TOKEN}}" -F package=@$f https://nuget.pkg.github.com/BUTR/
-           done
-      shell: bash
+    - name: Push Nupkg to GitHub Packages
+      uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
+      with:
+        nupkg-path: './packages/*.nupkg'
+        repo-owner: 'BUTR'
+        gh-user: 'BUTR'
+        token: ${{ secrets.GITHUB_TOKEN }}

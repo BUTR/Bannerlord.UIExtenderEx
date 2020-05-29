@@ -7,8 +7,8 @@
 	<GITHUB_RUN_NUMBER Condition="$(GITHUB_RUN_NUMBER) == ''">0</GITHUB_RUN_NUMBER>
     <Version>0.0.9.$(GITHUB_RUN_NUMBER)</Version>
     <Authors>shdwp, Aragas</Authors>
-    <PackageProjectUrl>https://github.com/BUTR/UIExtender.Ex</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/BUTR/UIExtender.Ex</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/BUTR/UIExtenderEx</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/BUTR/UIExtenderEx</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
   </PropertyGroup>
