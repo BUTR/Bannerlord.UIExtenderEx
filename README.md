@@ -54,7 +54,7 @@ In order to add data to the prefab, you need to add properties to the target dat
     }
 ```
 
-The last thing is to call `UIExtender.Register` and `UIExtender.Verify` to apply your extensions:
+The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply your extensions:
 ```cs
 
         protected override void OnSubModuleLoad()
@@ -63,10 +63,7 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Verify` to apply
             
             _extender = new UIExtender("ModuleName");
             _extender.Register();
-        }
-
-        protected override void OnBeforeInitialScreenSetAsRoot() {
-            _extender.Verify();
+            _extender.Enable();
         }
 ```
 
