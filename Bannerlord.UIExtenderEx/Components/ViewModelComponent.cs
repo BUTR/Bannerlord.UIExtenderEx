@@ -211,20 +211,21 @@ namespace Bannerlord.UIExtenderEx.Components
             }
         }
 
-        private IEnumerable<CodeInstruction> ViewModel_ExecuteCommand_Transpiler(IEnumerable<CodeInstruction> instructions)
+        private IEnumerable<CodeInstruction> ViewModel_ExecuteCommand_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
         {
             var first = true;
             foreach (var instruction in instructions)
             {
                 if (first)
                 {
-                    instruction.labels.Add(new Label());
+                    var label = ilGenerator.DefineLabel();
+                    instruction.labels.Add(label);
                     yield return new CodeInstruction(OpCodes.Ldstr, _moduleName);
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
                     yield return new CodeInstruction(OpCodes.Ldarg_1);
                     yield return new CodeInstruction(OpCodes.Ldarg_2);
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ViewModelComponent), nameof(ExecuteCommand)));
-                    yield return new CodeInstruction(OpCodes.Brtrue, instruction.labels.Last());
+                    yield return new CodeInstruction(OpCodes.Brtrue, label);
                     yield return new CodeInstruction(OpCodes.Ret);
                     yield return instruction;
                     first = false;
@@ -251,12 +252,13 @@ namespace Bannerlord.UIExtenderEx.Components
             if (!(UIExtender.RuntimeFor(moduleName) is { } runtime) || !runtime.ViewModelComponent.Enabled)
                 return true;
 
-            var isNativeMethod = viewModel.GetType().GetMethod(commandName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null;
-            var isExtensionMethod = runtime.ViewModelComponent._mixinInstanceCache.TryGetValue(MixinCacheKey(viewModel), out var list);
+            var nativeMethod = viewModel.GetType().GetMethod(commandName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var isNativeMethod = nativeMethod != null;
+            var hasMixins = runtime.ViewModelComponent._mixinInstanceCache.TryGetValue(MixinCacheKey(viewModel), out var list);
 
-            if (!isNativeMethod && !isExtensionMethod)
+            if (!isNativeMethod && !hasMixins)
                 return false; // stop original execution
-            if (isNativeMethod && !isExtensionMethod)
+            if (isNativeMethod && !hasMixins)
                 return true; // continue original execution
 
             foreach (var mixin in list)
