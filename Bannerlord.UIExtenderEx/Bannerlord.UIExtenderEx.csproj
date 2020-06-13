@@ -5,7 +5,7 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
 	<GITHUB_RUN_NUMBER Condition="$(GITHUB_RUN_NUMBER) == ''">0</GITHUB_RUN_NUMBER>
-    <Version>0.0.9.$(GITHUB_RUN_NUMBER)</Version>
+    <Version>0.0.10.$(GITHUB_RUN_NUMBER)</Version>
     <Authors>shdwp, Aragas</Authors>
     <PackageProjectUrl>https://github.com/BUTR/Bannerlord.UIExtenderEx</PackageProjectUrl>
     <RepositoryUrl>https://github.com/BUTR/Bannerlord.UIExtenderEx</RepositoryUrl>

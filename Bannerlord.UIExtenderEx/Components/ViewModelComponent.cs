@@ -133,13 +133,14 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <param name="instance">instance of extended VM</param>
         private void InitializeMixinsForVMInstance(Type baseType, object instance)
         {
-            var list = MixinCacheList(instance);
-            foreach (var mixinType in _mixins[baseType])
-            {
-                list.Add((IViewModelMixin) Activator.CreateInstance(mixinType, instance));
-            }
+            var mixins = MixinCacheList(instance);
 
-            foreach (var viewModelMixin in list)
+            var newMixins = _mixins[baseType]
+                .Where(mixinType => mixins.All(mixin => mixin.GetType() != mixinType))
+                .Select(mixinType => (IViewModelMixin) Activator.CreateInstance(mixinType, instance))
+                .ToList();
+
+            foreach (var viewModelMixin in newMixins)
             {
                 var propertyCache = _mixinInstancePropertyCache.Get(viewModelMixin, () => new Dictionary<string, PropertyInfo>());
                 var methodCache = _mixinInstanceMethodCache.Get(viewModelMixin, () => new Dictionary<string, MethodInfo>());
