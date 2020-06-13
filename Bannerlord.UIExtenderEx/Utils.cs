@@ -47,11 +47,13 @@ namespace Bannerlord.UIExtenderEx
 
     internal static class ViewModelExtension
     {
-        private static AccessTools.FieldRef<ViewModel, Dictionary<string, PropertyInfo>> _propertyInfosField =
-            AccessTools.FieldRefAccess<ViewModel, Dictionary<string, PropertyInfo>>("_propertyInfos");
+        private static readonly FieldInfo _propertyInfosField = AccessTools.Field(typeof(ViewModel), "_propertyInfos");
 
-        public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo) =>
-            _propertyInfosField(viewModel).Add(name, propertyInfo);
+        public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
+        {
+            if (_propertyInfosField.GetValue(viewModel) is Dictionary<string, PropertyInfo> dict && !dict.ContainsKey(name))
+                dict.Add(name, propertyInfo);
+        }
     }
 
     internal static class IDictionaryExtensions

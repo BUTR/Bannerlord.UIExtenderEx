@@ -140,6 +140,8 @@ namespace Bannerlord.UIExtenderEx.Components
                 .Select(mixinType => (IViewModelMixin) Activator.CreateInstance(mixinType, instance))
                 .ToList();
 
+            mixins.AddRange(newMixins);
+
             foreach (var viewModelMixin in newMixins)
             {
                 var propertyCache = _mixinInstancePropertyCache.Get(viewModelMixin, () => new Dictionary<string, PropertyInfo>());
