@@ -25,21 +25,44 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@master
       with:
-        dotnet-version: 3.1.100
-        source-url: https://nuget.pkg.github.com/butr/index.json
+        dotnet-version: 3.1.300
+      env:
+        DOTNET_NOLOGO: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+    - name: Setup BUTR GPR
+      uses: actions/setup-dotnet@master
+      with:
+        source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        DOTNET_NOLOGO: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Build Solution (Release)
       run: dotnet build --configuration Release
+      env:
+        DOTNET_NOLOGO: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       
     - name: Pack MCM (Release)
-      run: dotnet pack Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -o "./packages" 
+      run: dotnet pack Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -o "./packages"
+      env:
+        DOTNET_NOLOGO: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
-    - name: Push Nupkg to GitHub Packages
-      uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
-      with:
-        nupkg-path: './packages/*.nupkg'
-        repo-owner: 'BUTR'
-        gh-user: 'BUTR'
-        token: ${{ secrets.GITHUB_TOKEN }}
+    #- name: Push Nupkg to GitHub Packages
+    #  uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
+    #  with:
+    #    nupkg-path: './packages/*.nupkg'
+    #    repo-owner: 'BUTR'
+    #    gh-user: 'BUTR'
+    #    token: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Publish (workaround)
+      run: |
+           for f in ./packages/*.nupkg
+           do
+             curl -vX PUT -u "vslee:${{secrets.GITHUB_TOKEN}}" -F package=@$f https://nuget.pkg.github.com/BUTR/
+           done
+      shell: bash
