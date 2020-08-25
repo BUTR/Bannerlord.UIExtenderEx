@@ -5,27 +5,79 @@ For internal usage only for now.
 ### Quickstart
 You mark your _prefab extensions_ based on one of the `IPrefabPatch` descendants and marking it with `PrefabExtension` attribute, therefore enabling you to make additions to the specified Movie's XML data.
 
-```cs
-    [PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children")]
-    public class OptionsPrefabExtension1 : PrefabExtensionInsertPatch
+Example of inserting ``XML`` at a specific position:
+```csharp
+    [PrefabExtension("Insert", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children")]
+    internal class TestPrefabExtensionInsertPatch : PrefabExtensionInsertPatch
     {
-        public override string Id => "Options1";
+        public override string Id => "Insert";
         public override int Position => 3;
         private XmlDocument XmlDocument { get; } = new XmlDocument();
 
-        public OptionsPrefabExtension1()
+        public TestPrefabExtensionInsertPatch()
         {
-            XmlDocument.LoadXml("<OptionsTabToggle DataSource=\"{ModOptions}\" PositionYOffset=\"2\" Parameter.ButtonBrush=\"Header.Tab.Center\" Parameter.TabName=\"ModOptionsPage\" />");
+            XmlDocument.LoadXml("<OptionsTabToggle Id=\"Insert\" />");
         }
 
         public override XmlDocument GetPrefabExtension() => XmlDocument;
     }
 ```
-This specific extension will load prefab `HorseAmountIndicator.xml` from `MODULE/GUI/PrefabExtensions/` folder.
 
-In order to add data to the prefab, you need to add properties to the target datasource class, which in case of `BottomInfoBar` is `MapInfoVM`, this is done by making a _mixin_ class, inheriting from `BaseViewModelMixin<T>` and marking it with `ViewModelMixin` attribute. This class will be mixed in to the target view model `T`, making fields and methods accessible in the prefab:
+Example of replacing ``XML``:
+```csharp
+    [PrefabExtension("Replace", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='Replace']")]
+    internal class TestPrefabExtensionReplacePatch : PrefabExtensionReplacePatch
+    {
+        public override string Id => "Replace";
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
 
-```cs
+        public TestPrefabExtensionReplacePatch()
+        {
+            XmlDocument.LoadXml("<OptionsTabToggle Id=\"Replaced\" />");
+        }
+
+        public override XmlDocument GetPrefabExtension() => XmlDocument;
+    }
+```
+
+Example of inserting ``XML`` after a specific element:
+```csharp
+    [PrefabExtension("InsertAsSiblingAppend", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']")]
+    internal class TestPrefabExtensionInsertAsSiblingAppendPatch : PrefabExtensionInsertAsSiblingPatch
+    {
+        public override string Id => "InsertAsSiblingAppend";
+        public override InsertType Type => InsertType.Append;
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
+
+        public TestPrefabExtensionInsertAsSiblingAppendPatch()
+        {
+            XmlDocument.LoadXml("<OptionsTabToggle Id=\"InsertAsSiblingAppend\" />");
+        }
+
+        public override XmlDocument GetPrefabExtension() => XmlDocument;
+    }
+```
+
+Example of inserting ``XML`` before a specific element:
+```csharp
+    [PrefabExtension("InsertAsSiblingPrepend", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']")]
+    internal class TestPrefabExtensionInsertAsSiblingPrependPatch : PrefabExtensionInsertAsSiblingPatch
+    {
+        public override string Id => "InsertAsSiblingPrepend";
+        public override InsertType Type => InsertType.Prepend;
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
+
+        public TestPrefabExtensionInsertAsSiblingPrependPatch()
+        {
+            XmlDocument.LoadXml("<OptionsTabToggle Id=\"InsertAsSiblingPrepend\" />");
+        }
+
+        public override XmlDocument GetPrefabExtension() => XmlDocument;
+    }
+```
+In order to add data to the prefab, you need to add properties to the target datasource class, this is done by making a _mixin_ class, inheriting from `BaseViewModelMixin<T>` and marking it with `ViewModelMixin` attribute. This class will be mixed in to the target view model `T`, making fields and methods accessible in the prefab:
+
+```csharp
     [ViewModelMixin]
     public class OptionsVMMixin : BaseViewModelMixin<OptionsVM>
     {
@@ -68,4 +120,4 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply
 ```
 
 ### Examples
-* [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/v3/MCM.UI/UIExtenderEx)
+* [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/v3/src/MCM.UI/UIExtenderEx)
