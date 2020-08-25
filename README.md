@@ -1,6 +1,4 @@
-Library for Mount & Blade: Bannerlord that enables multiple mods to alter standard game interface.
-
-For internal usage only for now.
+A library that enables multiple mods to alter standard game interface.
 
 ### Quickstart
 You mark your _prefab extensions_ based on one of the `IPrefabPatch` descendants and marking it with `PrefabExtension` attribute, therefore enabling you to make additions to the specified Movie's XML data.
