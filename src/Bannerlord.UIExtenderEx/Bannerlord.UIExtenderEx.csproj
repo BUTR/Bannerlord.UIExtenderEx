@@ -16,7 +16,7 @@
   <!--NuGet Package-->
   <PropertyGroup>
     <PackageId>Bannerlord.UIExtenderEx</PackageId>
-    <PackageDescription>Rewritten fork of UIExtenderLib with the similar goal of enabling multiple mods to alter standard game interface. Built against e$(GameVersion).</PackageDescription>
+    <PackageDescription>A library that enables multiple mods to alter standard game interface. Built against e$(GameVersion).</PackageDescription>
     <Title>UIExtenderEx</Title>
     <Authors>BUTR, shdwp</Authors>
     <DevelopmentDependency>true</DevelopmentDependency>
