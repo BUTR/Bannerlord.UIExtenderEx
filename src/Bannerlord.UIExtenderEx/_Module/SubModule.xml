@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="UIExtenderEx"/>
+  <Id value="Bannerlord.UIExtenderEx"/>
+  <Version value="v$version$"/>
+  <Official value="false"/>
+  <SingleplayerModule value="true"/>
+  <MultiplayerModule value="false"/>
+  <DependedModules>
+    <DependedModule Id="Bannerlord.Harmony" />
+  </DependedModules>
+  <SubModules>
+    <SubModule>
+      <Name value="UIExtenderEx"/>
+      <DLLName value="Bannerlord.UIExtenderEx.dll"/>
+      <SubModuleClassType value="Bannerlord.UIExtenderEx.SubModule"/>
+      <Tags/>
+    </SubModule>
+  </SubModules>
+</Module>

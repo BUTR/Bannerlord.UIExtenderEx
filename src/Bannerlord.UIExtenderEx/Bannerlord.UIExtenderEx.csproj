@@ -1,0 +1,37 @@
+﻿<!--EXTERNAL_PROPERTIES: GameVersion-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!--Module Creation-->
+  <PropertyGroup>
+    <ModuleName>Bannerlord.UIExtenderEx</ModuleName>
+  </PropertyGroup>
+  <!--Module Creation-->
+
+  <!--NuGet Package-->
+  <PropertyGroup>
+    <PackageId>Bannerlord.UIExtenderEx</PackageId>
+    <PackageDescription>A library that enables multiple mods to alter standard game interface. Built against e$(GameVersion).</PackageDescription>
+    <Title>UIExtenderEx</Title>
+    <Authors>BUTR, shdwp</Authors>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageIcon>Butter.png</PackageIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../resources/Butter.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+  <!--NuGet Package-->
+
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="all" />
+    <PackageReference Include="Lib.Harmony" Version="2.0.2" IncludeAssets="compile" />
+  </ItemGroup>
+
+</Project>
