@@ -80,16 +80,15 @@ jobs:
         pathTarget: opencover
 
     - name: Test Debug
-      run: dotnet test src/Bannerlord.UIExtenderEx.sln --configuration Debug -p:GameFolder="$PWD/bannerlord";
+      run: >-
+          $game_version=$env:STABLE_VERSION;
+          $game_version=$game_version.substring(1);
+          dotnet test src/Bannerlord.UIExtenderEx.sln --configuration Debug -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
+          dotnet test src/Bannerlord.UIExtenderEx.sln --configuration Release -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      shell: pwsh
-    - name: Test Release
-      run: dotnet test src/Bannerlord.UIExtenderEx.sln --configuration Release -p:GameFolder="$PWD/bannerlord";
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+        STABLE_VERSION: ${{secrets.SYNCED_GAME_STABLE_VERSION}}
       shell: pwsh
 
     - name: Test Coverage
