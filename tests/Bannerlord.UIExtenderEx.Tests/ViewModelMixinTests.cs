@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace Bannerlord.UIExtenderEx.Tests
 {
-    public class ViewModelMixinTests
+    public class ViewModelMixinTests : BaseTests
     {
         [Test]
         public void MixinPropertyIsInjectedTest()
         {
-            var uiExtender = new UIExtender("TestModule");
+            var uiExtender = new UIExtender(nameof(MixinPropertyIsInjectedTest));
             uiExtender.Register();
             uiExtender.Enable();
 
@@ -21,7 +21,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         [Test]
         public void MixinMethodIsCalledTest()
         {
-            var uiExtender = new UIExtender("TestModule");
+            var uiExtender = new UIExtender(nameof(MixinMethodIsCalledTest));
             uiExtender.Register();
             uiExtender.Enable();
 
