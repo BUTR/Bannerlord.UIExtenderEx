@@ -79,10 +79,14 @@ jobs:
         pathSource: opencover.4.7.922.zip
         pathTarget: opencover
 
-    - name: Test
-      run: >-
-          dotnet vstest src/Bannerlord.UIExtenderEx.sln --configuration Debug -p:GameFolder="$PWD/bannerlord";
-          dotnet vstest src/Bannerlord.UIExtenderEx.sln --configuration Release -p:GameFolder="$PWD/bannerlord";
+    - name: Test Debug
+      run: dotnet test src/Bannerlord.UIExtenderEx.sln --configuration Debug -p:GameFolder="$PWD/bannerlord";
+      env:
+        DOTNET_NOLOGO: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
+    - name: Test Release
+      run: dotnet test src/Bannerlord.UIExtenderEx.sln --configuration Release -p:GameFolder="$PWD/bannerlord";
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
