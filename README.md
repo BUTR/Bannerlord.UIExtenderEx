@@ -5,14 +5,14 @@
   <img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/resources/Butter.png?raw=true" /></a>
   </br>
   -->
-   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Lines Of Code">
-   <img src="https://tokei.rs/b1/github/BUTR/Bannerlord.UIExtenderEx?category=code" /></a>
-   <a href="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex"><img src="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex/badge" alt="CodeFactor" /></a>
-   </br>
-   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions?query=workflow%3ATest"><img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/workflows/Test/badge.svg?branch=v3&event=push" alt="Test" /></a>
-   <a href="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx"><img src="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx/branch/dev/graph/badge.svg" />
+  <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Lines Of Code">
+  <img src="https://tokei.rs/b1/github/BUTR/Bannerlord.UIExtenderEx?category=code" /></a>
+  <a href="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex"><img src="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex/badge" alt="CodeFactor" /></a>
+  </br>
+  <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions?query=workflow%3ATest"><img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/workflows/Test/badge.svg?branch=v3&event=push" alt="Test" /></a>
+  <a href="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx"><img src="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx/branch/dev/graph/badge.svg" />
    </a>
-   </br>
+  </br>
   <a href="https://www.nuget.org/packages/Bannerlord.UIExtenderEx" alt="NuGet Bannerlord.ButterLib">
   <img src="https://img.shields.io/nuget/v/Bannerlord.UIExtenderEx.svg?label=NuGet%20Bannerlord.UIExtenderEx&colorB=blue" /></a>
   <a href="https://butr.github.io/Bannerlord.UIExtenderEx" alt="Documentation">
