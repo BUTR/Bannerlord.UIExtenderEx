@@ -94,8 +94,8 @@ jobs:
 
     - name: Test Coverage
       run: >-
-          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug --no-build" -filter:"+[Bannerlord.UIExtenderEx*]*" -output:coverage_uiextenderex_debug.xml -mergebyhash;
-          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release --no-build" -filter:"+[Bannerlord.UIExtenderEx*]*" -output:coverage_uiextenderex_release.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug --no-build" -filter:"+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]*" -output:coverage_uiextenderex_debug.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release --no-build" -filter:"+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]*" -output:coverage_uiextenderex_release.xml -mergebyhash;
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
