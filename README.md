@@ -29,6 +29,14 @@
 
 A library that enables multiple mods to alter standard game interface.
 
+## Installation
+This module should be one of the highest in loading order. Ideally, it should be loaded after ``Bannerlord.Harmony`` or ``Bannerlord.ButterLub``.
+
+## For Players
+This mod is a dependency mod that does not provide anything by itself. You need to additionaly install mods that use it.
+  
+  
+  
 ### Quickstart
 You mark your _prefab extensions_ based on one of the `IPrefabPatch` descendants and marking it with `PrefabExtension` attribute, therefore enabling you to make additions to the specified Movie's XML data.
 
