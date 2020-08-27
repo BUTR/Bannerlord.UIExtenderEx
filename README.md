@@ -37,7 +37,7 @@ This mod is a dependency mod that does not provide anything by itself. You need 
   
   
   
-### Quickstart
+## Quickstart
 You mark your _prefab extensions_ based on one of the `IPrefabPatch` descendants and marking it with `PrefabExtension` attribute, therefore enabling you to make additions to the specified Movie's XML data.
 
 Example of inserting ``XML`` at a specific position:
