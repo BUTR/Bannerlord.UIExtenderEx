@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.1
+Version: 1.0.2
 Game Versions: e1.4.3,e1.5.0,e1.5.1
 * Initial release.
 * Original UIExtenderLib was rewritten to fit authors views of how things should be done.
