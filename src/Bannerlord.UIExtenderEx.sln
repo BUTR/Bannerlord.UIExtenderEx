@@ -22,13 +22,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		..\.github\workflows\docfx.yml = ..\.github\workflows\docfx.yml
 		..\.github\workflows\nexusmods-cookies.yml = ..\.github\workflows\nexusmods-cookies.yml
 		..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
+		..\.github\workflows\test.yml = ..\.github\workflows\test.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bannerlord.UIExtenderEx", "Bannerlord.UIExtenderEx\Bannerlord.UIExtenderEx.csproj", "{53D6522F-4AE2-427F-911A-50B857888883}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{74E13D44-2846-49A3-A5AC-D432AD83C9F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bannerlord.UIExtenderEx.Tests", "..\tests\Bannerlord.UIExtenderEx.Tests\Bannerlord.UIExtenderEx.Tests.csproj", "{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bannerlord.UIExtenderEx.Tests", "..\tests\Bannerlord.UIExtenderEx.Tests\Bannerlord.UIExtenderEx.Tests.csproj", "{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
