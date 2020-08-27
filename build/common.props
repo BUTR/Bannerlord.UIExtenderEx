@@ -3,7 +3,7 @@
   <!--Development Variables-->
   <PropertyGroup>
     <!--Module Version-->
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <!--Current Bannerlord Version-->
     <GameVersion>1.4.0</GameVersion>
     <!--Bannerlord's Root Folder. Leave empty if you want it to be tried to be autoresolved.-->
