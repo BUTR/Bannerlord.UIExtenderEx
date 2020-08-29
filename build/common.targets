@@ -1,3 +1,4 @@
+<!--EXTERNAL_PROPERTIES: Version;GameVersion;ModuleName;GameFolder;HarmonyVersion-->
 <Project>
 
   <Target Name="AddGameVersionMetadaAssemblyAttributes" BeforeTargets="CoreGenerateAssemblyInfo">
@@ -25,6 +26,8 @@
     <CopyFolder FromDirectory="$(ProjectDir)/_Module" ToDirectory="$(GameFolder)/Modules/$(ModuleName)" Regex="^.*$" Clean="false" />
 
     <ReplaceFileText File="$(GameFolder)/Modules/$(ModuleName)/SubModule.xml" Regex="\$version\$" ReplacementText="$(Version)" />
+    <ReplaceFileText File="$(GameFolder)/Modules/$(ModuleName)/SubModule.xml" Regex="\$harmonyversion\$" ReplacementText="$(HarmonyVersion)" />
+    <ReplaceFileText File="$(GameFolder)/Modules/$(ModuleName)/SubModule.xml" Regex="\$gameversion\$" ReplacementText="$(GameVersion)" />
   </Target>
 
   <UsingTask
