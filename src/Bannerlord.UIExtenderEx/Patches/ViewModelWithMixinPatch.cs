@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 using TaleWorlds.Library;
 
@@ -43,7 +44,9 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions.GetMethodInfo(() => Constructor(null!)));
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Constructor(ViewModel viewModel)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
@@ -64,7 +67,9 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Refresh_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions.GetMethodInfo(() => Refresh(null!)));
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Refresh(ViewModel viewModel)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
@@ -77,6 +82,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             foreach (var instruction in instructions)
@@ -92,6 +98,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 yield return instruction;
             }
         }
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Finalize(ViewModel viewModel)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())

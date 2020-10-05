@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 using TaleWorlds.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -34,15 +35,22 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> InitializeTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
         {
             var instructionsList = instructions.ToList();
+
+            IEnumerable<CodeInstruction> ReturnDefault(string place)
+            {
+                Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
+                return instructionsList.AsEnumerable();
+            }
 
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(Type));
 
             if (typeLocal == null)
-                return instructionsList.AsEnumerable();
+                return ReturnDefault("Local not found");
 
             var startIndex = -1;
             var endIndex = -1;
@@ -51,13 +59,13 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (!instructionsList[i + 0].IsLdarg(0))
                     continue;
 
-                if (!instructionsList[i + 1].LoadsField(AccessTools.Field(typeof(WidgetFactory), "_builtinTypes")))
+                if (!instructionsList[i + 1].LoadsField(AccessTools.DeclaredField(typeof(WidgetFactory), "_builtinTypes")))
                     continue;
 
                 if (!instructionsList[i + 2].IsLdloc())
                        continue;
 
-                if (!instructionsList[i + 3].Calls(AccessTools.PropertyGetter(typeof(MemberInfo), nameof(Type.Name))))
+                if (!instructionsList[i + 3].Calls(AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))))
                     continue;
 
                 if (!instructionsList[i + 4].IsLdloc())
@@ -72,10 +80,10 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
 
             if (startIndex == -1)
-                return instructionsList.AsEnumerable();
+                return ReturnDefault("Pattern not found");
 
             if (instructionsList[endIndex + 1].labels.Count == 0)
-                return instructionsList.AsEnumerable();
+                return ReturnDefault("Jmp was not found");
 
             var jmpEnumerator = instructionsList[endIndex + 1].labels.FirstOrDefault();
 
@@ -83,9 +91,9 @@ namespace Bannerlord.UIExtenderEx.Patches
             instructionsList.InsertRange(startIndex, new List<CodeInstruction>
             {
                 new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(WidgetFactory), "_builtinTypes")),
+                new CodeInstruction(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(WidgetFactory), "_builtinTypes")),
                 new CodeInstruction(OpCodes.Ldloc, typeLocal.LocalIndex),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MemberInfo), nameof(Type.Name))),
+                new CodeInstruction(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))),
                 new CodeInstruction(OpCodes.Callvirt, SymbolExtensions.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
                 new CodeInstruction(OpCodes.Brtrue_S, jmpEnumerator)
             });
@@ -96,8 +104,9 @@ namespace Bannerlord.UIExtenderEx.Patches
         private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>> BuiltinTypesField { get; } =
             AccessTools.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
         private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } =
-            AccessTools.Method(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
+            AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool InitializePrefix(WidgetFactory __instance)
         {
             var builtinTypes = BuiltinTypesField(__instance);

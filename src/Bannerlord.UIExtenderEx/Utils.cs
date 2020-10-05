@@ -7,6 +7,16 @@ namespace Bannerlord.UIExtenderEx
 {
     internal static class Utils
     {
+        public static void Fail(string text)
+        {
+            Debug.Fail(text);
+        }
+
+        public static void Assert(bool condition, string text = "no description")
+        {
+            Debug.Assert(condition, $"UIExtenderEx failure: {text}.");
+        }
+
         /// <summary>
         /// Critical runtime compatibility assert. Used when Bannerlord version is not compatible and it
         /// prevents runtime from functioning
@@ -33,7 +43,7 @@ namespace Bannerlord.UIExtenderEx
         /// </summary>
         /// <param name="text"></param>
         /// <param name="args"></param>
-        public static void UserWarning(string text, params object[] args)
+        public static void DisplayUserWarning(string text, params object[] args)
         {
             InformationManager.DisplayMessage(new InformationMessage($"UIExtender: {string.Format(text, args)}", Colors.Yellow));
         }

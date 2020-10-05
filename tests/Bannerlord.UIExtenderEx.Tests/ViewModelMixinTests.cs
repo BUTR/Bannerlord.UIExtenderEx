@@ -11,7 +11,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         public void MixinPropertyIsInjectedTest()
         {
             var uiExtender = new UIExtender(nameof(MixinPropertyIsInjectedTest));
-            uiExtender.Register();
+            uiExtender.Register(typeof(PrefabsTests).Assembly);
             uiExtender.Enable();
 
             var viewModel = new TestVM();
@@ -22,7 +22,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         public void MixinMethodIsCalledTest()
         {
             var uiExtender = new UIExtender(nameof(MixinMethodIsCalledTest));
-            uiExtender.Register();
+            uiExtender.Register(typeof(PrefabsTests).Assembly);
             uiExtender.Enable();
 
             var viewModel = new TestVM();

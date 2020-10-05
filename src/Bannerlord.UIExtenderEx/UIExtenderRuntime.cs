@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 
-using Debug = System.Diagnostics.Debug;
-
 namespace Bannerlord.UIExtenderEx
 {
     /// <summary>
@@ -62,7 +60,7 @@ namespace Bannerlord.UIExtenderEx
                             var constructor = extensionType.GetConstructor(Type.EmptyTypes);
                             if (constructor == null)
                             {
-                                Debug.Fail("Failed to find appropriate constructor for patch!");
+                                Utils.Fail("Failed to find appropriate constructor for patch!");
                                 continue;
                             }
 
@@ -90,7 +88,7 @@ namespace Bannerlord.UIExtenderEx
                                     break;
 
                                 default:
-                                    Debug.Fail($"Patch class is unsupported - {extensionType}!");
+                                    Utils.Fail($"Patch class is unsupported - {extensionType}!");
                                     break;
                             }
 
@@ -103,7 +101,7 @@ namespace Bannerlord.UIExtenderEx
                             break;
 
                         default:
-                            Debug.Fail($"Failed to find appropriate clause for base type {extensionType} with attribute {baseAttribute}!");
+                            Utils.Fail($"Failed to find appropriate clause for base type {extensionType} with attribute {baseAttribute}!");
                             break;
                     }
                 }

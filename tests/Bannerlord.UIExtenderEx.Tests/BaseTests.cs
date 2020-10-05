@@ -31,14 +31,14 @@ namespace Bannerlord.UIExtenderEx.Tests
             public MockWidgetFactory() : base(new MockResourceDepot(), string.Empty)
             {
                 var harmony = new Harmony($"{nameof(MockWidgetFactory)}.ctor");
-                harmony.Patch(AccessTools.Method(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
-                    prefix: new HarmonyMethod(AccessTools.Method(typeof(MockWidgetFactory),
+                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
+                    prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory),
                         nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix))));
-                harmony.Patch(AccessTools.Method(typeof(WidgetFactory), "AddCustomType"),
+                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "AddCustomType"),
                     prefix: new HarmonyMethod(
-                        AccessTools.Method(typeof(MockWidgetFactory), nameof(AddCustomTypePrefix))));
+                        AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(AddCustomTypePrefix))));
                 harmony.Patch(SymbolExtensions.GetMethodInfo(() => XmlReader.Create("", null!)),
-                    prefix: new HarmonyMethod(AccessTools.Method(typeof(MockWidgetFactory), nameof(CreatePrefix))));
+                    prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(CreatePrefix))));
             }
 
             public static bool CreatePrefix(ref XmlReader __result)
@@ -115,7 +115,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         [SetUp]
         public void Setup()
         {
-            var property = AccessTools.Property(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
+            var property = AccessTools.DeclaredProperty(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
             property.SetValue(null, new MockWidgetFactory());
         }
     }
