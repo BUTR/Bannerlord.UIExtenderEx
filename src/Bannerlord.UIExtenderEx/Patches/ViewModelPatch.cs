@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 using TaleWorlds.Library;
 
@@ -21,6 +22,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_ExecuteCommand_Transpiler(null!, null!))));
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_ExecuteCommand_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
         {
             var instructionList = instructions.ToList();
@@ -39,6 +41,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             });
             return instructionList;
         }
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool ExecuteCommand(ViewModel viewModel, string commandName, params object[] parameters)
         {
             static object? ConvertValueTo(string value, Type parameterType)

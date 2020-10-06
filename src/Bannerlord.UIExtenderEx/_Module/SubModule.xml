@@ -1,20 +1,32 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Module>
-  <Name value="UIExtenderEx"/>
-  <Id value="Bannerlord.UIExtenderEx"/>
-  <Version value="v$version$"/>
-  <Official value="false"/>
-  <SingleplayerModule value="true"/>
-  <MultiplayerModule value="false"/>
+  <Name value="UIExtenderEx" />
+  <Id value="Bannerlord.UIExtenderEx" />
+  <Version value="v$version$" />
+  <Official value="false" />
+  <DefaultModule value="false" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
   <DependedModules>
     <DependedModule Id="Bannerlord.Harmony" />
   </DependedModules>
+  <!-- Prototype -->
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" version="v$harmonyversion$" />
+
+    <DependedModuleMetadata id="Native" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="Sandbox" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="StoryMode" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="CustomBattle" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
+  </DependedModuleMetadatas>
+  <!-- Prototype -->
   <SubModules>
     <SubModule>
-      <Name value="UIExtenderEx"/>
-      <DLLName value="Bannerlord.UIExtenderEx.dll"/>
-      <SubModuleClassType value="Bannerlord.UIExtenderEx.SubModule"/>
-      <Tags/>
+      <Name value="UIExtenderEx" />
+      <DLLName value="Bannerlord.UIExtenderEx.dll" />
+      <SubModuleClassType value="Bannerlord.UIExtenderEx.SubModule" />
+      <Tags />
     </SubModule>
   </SubModules>
 </Module>

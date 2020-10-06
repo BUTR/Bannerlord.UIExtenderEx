@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// Interface for ViewModel mixins
-    /// Should not be used directly, ViewModelMixin<T> should be used as base class
+    /// Should not be used directly, ViewModelMixin should be used as base class
     /// </summary>
     public interface IViewModelMixin
     {

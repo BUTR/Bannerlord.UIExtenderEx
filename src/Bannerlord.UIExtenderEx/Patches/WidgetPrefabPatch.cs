@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Xml;
 
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -16,21 +17,28 @@ namespace Bannerlord.UIExtenderEx.Patches
         public static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools.Method(typeof(WidgetPrefab), nameof(WidgetPrefab.LoadFrom)),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(WidgetPrefabPatch), nameof(WidgetPrefab_LoadFrom_Transpiler))));
+                AccessTools.DeclaredMethod(typeof(WidgetPrefab), nameof(WidgetPrefab.LoadFrom)),
+                transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetPrefabPatch), nameof(WidgetPrefab_LoadFrom_Transpiler))));
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> WidgetPrefab_LoadFrom_Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
         {
             var instructionsList = instructions.ToList();
 
-            var constructor = AccessTools.Constructor(typeof(WidgetPrefab));
+            IEnumerable<CodeInstruction> ReturnDefault(string place)
+            {
+                Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
+                return instructionsList.AsEnumerable();
+            }
+
+            var constructor = AccessTools.DeclaredConstructor(typeof(WidgetPrefab));
 
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(WidgetPrefab));
 
             if (typeLocal == null)
-                return instructionsList.AsEnumerable();
+                return ReturnDefault("Local not found");
 
             var startIndex = -1;
             for (var i = 0; i < instructionsList.Count - 2; i++)
@@ -46,7 +54,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
 
             if (startIndex == -1)
-                return instructionsList.AsEnumerable();
+                return ReturnDefault("Pattern not found");
 
             // PrefabComponent.Load(path, xmlDocument);
             instructionsList.InsertRange(startIndex + 1, new List<CodeInstruction>
@@ -57,6 +65,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             });
             return instructionsList.AsEnumerable();
         }
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ProcessMovie(string path, XmlDocument document)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())

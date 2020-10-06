@@ -8,7 +8,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         public void PrefabsInsertTest()
         {
             var uiExtender = new UIExtender("TestModule");
-            uiExtender.Register();
+            uiExtender.Register(typeof(PrefabsTests).Assembly);
             uiExtender.Enable();
 
             var widgetTemplateInsert = MockWidgetFactory.WidgetPrefabInsert.RootTemplate;

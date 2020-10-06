@@ -25,7 +25,6 @@ namespace Bannerlord.UIExtenderEx.Tests
             base.OnFinalize();
         }
 
-
         [DataSourceMethod]
         public void MixinMethod()
         {

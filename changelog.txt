@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.3
+Game Versions: e1.4.3,e1.5.0,e1.5.1,e1.5.2,e1.5.3
+* Better warning/error reporting
+* Nullable fixes
+* Harmony performance optimization
+---------------------------------------------------------------------------------------------------
 Version: 1.0.2
 Game Versions: e1.4.3,e1.5.0,e1.5.1
 * Initial release.

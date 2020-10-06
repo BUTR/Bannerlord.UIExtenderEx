@@ -19,7 +19,7 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         public override CallingConventions CallingConvention => _methodInfoImplementation.CallingConvention;
         public override bool ContainsGenericParameters => _methodInfoImplementation.ContainsGenericParameters;
         public override IEnumerable<CustomAttributeData> CustomAttributes => _methodInfoImplementation.CustomAttributes;
-        public override Type DeclaringType => _methodInfoImplementation.DeclaringType;
+        public override Type? DeclaringType => _methodInfoImplementation.DeclaringType;
         public override bool IsGenericMethod => _methodInfoImplementation.IsGenericMethod;
         public override bool IsGenericMethodDefinition => _methodInfoImplementation.IsGenericMethodDefinition;
         public override bool IsSecurityCritical => _methodInfoImplementation.IsSecurityCritical;
@@ -31,8 +31,8 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         public override MethodImplAttributes MethodImplementationFlags => _methodInfoImplementation.MethodImplementationFlags;
         public override Module Module => _methodInfoImplementation.Module;
         public override string Name => _methodInfoImplementation.Name;
-        public override Type ReflectedType => _methodInfoImplementation.ReflectedType;
-        public override ParameterInfo ReturnParameter => _methodInfoImplementation.ReturnParameter;
+        public override Type? ReflectedType => _methodInfoImplementation.ReflectedType;
+        public override ParameterInfo? ReturnParameter => _methodInfoImplementation.ReturnParameter;
         public override Type ReturnType => _methodInfoImplementation.ReturnType;
         public override ICustomAttributeProvider ReturnTypeCustomAttributes => _methodInfoImplementation.ReturnTypeCustomAttributes;
 
@@ -44,7 +44,7 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         public override IList<CustomAttributeData> GetCustomAttributesData() => _methodInfoImplementation.GetCustomAttributesData();
         public override Type[] GetGenericArguments() => _methodInfoImplementation.GetGenericArguments();
         public override MethodInfo GetGenericMethodDefinition() => _methodInfoImplementation.GetGenericMethodDefinition();
-        public override MethodBody GetMethodBody() => _methodInfoImplementation.GetMethodBody();
+        public override MethodBody? GetMethodBody() => _methodInfoImplementation.GetMethodBody();
         public override MethodImplAttributes GetMethodImplementationFlags() => _methodInfoImplementation.GetMethodImplementationFlags();
         public override ParameterInfo[] GetParameters() => _methodInfoImplementation.GetParameters();
         public override object Invoke(object obj, BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture) =>
@@ -53,19 +53,12 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         public override MethodInfo MakeGenericMethod(params Type[] typeArguments) => _methodInfoImplementation.MakeGenericMethod(typeArguments);
 
         public override string ToString() => _methodInfoImplementation.ToString();
-        public override bool Equals(object obj)
+        public override bool Equals(object obj) => obj switch
         {
-            if (obj is WrappedMethodInfo proxy)
-            {
-                return _methodInfoImplementation.Equals(proxy._methodInfoImplementation);
-            }
-            if (obj is MethodInfo propertyInfo)
-            {
-                return _methodInfoImplementation.Equals(propertyInfo);
-            }
-
-            return _methodInfoImplementation.Equals(obj);
-        }
+            WrappedMethodInfo proxy => _methodInfoImplementation.Equals(proxy._methodInfoImplementation),
+            MethodInfo propertyInfo => _methodInfoImplementation.Equals(propertyInfo),
+            _ => _methodInfoImplementation.Equals(obj)
+        };
         public override int GetHashCode() => _methodInfoImplementation.GetHashCode();
     }
 }

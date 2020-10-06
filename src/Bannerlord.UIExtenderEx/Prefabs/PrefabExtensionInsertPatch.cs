@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.IO;
 using System.Reflection;
 using System.Xml;
 
@@ -33,14 +33,21 @@ namespace Bannerlord.UIExtenderEx.Prefabs
             var path = Path.Combine(Utilities.GetBasePath(), "Modules", ModuleName, "GUI", "PrefabExtensions", Name + ".xml");
             var doc = new XmlDocument();
 
-            using var reader = XmlReader.Create(path, new XmlReaderSettings
+            if (File.Exists(path))
             {
-                IgnoreComments = true,
-                IgnoreWhitespace = true,
-            });
-            doc.Load(reader);
+                using var reader = XmlReader.Create(path, new XmlReaderSettings
+                {
+                    IgnoreComments = true,
+                    IgnoreWhitespace = true,
+                });
+                doc.Load(reader);
+            }
+            else
+                Utils.Fail($"Failed to get file {path} XML!");
 
-            Debug.Assert(doc.HasChildNodes, $"Failed to parse extension ({Name}) XML!");
+            if (!doc.HasChildNodes)
+                Utils.Fail($"Failed to parse extension ({Name}) XML!");
+
             return doc;
         }
     }
@@ -60,9 +67,22 @@ namespace Bannerlord.UIExtenderEx.Prefabs
         {
             using var stream = Assembly.GetManifestResourceStream(Path);
             var doc = new XmlDocument();
-            doc.Load(stream);
 
-            Debug.Assert(doc.HasChildNodes, $"Failed to parse extension ({Assembly.FullName} {Path}) XML!");
+            if (stream != null)
+            {
+                using var reader = XmlReader.Create(stream, new XmlReaderSettings
+                {
+                    IgnoreComments = true,
+                    IgnoreWhitespace = true,
+                });
+                doc.Load(reader);
+            }
+            else
+                Utils.Fail($"Failed get stream from assembly resource ({Assembly.FullName} {Path})!");
+
+            if (!doc.HasChildNodes)
+                Utils.Fail($"Failed to parse extension ({Assembly.FullName} {Path}) XML!");
+
             return doc;
         }
     }

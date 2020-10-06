@@ -3,11 +3,10 @@ using Bannerlord.UIExtenderEx.Patches;
 
 using HarmonyLib;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
-using Debug = System.Diagnostics.Debug;
 
 namespace Bannerlord.UIExtenderEx
 {
@@ -16,13 +15,13 @@ namespace Bannerlord.UIExtenderEx
     /// </summary>
     public class UIExtender
     {
-        private static readonly Harmony _harmony = new Harmony("bannerlord.uiextender.ex");
+        private static readonly Harmony Harmony = new Harmony("bannerlord.uiextender.ex");
 
         static UIExtender()
         {
-            ViewModelPatch.Patch(_harmony);
-            WidgetPrefabPatch.Patch(_harmony);
-            WidgetFactoryPatch.Patch(_harmony);
+            ViewModelPatch.Patch(Harmony);
+            WidgetPrefabPatch.Patch(Harmony);
+            WidgetFactoryPatch.Patch(Harmony);
         }
 
         /// <summary>
@@ -51,9 +50,9 @@ namespace Bannerlord.UIExtenderEx
         }
 
         /// <summary>
-        /// Register extension types from calling assembly.
-        /// Should be called during `OnSubModuleLoad`
+        /// Obsolete. Use <see cref="Register(Assembly)"/>.
         /// </summary>
+        [Obsolete("Use explicit call Register(Assembly)", true)]
         public void Register() => Register(Assembly.GetCallingAssembly());
 
         /// <summary>
@@ -84,7 +83,7 @@ namespace Bannerlord.UIExtenderEx
         {
             if (_runtime == null)
             {
-                Debug.Fail("Register() method was not called before Enable()!");
+                Utils.Fail("Register() method was not called before Enable()!");
                 return;
             }
             _runtime.Enable();
@@ -94,7 +93,7 @@ namespace Bannerlord.UIExtenderEx
         {
             if (_runtime == null)
             {
-                Debug.Fail("Register() method was not called before Enable()!");
+                Utils.Fail("Register() method was not called before Enable()!");
                 return;
             }
             _runtime.Disable();

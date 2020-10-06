@@ -19,7 +19,7 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal class ViewModelComponent
     {
-        public readonly string ModuleName;
+        private readonly string _moduleName;
         private readonly Harmony _harmony;
 
         /// <summary>
@@ -40,46 +40,17 @@ namespace Bannerlord.UIExtenderEx.Components
 
         public ViewModelComponent(string moduleName)
         {
-            ModuleName = moduleName;
-            _harmony = new Harmony($"bannerlord.uiextender.ex.viewmodels.{ModuleName}");
+            _moduleName = moduleName;
+            _harmony = new Harmony($"bannerlord.uiextender.ex.viewmodels.{_moduleName}");
         }
 
         public void Enable()
         {
             Enabled = true;
-
-            /*
-            var constructorMethod = AccessTools.Method(typeof(ViewModelComponent), nameof(ViewModel_Constructor_Transpiler));
-            var executeCommandMethod = AccessTools.Method(typeof(ViewModelComponent), nameof(ViewModel_ExecuteCommand_Transpiler));
-
-            foreach (var constructor in _mixins.Keys.SelectMany(m => m.GetConstructors()))
-            {
-                _harmony.Patch(
-                    constructor,
-                    transpiler: new HarmonyMethod(new WrappedMethodInfo(constructorMethod, this)));
-            }
-
-            _harmony.Patch(
-                AccessTools.Method(typeof(ViewModel), nameof(ViewModel.ExecuteCommand)),
-                transpiler: new HarmonyMethod(new WrappedMethodInfo(executeCommandMethod, this)));
-            */
         }
         public void Disable()
         {
             Enabled = false;
-
-            // Not working with Wrapped MethodInfo
-            /*
-            var constructorMethod = AccessTools.Method(typeof(ViewModelComponent), nameof(ViewModel_Constructor_Transpiler));
-            var executeCommandMethod = AccessTools.Method(typeof(ViewModelComponent), nameof(ViewModel_ExecuteCommand_Transpiler));
-
-            foreach (var constructor in _mixins.Keys.SelectMany(viewModelType => viewModelType.GetConstructors()))
-            {
-                _harmony.Unpatch(constructor, new WrappedMethodInfo(constructorMethod, this));
-            }
-
-            _harmony.Unpatch(AccessTools.Method(typeof(ViewModel), nameof(ViewModel.ExecuteCommand)), new WrappedMethodInfo(executeCommandMethod, this));
-            */
         }
 
         /// <summary>
@@ -90,10 +61,11 @@ namespace Bannerlord.UIExtenderEx.Components
         public void RegisterViewModelMixin(Type mixinType, string? refreshMethodName = null)
         {
             var viewModelType = GetViewModelType(mixinType);
-
-            Utils.CompatAssert(viewModelType != null, $"Failed to find base type for mixin {mixinType}, should be specialized as T of ViewModelMixin<T>!");
             if (viewModelType == null)
+            {
+                Utils.Fail($"Failed to find base type for mixin {mixinType}, should be specialized as T of ViewModelMixin<T>!");
                 return;
+            }
 
             Mixins.GetOrAdd(viewModelType, _ => new List<Type>()).Add(mixinType);
 
