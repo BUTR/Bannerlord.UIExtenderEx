@@ -155,4 +155,5 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply
 ```
 
 ### Examples
-* [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/v3/src/MCM.UI/UIExtenderEx)
+* [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/dev/src/MCM.UI/UIExtenderEx)
+* [Yet Another Party Organiser](https://github.com/tbeswick96/BannerlordYetAnotherPartyOrganiser)
