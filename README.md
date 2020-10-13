@@ -143,14 +143,16 @@ In order to add data to the prefab, you need to add properties to the target dat
 
 The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply your extensions:
 ```cs
-
-        protected override void OnSubModuleLoad()
-        {
-            base.OnSubModuleLoad();
+      public class CustomSubModule : MBSubModuleBase
+      {
+          protected override void OnSubModuleLoad()
+          {
+              base.OnSubModuleLoad();
             
-            _extender = new UIExtender("ModuleName");
-            _extender.Register();
-            _extender.Enable();
+              _extender = new UIExtender("ModuleName");
+              _extender.Register(typeof(CustomSubModule).Assembly);
+              _extender.Enable();
+          }
         }
 ```
 
