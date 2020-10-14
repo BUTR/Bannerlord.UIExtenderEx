@@ -1,10 +1,12 @@
-<!--EXTERNAL_PROPERTIES: GameFolder-->
+<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
+
+    <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -21,7 +23,14 @@
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="!Exists($(GameFolder))">
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="All" />
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Native.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="All" />
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.StoryMode.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="All" />
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.SandBox.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists($(GameFolder))">
     <Reference Include="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.*.dll">
       <HintPath>%(Identity)</HintPath>
     </Reference>
@@ -29,9 +38,6 @@
       <HintPath>%(Identity)</HintPath>
     </Reference>
     <Reference Include="$(GameFolder)\Modules\SandBox\bin\Win64_Shipping_Client\*.dll">
-      <HintPath>%(Identity)</HintPath>
-    </Reference>
-    <Reference Include="$(GameFolder)\Modules\SandBoxCore\bin\Win64_Shipping_Client\*.dll">
       <HintPath>%(Identity)</HintPath>
     </Reference>
     <Reference Include="$(GameFolder)\Modules\StoryMode\bin\Win64_Shipping_Client\*.dll">
