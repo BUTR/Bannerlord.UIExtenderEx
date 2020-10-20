@@ -1,5 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Extensions;
-using Bannerlord.UIExtenderEx.Prefabs;
+﻿using Bannerlord.UIExtenderEx.Prefabs;
 
 using HarmonyLib;
 
@@ -19,6 +18,11 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal class PrefabComponent
     {
+        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
+            AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
+        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypePaths =
+            AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypePaths");
+
         private readonly string _moduleName;
 
         /// <summary>
@@ -162,10 +166,14 @@ namespace Bannerlord.UIExtenderEx.Components
             // TODO: figure out a method more prone to game updates
 
             // get internal dict of loaded Widgets
-            var dict =  UIResourceManager.WidgetFactory.PrivateValue<IDictionary?>("_customTypes");
+            var dict = GetCustomTypes != null
+                ? GetCustomTypes(UIResourceManager.WidgetFactory)
+                : GetCustomTypePaths != null
+                    ? GetCustomTypePaths(UIResourceManager.WidgetFactory)
+                    : null;
             if (dict == null)
             {
-                Utils.DisplayUserError("WidgetFactory._customTypes == null");
+                Utils.DisplayUserError("WidgetFactory._customTypes == null or WidgetFactory._customTypePaths == null");
                 return;
             }
 
@@ -176,6 +184,12 @@ namespace Bannerlord.UIExtenderEx.Components
                 var moviePath = PathForMovie(movie);
                 if (moviePath != null)
                 {
+                    if (GetCustomTypePaths != null)
+                    {
+                        var dict2 = GetCustomTypePaths(UIResourceManager.WidgetFactory);
+                        dict2.Remove(movie);
+                    }
+
                     // remove widget from previously loaded Widgets
                     dict.Remove(movie);
 

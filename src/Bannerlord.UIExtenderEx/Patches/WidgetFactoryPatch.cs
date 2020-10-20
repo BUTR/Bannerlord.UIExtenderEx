@@ -101,15 +101,15 @@ namespace Bannerlord.UIExtenderEx.Patches
             return instructionsList.AsEnumerable();
         }
 
-        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>> BuiltinTypesField { get; } =
-            AccessTools.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
+        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } =
+            AccessTools3.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
         private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } =
             AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool InitializePrefix(WidgetFactory __instance)
         {
-            var builtinTypes = BuiltinTypesField(__instance);
+            var builtinTypes = BuiltinTypesField != null ? BuiltinTypesField(__instance) : null;
             if (builtinTypes == null || !(GetPrefabNamesAndPathsFromCurrentPathMethod.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData))
                 return true; // fallback
 
