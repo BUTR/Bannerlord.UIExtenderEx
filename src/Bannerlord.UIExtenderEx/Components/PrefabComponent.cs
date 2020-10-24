@@ -174,7 +174,7 @@ namespace Bannerlord.UIExtenderEx.Components
                     if (GetCustomTypes != null)
                     {
                         var dict = GetCustomTypes(UIResourceManager.WidgetFactory);
-                        Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypePaths!");
+                        //Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypePaths!");
                         // remove widget from previously loaded Widgets
                         dict.Remove(movie);
                     }
