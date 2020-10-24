@@ -165,33 +165,28 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             // TODO: figure out a method more prone to game updates
 
-            // get internal dict of loaded Widgets
-            var dict = GetCustomTypes != null
-                ? GetCustomTypes(UIResourceManager.WidgetFactory)
-                : GetCustomTypePaths != null
-                    ? GetCustomTypePaths(UIResourceManager.WidgetFactory)
-                    : null;
-            if (dict == null)
-            {
-                Utils.DisplayUserError("WidgetFactory._customTypes == null or WidgetFactory._customTypePaths == null");
-                return;
-            }
-
             foreach (var movie in _moviePatches.Keys)
             {
-                Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory!");
-
                 var moviePath = PathForMovie(movie);
                 if (moviePath != null)
                 {
-                    if (GetCustomTypePaths != null)
+                    // get internal dict of loaded Widgets
+                    if (GetCustomTypes != null)
                     {
-                        var dict2 = GetCustomTypePaths(UIResourceManager.WidgetFactory);
-                        dict2.Remove(movie);
+                        var dict = GetCustomTypes(UIResourceManager.WidgetFactory);
+                        Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypePaths!");
+                        // remove widget from previously loaded Widgets
+                        dict.Remove(movie);
                     }
 
-                    // remove widget from previously loaded Widgets
-                    dict.Remove(movie);
+                    // get internal dict of loaded Widgets
+                    if (GetCustomTypePaths != null)
+                    {
+                        var dict = GetCustomTypePaths(UIResourceManager.WidgetFactory);
+                        //Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypePaths!");
+                        // remove widget from previously loaded Widgets
+                        dict.Remove(movie);
+                    }
 
                     // re-add it, forcing Factory to call now-patched `LoadFrom` method
                     UIResourceManager.WidgetFactory.AddCustomType(movie, moviePath);
