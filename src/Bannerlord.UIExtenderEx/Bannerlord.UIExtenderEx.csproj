@@ -5,6 +5,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <!--Module Creation-->
@@ -32,6 +33,10 @@
   <ItemGroup>
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="all" />
     <PackageReference Include="Lib.Harmony" Version="2.0.2" IncludeAssets="compile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Bannerlord.UIExtenderEx.Tests" />
   </ItemGroup>
 
 </Project>

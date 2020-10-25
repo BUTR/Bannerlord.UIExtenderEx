@@ -17,7 +17,7 @@ namespace Bannerlord.UIExtenderEx.Patches
     /// </summary>
     public static class WidgetFactoryPatch
     {
-        private static bool TranspilerSuccessful = false;
+        private static bool _transpilerSuccessful = false;
 
         public static void Patch(Harmony harmony)
         {
@@ -27,7 +27,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 
             // Transpilers are very sensitive to code changes.
             // We can fall back to the old implementation of Initialize() as a last effort.
-            if (!TranspilerSuccessful)
+            if (!_transpilerSuccessful)
             {
                 harmony.Patch(
                     SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.Initialize()),
@@ -97,19 +97,19 @@ namespace Bannerlord.UIExtenderEx.Patches
                 new CodeInstruction(OpCodes.Callvirt, SymbolExtensions.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
                 new CodeInstruction(OpCodes.Brtrue_S, jmpEnumerator)
             });
-            TranspilerSuccessful = true;
+            _transpilerSuccessful = true;
             return instructionsList.AsEnumerable();
         }
 
-        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>> BuiltinTypesField { get; } =
-            AccessTools.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
+        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } =
+            AccessTools3.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
         private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } =
             AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool InitializePrefix(WidgetFactory __instance)
         {
-            var builtinTypes = BuiltinTypesField(__instance);
+            var builtinTypes = BuiltinTypesField != null ? BuiltinTypesField(__instance) : null;
             if (builtinTypes == null || !(GetPrefabNamesAndPathsFromCurrentPathMethod.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData))
                 return true; // fallback
 

@@ -13,16 +13,18 @@
   <a href="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx"><img src="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx/branch/dev/graph/badge.svg" />
    </a>
   </br>
-  <a href="https://www.nuget.org/packages/Bannerlord.UIExtenderEx" alt="NuGet Bannerlord.ButterLib">
+  <a href="https://www.nuget.org/packages/Bannerlord.UIExtenderEx" alt="NuGet Bannerlord.UIExtenderEx">
   <img src="https://img.shields.io/nuget/v/Bannerlord.UIExtenderEx.svg?label=NuGet%20Bannerlord.UIExtenderEx&colorB=blue" /></a>
   <a href="https://butr.github.io/Bannerlord.UIExtenderEx" alt="Documentation">
   <img src="https://img.shields.io/badge/Documentation-%F0%9F%94%8D-blue?style=flat" /></a>
   </br>
-  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="Nexus ButterLib">
+  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="Nexus UIExtenderEx">
   <img src="https://img.shields.io/badge/Nexus-UIExtenderEx-yellow.svg" /></a>  
-  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="ButterLib">
+  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="UIExtenderEx">
   <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-version-pzk4e0ejol6j.runkit.sh%3FgameId%3Dmountandblade2bannerlord%26modId%3D2102" /></a>
-  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="Nexus ButterLib">
+  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="Nexus UIExtenderEx">
+  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dunique%26gameId%3D3174%26modId%3D2102" /></a>
+  <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="Nexus UIExtenderEx">
   <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dtotal%26gameId%3D3174%26modId%3D2102" /></a>
   </br>
 </p>
@@ -143,16 +145,19 @@ In order to add data to the prefab, you need to add properties to the target dat
 
 The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply your extensions:
 ```cs
-
-        protected override void OnSubModuleLoad()
-        {
-            base.OnSubModuleLoad();
+      public class CustomSubModule : MBSubModuleBase
+      {
+          protected override void OnSubModuleLoad()
+          {
+              base.OnSubModuleLoad();
             
-            _extender = new UIExtender("ModuleName");
-            _extender.Register();
-            _extender.Enable();
+              _extender = new UIExtender("ModuleName");
+              _extender.Register(typeof(CustomSubModule).Assembly);
+              _extender.Enable();
+          }
         }
 ```
 
 ### Examples
-* [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/v3/src/MCM.UI/UIExtenderEx)
+* [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/dev/src/MCM.UI/UIExtenderEx)
+* [Yet Another Party Organiser](https://github.com/tbeswick96/BannerlordYetAnotherPartyOrganiser)

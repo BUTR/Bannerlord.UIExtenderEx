@@ -1,5 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Extensions;
-using Bannerlord.UIExtenderEx.Prefabs;
+﻿using Bannerlord.UIExtenderEx.Prefabs;
 
 using HarmonyLib;
 
@@ -19,6 +18,9 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal class PrefabComponent
     {
+        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
+            AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
+
         private readonly string _moduleName;
 
         /// <summary>
@@ -159,28 +161,23 @@ namespace Bannerlord.UIExtenderEx.Components
         /// </summary>
         private void ForceReloadMovies()
         {
-            // TODO: figure out a method more prone to game updates
-
-            // get internal dict of loaded Widgets
-            var dict =  UIResourceManager.WidgetFactory.PrivateValue<IDictionary?>("_customTypes");
-            if (dict == null)
-            {
-                Utils.DisplayUserError("WidgetFactory._customTypes == null");
-                return;
-            }
-
             foreach (var movie in _moviePatches.Keys)
             {
-                Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory!");
-
                 var moviePath = PathForMovie(movie);
                 if (moviePath != null)
                 {
-                    // remove widget from previously loaded Widgets
-                    dict.Remove(movie);
+                    // pre e1.5.4
+                    // get internal dict of loaded Widgets
+                    if (GetCustomTypes != null)
+                    {
+                        var dict = GetCustomTypes(UIResourceManager.WidgetFactory);
+                        Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypes!");
+                        // remove widget from previously loaded Widgets
+                        dict.Remove(movie);
 
-                    // re-add it, forcing Factory to call now-patched `LoadFrom` method
-                    UIResourceManager.WidgetFactory.AddCustomType(movie, moviePath);
+                        // re-add it, forcing Factory to call now-patched `LoadFrom` method
+                        UIResourceManager.WidgetFactory.AddCustomType(movie, moviePath);
+                    }
                 }
             }
         }
