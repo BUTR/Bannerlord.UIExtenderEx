@@ -56,7 +56,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             if (startIndex == -1)
                 return ReturnDefault("Pattern not found");
 
-            // PrefabComponent.Load(path, xmlDocument);
+            // ProcessMovie(path, xmlDocument);
             instructionsList.InsertRange(startIndex + 1, new List<CodeInstruction>
             {
                 new CodeInstruction(OpCodes.Ldarg_2),

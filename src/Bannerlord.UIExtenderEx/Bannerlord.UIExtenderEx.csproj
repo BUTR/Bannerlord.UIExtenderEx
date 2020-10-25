@@ -35,4 +35,8 @@
     <PackageReference Include="Lib.Harmony" Version="2.0.2" IncludeAssets="compile" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Bannerlord.UIExtenderEx.Tests" />
+  </ItemGroup>
+
 </Project>

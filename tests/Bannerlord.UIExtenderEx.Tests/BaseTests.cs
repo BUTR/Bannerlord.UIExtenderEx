@@ -2,6 +2,7 @@ using HarmonyLib;
 
 using NUnit.Framework;
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 
@@ -15,18 +16,8 @@ namespace Bannerlord.UIExtenderEx.Tests
     {
         protected class MockWidgetFactory : WidgetFactory
         {
-            public static WidgetPrefab WidgetPrefabInsert { get; private set; } = default!;
-            public static WidgetPrefab WidgetPrefabReplace { get; private set; } = default!;
-            public static WidgetPrefab WidgetPrefabInsertAsSiblingAppend { get; private set; } = default!;
-            public static WidgetPrefab WidgetPrefabInsertAsSiblingPrepend { get; private set; } = default!;
-
-            private Dictionary<string, object> _customTypes = new Dictionary<string, object>
-            {
-                { "Insert", null! },
-                { "Replace", null! },
-                { "InsertAsSiblingAppend", null! },
-                { "InsertAsSiblingPrepend", null! },
-            };
+            private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
+                AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
 
             public MockWidgetFactory() : base(new MockResourceDepot(), string.Empty)
             {
@@ -34,11 +25,19 @@ namespace Bannerlord.UIExtenderEx.Tests
                 harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
                     prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory),
                         nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix))));
-                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "AddCustomType"),
+                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), nameof(WidgetFactory.GetCustomType)),
                     prefix: new HarmonyMethod(
-                        AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(AddCustomTypePrefix))));
+                        AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix))));
                 harmony.Patch(SymbolExtensions.GetMethodInfo(() => XmlReader.Create("", null!)),
                     prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(CreatePrefix))));
+
+                if (GetCustomTypes?.Invoke(this) is { } dictionary)
+                {
+                    dictionary.Add("Insert", null!);
+                    dictionary.Add("Replace", null!);
+                    dictionary.Add("InsertAsSiblingAppend", null!);
+                    dictionary.Add("InsertAsSiblingPrepend", null!);
+                }
             }
 
             public static bool CreatePrefix(ref XmlReader __result)
@@ -68,26 +67,9 @@ namespace Bannerlord.UIExtenderEx.Tests
                 return false;
             }
 
-            public static bool AddCustomTypePrefix(string name, string path)
+            public static bool GetCustomTypePrefix(string typeName, ref WidgetPrefab __result)
             {
-                switch (name)
-                {
-                    case "Insert":
-                        WidgetPrefabInsert = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), path);
-                        break;
-
-                    case "Replace":
-                        WidgetPrefabReplace = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), path);
-                        break;
-
-                    case "InsertAsSiblingAppend":
-                        WidgetPrefabInsertAsSiblingAppend = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), path);
-                        break;
-
-                    case "InsertAsSiblingPrepend":
-                        WidgetPrefabInsertAsSiblingPrepend = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), path);
-                        break;
-                }
+                __result = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), typeName);
                 return false;
             }
 
