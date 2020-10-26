@@ -6,10 +6,7 @@ on:
       - master
 
 jobs:
-###########################
-#          NEXUS          #
-###########################
-  build-for-nexusmods:
+  build-module:
     name: Build for NexusMods
     runs-on: ubuntu-latest
     steps:
@@ -33,34 +30,14 @@ jobs:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
-    - name: Download DepotDownloader_2.3.6
-      uses: i3h/download-release-asset@v1
-      with:
-        owner: SteamRE
-        repo: DepotDownloader
-        tag: DepotDownloader_2.3.6
-        file: depotdownloader-2.3.6.zip
-
-    - name: Extract DepotDownloader_2.3.6
-      uses: DuckSoft/extract-7z-action@v1.0
-      with:
-        pathSource: depotdownloader-2.3.6.zip
-        pathTarget: depotdownloader
-
-    - name: Download Bannerlord binaries
-      run: >-
-        dotnet depotdownloader/DepotDownloader.dll -app 261550 -depot 261551 -beta ${{secrets.SYNCED_GAME_STABLE_VERSION}} -username ${{secrets.STEAM_LOGIN}}
-        -password ${{secrets.STEAM_PASSWORD}} -filelist ./.github/resources/FileFilters.regexp -dir bannerlord
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
-
     - name: Build Bannerlord.UIExtenderEx
       run: >-
+        mkdir bannerlord-publish;
         dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -p:GameFolder="$PWD/bannerlord";
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Upload Bannerlord folder
       uses: actions/upload-artifact@v2
@@ -68,9 +45,12 @@ jobs:
         name: bannerlord
         path: ./bannerlord/
 
+###########################
+#          NEXUS          #
+###########################
   publish-on-nexusmods:
     name: Publish on NexusMods
-    needs: ["build-for-nexusmods"]
+    needs: ["build-module"]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -101,6 +81,7 @@ jobs:
 
     - name: Zip Bannerlord.UIExtenderEx
       run: 7z a -tzip Bannerlord.UIExtenderEx.zip ./bannerlord/*
+      shell: pwsh
 
     - name: Install Bannerlord.ChangelogParser and Bannerlord.NexusmodsUploader
       run: >-
@@ -109,6 +90,7 @@ jobs:
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Run ChangelogParser
       id: changelog
@@ -123,6 +105,7 @@ jobs:
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Start Selenoid
       uses: Xotabu4/selenoid-github-action@v1
@@ -136,9 +119,11 @@ jobs:
         NEXUSMODS_COOKIES_JSON: '${{secrets.NEXUSMODS_COOKIES_JSON}}'
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Password protect Screenshots
       run: 7z a -p${{secrets.SCREENSHOTS_PASSWORD}} Screenshots.7z ./Screenshots/*
+      shell: pwsh
 
     - name: Upload Screenshots Artifact
       uses: actions/upload-artifact@v2
@@ -178,12 +163,14 @@ jobs:
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Install Bannerlord.ChangelogParser
       run: dotnet tool install -g Bannerlord.ChangelogParser;
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
     - name: Run ChangelogParser
       id: changelog
       run: |
@@ -194,12 +181,14 @@ jobs:
         desc="${desc//$'\n'/'%0A'}"
         desc="${desc//$'\r'/'%0D'}"
         echo "::set-output name=mod_description::$desc"
+      shell: pwsh
 
     - name: Push to NuGet
       run: dotnet nuget push "./packages/*.nupkg" -k ${{secrets.NUGET_API_KEY}} -s https://www.nuget.org
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Push to GPR
       run: |
@@ -207,6 +196,7 @@ jobs:
            do
              curl -vX PUT -u "vslee:${{secrets.GITHUB_TOKEN}}" -F package=@$f https://nuget.pkg.github.com/BUTR/
            done
+      shell: pwsh
 
 ###########################
 #         GITHUB          #
@@ -214,7 +204,7 @@ jobs:
   publish-on-github:
     name: Publish on GitHub
     runs-on: ubuntu-latest
-    needs: ["build-for-nexusmods"]
+    needs: ["build-module"]
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -236,7 +226,7 @@ jobs:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
-    - name: Download stable bannerlord folder
+    - name: Download bannerlord folder
       uses: actions/download-artifact@v2
       with:
         name: bannerlord
@@ -244,6 +234,7 @@ jobs:
 
     - name: Zip Bannerlord.UIExtenderEx
       run: 7z a -tzip Bannerlord.UIExtenderEx.zip ./bannerlord/*
+      shell: pwsh
 
     - name: Install Bannerlord.ChangelogParser and Bannerlord.NexusmodsUploader
       run: >-
@@ -252,6 +243,7 @@ jobs:
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Run ChangelogParser
       id: changelog
@@ -263,6 +255,7 @@ jobs:
         desc="${desc//$'\n'/'%0A'}"
         desc="${desc//$'\r'/'%0D'}"
         echo "::set-output name=mod_description::$desc"
+      shell: pwsh
 
     - name: Create Release
       uses: actions/create-release@v1

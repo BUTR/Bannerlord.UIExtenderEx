@@ -13,14 +13,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{F9295842-7E6D-4563-BC4F-BB41EDA0B666}"
 	ProjectSection(SolutionItems) = preProject
 		..\build\common.props = ..\build\common.props
-		..\build\common.targets = ..\build\common.targets
-		..\build\github-actions.props = ..\build\github-actions.props
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{4E22A761-56BF-4805-A435-AE2A676B1374}"
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\docfx.yml = ..\.github\workflows\docfx.yml
-		..\.github\workflows\nexusmods-cookies.yml = ..\.github\workflows\nexusmods-cookies.yml
 		..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
 		..\.github\workflows\test.yml = ..\.github\workflows\test.yml
 	EndProjectSection

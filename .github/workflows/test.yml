@@ -69,6 +69,7 @@ jobs:
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      shell: pwsh
 
     - name: Download opencover.4.7.922
       uses: i3h/download-release-asset@v1
