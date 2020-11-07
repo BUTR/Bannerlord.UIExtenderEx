@@ -5,6 +5,14 @@ on:
     branches:
       - master
 
+env:
+  # Disable the .NET logo in the console output.
+  DOTNET_NOLOGO: true
+  # Disable the .NET first time experience to skip caching NuGet packages and speed up the build.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Disable sending .NET CLI telemetry to Microsoft.
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
   build-module:
     name: Build for NexusMods
@@ -17,9 +25,6 @@ jobs:
       uses: actions/setup-dotnet@master
       with:
         dotnet-version: 3.1.x
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Setup BUTR GPR
       uses: actions/setup-dotnet@master
@@ -27,16 +32,11 @@ jobs:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Build Bannerlord.UIExtenderEx
       run: >-
         mkdir bannerlord-publish;
         dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -p:GameFolder="$PWD/bannerlord";
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Upload Bannerlord folder
@@ -60,9 +60,6 @@ jobs:
       uses: actions/setup-dotnet@master
       with:
         dotnet-version: 3.1.x
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Setup BUTR GPR
       uses: actions/setup-dotnet@master
@@ -70,8 +67,6 @@ jobs:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Download stable bannerlord folder
       uses: actions/download-artifact@v2
@@ -87,9 +82,6 @@ jobs:
       run: >-
         dotnet tool install -g Bannerlord.ChangelogParser;
         dotnet tool install -g Bannerlord.NexusmodsUploader;
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Run ChangelogParser
@@ -102,9 +94,6 @@ jobs:
         desc="${desc//$'\n'/'%0A'}"
         desc="${desc//$'\r'/'%0D'}"
         echo "::set-output name=mod_description::$desc"
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Start Selenoid
@@ -117,8 +106,6 @@ jobs:
         -p "$PWD/Bannerlord.UIExtenderEx.zip";
       env:
         NEXUSMODS_COOKIES_JSON: '${{secrets.NEXUSMODS_COOKIES_JSON}}'
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Password protect Screenshots
@@ -145,9 +132,6 @@ jobs:
       uses: actions/setup-dotnet@master
       with:
         dotnet-version: 3.1.x
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Setup BUTR GPR
       uses: actions/setup-dotnet@master
@@ -155,21 +139,13 @@ jobs:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Pack Bannerlord.UIExtenderEx (Release)
       run: dotnet pack src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -o "./packages"
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Install Bannerlord.ChangelogParser
       run: dotnet tool install -g Bannerlord.ChangelogParser;
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
     - name: Run ChangelogParser
       id: changelog
@@ -185,9 +161,6 @@ jobs:
 
     - name: Push to NuGet
       run: dotnet nuget push "./packages/*.nupkg" -k ${{secrets.NUGET_API_KEY}} -s https://www.nuget.org
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Push to GPR
@@ -213,9 +186,6 @@ jobs:
       uses: actions/setup-dotnet@master
       with:
         dotnet-version: 3.1.x
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Setup BUTR GPR
       uses: actions/setup-dotnet@master
@@ -223,8 +193,6 @@ jobs:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
     - name: Download bannerlord folder
       uses: actions/download-artifact@v2
@@ -240,9 +208,6 @@ jobs:
       run: >-
         dotnet tool install -g Bannerlord.ChangelogParser;
         dotnet tool install -g Bannerlord.NexusmodsUploader;
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
       shell: pwsh
 
     - name: Run ChangelogParser
