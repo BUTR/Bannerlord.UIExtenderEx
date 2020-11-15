@@ -58,7 +58,7 @@ namespace Bannerlord.UIExtenderEx
                         case PrefabExtensionAttribute xmlExtension:
                         {
                             var constructor = extensionType.GetConstructor(Type.EmptyTypes);
-                            if (constructor == null)
+                            if (constructor is null)
                             {
                                 Utils.Fail("Failed to find appropriate constructor for patch!");
                                 continue;

@@ -6,6 +6,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -19,6 +20,8 @@ namespace Bannerlord.UIExtenderEx.Patches
     {
         private static ConcurrentDictionary<Type, object?> RegisteredViewModels { get; } = new ConcurrentDictionary<Type, object?>();
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "IteratorMethodResultIsIgnored")]
         public static void Patch(Harmony harmony, Type viewModelType, IEnumerable<Type> mixins, string? refreshMethodName = null)
         {
             if (RegisteredViewModels.TryAdd(viewModelType, null)) // first initialization
@@ -30,7 +33,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                         transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_Constructor_Transpiler(null!))));
                 }
 
-                if (refreshMethodName != null && AccessTools.Method(viewModelType, refreshMethodName) is { } method)
+                if (refreshMethodName is not null && AccessTools.Method(viewModelType, refreshMethodName) is { } method)
                 {
                     harmony.Patch(
                         method,
@@ -44,6 +47,8 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions.GetMethodInfo(() => Constructor(null!)));
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -60,13 +65,17 @@ namespace Bannerlord.UIExtenderEx.Patches
                     continue;
 
                 foreach (var mixin in list)
-                foreach (var extension in runtime.ViewModelComponent.MixinInstancePropertyCache[mixin])
                 {
-                    viewModel.AddProperty(extension.Key, extension.Value);
+                    foreach (var (key, value) in runtime.ViewModelComponent.MixinInstancePropertyCache[mixin])
+                    {
+                        viewModel.AddProperty(key, value);
+                    }
                 }
             }
         }
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Refresh_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions.GetMethodInfo(() => Refresh(null!)));
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -82,6 +91,8 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions)
         {

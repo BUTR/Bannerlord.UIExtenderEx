@@ -1,9 +1,9 @@
-﻿<!--EXTERNAL_PROPERTIES: GameVersion;BuildResourcesVersion-->
+﻿<!--EXTERNAL_PROPERTIES: GameVersion;HarmonyVersion;BuildResourcesVersion-->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
@@ -36,7 +36,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="all" />
-    <PackageReference Include="Lib.Harmony" Version="2.0.2" IncludeAssets="compile" />
+    <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" IncludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>

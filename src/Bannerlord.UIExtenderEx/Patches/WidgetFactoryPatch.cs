@@ -1,7 +1,10 @@
-﻿using HarmonyLib;
+﻿using Bannerlord.UIExtenderEx.Extensions;
+
+using HarmonyLib;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -17,7 +20,7 @@ namespace Bannerlord.UIExtenderEx.Patches
     /// </summary>
     public static class WidgetFactoryPatch
     {
-        private static bool _transpilerSuccessful = false;
+        private static bool _transpilerSuccessful;
 
         public static void Patch(Harmony harmony)
         {
@@ -35,6 +38,8 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> InitializeTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
         {
@@ -49,7 +54,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(Type));
 
-            if (typeLocal == null)
+            if (typeLocal is null)
                 return ReturnDefault("Local not found");
 
             var startIndex = -1;
@@ -101,36 +106,45 @@ namespace Bannerlord.UIExtenderEx.Patches
             return instructionsList.AsEnumerable();
         }
 
-        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } =
-            AccessTools3.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
-        private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } =
-            AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
+        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } = AccessTools3.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
+        private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool InitializePrefix(WidgetFactory __instance)
         {
-            var builtinTypes = BuiltinTypesField != null ? BuiltinTypesField(__instance) : null;
-            if (builtinTypes == null || !(GetPrefabNamesAndPathsFromCurrentPathMethod.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData))
+            var builtinTypes = BuiltinTypesField is not null ? BuiltinTypesField(__instance) : null;
+            if (builtinTypes is not null && GetPrefabNamesAndPathsFromCurrentPathMethod.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData)
+            {
+                foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)
+                {
+                    var method = AccessTools.Method(prefabExtension.GetType(), "RegisterAttributeTypes");
+                    method.Invoke(prefabExtension, new object[] {__instance.WidgetAttributeContext});
+                }
+
+                foreach (var type in WidgetInfo.CollectWidgetTypes())
+                {
+                    // PATCH
+                    if (!builtinTypes.ContainsKey(type.Name))
+                    {
+                        // PATCH
+                        builtinTypes.Add(type.Name, type);
+                    }
+                }
+
+                foreach (var (key, value) in prefabsData)
+                {
+                    __instance.AddCustomType(key, value);
+                }
+
+                return false;
+            }
+            else
+            {
                 return true; // fallback
-
-            foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)
-            {
-                var method = AccessTools.Method(prefabExtension.GetType(), "RegisterAttributeTypes");
-                method.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
             }
-            foreach (var type in WidgetInfo.CollectWidgetTypes())
-            {
-                // PATCH
-                if (!builtinTypes.ContainsKey(type.Name))
-                // PATCH
-                    builtinTypes.Add(type.Name, type);
-            }
-            foreach (var keyValuePair in prefabsData)
-            {
-                __instance.AddCustomType(keyValuePair.Key, keyValuePair.Value);
-            }
-
-            return false;
         }
     }
 }

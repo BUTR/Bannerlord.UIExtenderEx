@@ -43,7 +43,9 @@ namespace Bannerlord.UIExtenderEx.Prefabs
                 doc.Load(reader);
             }
             else
+            {
                 Utils.Fail($"Failed to get file {path} XML!");
+            }
 
             if (!doc.HasChildNodes)
                 Utils.Fail($"Failed to parse extension ({Name}) XML!");
@@ -68,7 +70,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs
             using var stream = Assembly.GetManifestResourceStream(Path);
             var doc = new XmlDocument();
 
-            if (stream != null)
+            if (stream is not null)
             {
                 using var reader = XmlReader.Create(stream, new XmlReaderSettings
                 {
@@ -78,7 +80,9 @@ namespace Bannerlord.UIExtenderEx.Prefabs
                 doc.Load(reader);
             }
             else
+            {
                 Utils.Fail($"Failed get stream from assembly resource ({Assembly.FullName} {Path})!");
+            }
 
             if (!doc.HasChildNodes)
                 Utils.Fail($"Failed to parse extension ({Assembly.FullName} {Path}) XML!");

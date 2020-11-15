@@ -37,7 +37,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(WidgetPrefab));
 
-            if (typeLocal == null)
+            if (typeLocal is null)
                 return ReturnDefault("Local not found");
 
             var startIndex = -1;
