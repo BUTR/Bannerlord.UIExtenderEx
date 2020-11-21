@@ -17,6 +17,8 @@ namespace Bannerlord.UIExtenderEx
 @"{=eySpdc25EE}Warning from Bannerlord.UIExtenderEx!";
         private const string SErrorHarmonyNotFound =
 @"{=EEVJa5azpB}Bannerlord.Harmony module was not found!";
+        private const string SErrorUIExtenderExNotFound =
+@"{=YjsGP3mUaj}Bannerlord.UIExtenderEx module was not found!";
         private const string SErrorOfficialModulesLoadedBefore =
 @"{=UZ8zfvudMs}UIExtenderEx is loaded after the official modules!
 Make sure UIExtenderEx is loaded before them!";
@@ -44,6 +46,12 @@ Make sure UIExtenderEx is loaded before them!";
 
             var uiExtenderModule = loadedModules.SingleOrDefault(x => x.Id == "Bannerlord.UIExtenderEx");
             var uiExtenderIndex = uiExtenderModule is not null ? loadedModules.IndexOf(uiExtenderModule) : -1;
+            if (uiExtenderIndex == -1)
+            {
+                if (sb.Length != 0) sb.AppendLine();
+                sb.AppendLine(new TextObject(SErrorUIExtenderExNotFound).ToString());
+            }
+
             var officialModules = loadedModules.Where(x => x.IsOfficial).Select(x => (Module: x, Index: loadedModules.IndexOf(x)));
             var modulesLoadedBefore = officialModules.Where(tuple => tuple.Index < uiExtenderIndex).ToList();
             if (modulesLoadedBefore.Count > 0)

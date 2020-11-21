@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Module>
   <Name value="UIExtenderEx" />
-  <Id value="Bannerlord.UIExtenderEx" />
+  <Id value="$modulename$" />
   <Version value="v$version$" />
   <Official value="false" />
   <DefaultModule value="false" />
@@ -25,8 +25,8 @@
   <SubModules>
     <SubModule>
       <Name value="UIExtenderEx" />
-      <DLLName value="Bannerlord.UIExtenderEx.dll" />
-      <SubModuleClassType value="Bannerlord.UIExtenderEx.SubModule" />
+      <DLLName value="$modulename$.dll" />
+      <SubModuleClassType value="$modulename$.SubModule" />
       <Tags />
     </SubModule>
   </SubModules>

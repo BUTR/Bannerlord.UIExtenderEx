@@ -5,12 +5,13 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Configurations>Debug;Release</Configurations>
+
+    <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
   </PropertyGroup>
 
   <!--Module Creation-->
   <PropertyGroup>
-    <ModuleName>Bannerlord.UIExtenderEx</ModuleName>
+    <ModuleName>$(MSBuildProjectName)</ModuleName>
   </PropertyGroup>
   <!--Module Creation-->
 
