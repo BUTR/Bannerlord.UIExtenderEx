@@ -14,7 +14,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
 
         public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
         {
-            if (PropertyInfosField != null && PropertyInfosField(viewModel) is { } dict && !dict.ContainsKey(name))
+            if (PropertyInfosField is not null && PropertyInfosField(viewModel) is { } dict && !dict.ContainsKey(name))
                 dict.Add(name, propertyInfo);
         }
     }

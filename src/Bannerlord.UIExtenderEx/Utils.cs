@@ -10,6 +10,7 @@ namespace Bannerlord.UIExtenderEx
         public static void Fail(string text)
         {
             Debug.Fail(text);
+            DisplayUserError(text);
         }
 
         public static void Assert(bool condition, string text = "no description")
@@ -35,7 +36,7 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="args"></param>
         public static void DisplayUserError(string text, params object[] args)
         {
-            InformationManager.DisplayMessage(new InformationMessage($"UIExtender: {string.Format(text, args)}", Colors.Red));
+            InformationManager.DisplayMessage(new InformationMessage($"UIExtenderEx: {string.Format(text, args)}", Colors.Red));
         }
 
         /// <summary>

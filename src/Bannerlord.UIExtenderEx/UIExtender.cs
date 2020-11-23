@@ -81,7 +81,7 @@ namespace Bannerlord.UIExtenderEx
 
         public void Enable()
         {
-            if (_runtime == null)
+            if (_runtime is null)
             {
                 Utils.Fail("Register() method was not called before Enable()!");
                 return;
@@ -91,7 +91,7 @@ namespace Bannerlord.UIExtenderEx
 
         public void Disable()
         {
-            if (_runtime == null)
+            if (_runtime is null)
             {
                 Utils.Fail("Register() method was not called before Enable()!");
                 return;

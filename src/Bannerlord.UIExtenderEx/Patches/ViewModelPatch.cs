@@ -4,6 +4,7 @@ using HarmonyLib;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -22,6 +23,8 @@ namespace Bannerlord.UIExtenderEx.Patches
                 transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_ExecuteCommand_Transpiler(null!, null!))));
         }
 
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_ExecuteCommand_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
         {
@@ -41,6 +44,8 @@ namespace Bannerlord.UIExtenderEx.Patches
             });
             return instructionList;
         }
+        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+        [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool ExecuteCommand(ViewModel viewModel, string commandName, params object[] parameters)
         {
@@ -61,7 +66,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                     continue;
 
                 var nativeMethod = viewModel.GetType().GetMethod(commandName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                var isNativeMethod = nativeMethod != null;
+                var isNativeMethod = nativeMethod is not null;
                 var hasMixins = runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(ViewModelComponent.MixinCacheKey(viewModel), out var list);
 
                 if (!isNativeMethod && !hasMixins)
@@ -69,7 +74,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (isNativeMethod && !hasMixins)
                     continue; // skip to next Runtime
 
-                foreach (var mixin in list)
+                foreach (var mixin in list!)
                 {
                     if (!(runtime.ViewModelComponent.MixinInstanceMethodCache[mixin].FirstOrDefault(e => e.Key == commandName).Value is { } method))
                         continue;
@@ -101,7 +106,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 }
             }
 
-            // continue original execution 
+            // continue original execution
             return true;
         }
     }
