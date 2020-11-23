@@ -35,7 +35,7 @@ jobs:
 
     - name: Build Bannerlord.UIExtenderEx
       run: >-
-        mkdir bannerlord-publish;
+        mkdir bannerlord;
         dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -p:GameFolder="$PWD/bannerlord";
       shell: pwsh
 
@@ -159,7 +159,7 @@ jobs:
 
 
     - name: Push to NuGet
-      run: dotnet nuget push "./packages/*.nupkg" -k ${{secrets.NUGET_API_KEY}} -s https://www.nuget.org
+      run: dotnet nuget push "./packages/*.nupkg" -k ${{secrets.NUGET_API_KEY}} -s https://www.nuget.org --skip-duplicate
       shell: pwsh
 
     - name: Push to GPR
