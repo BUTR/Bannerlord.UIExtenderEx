@@ -168,7 +168,6 @@ jobs:
            do
              curl -vX PUT -u "vslee:${{secrets.GITHUB_TOKEN}}" -F package=@$f https://nuget.pkg.github.com/BUTR/
            done
-      shell: pwsh
 
 ###########################
 #         GITHUB          #
