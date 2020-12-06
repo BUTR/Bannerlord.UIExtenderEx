@@ -158,6 +158,14 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply
         }
 ```
 
+To use the `OnRefresh` overload you will need to specify for UIExtenderEx the underlying method that acts as the conceptual 'Refresh' method in the `ViewModel`.  
+For example, `MapInfoVM` has a method `Refresh`.  
+If such method exists, specify it in the `ViewModelMixin` like this:
+```csharp
+[ViewModelMixin("Refresh")] // or [ViewModelMixin(nameof(MapInfoVM.Refresh))] // if the method is public
+public class MapInfoMixin : BaseViewModelMixin<MapInfoVM>
+```
+
 ### Examples
 * [Bannerlord.MBOptionScreen](https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/dev/src/MCM.UI/UIExtenderEx)
 * [Yet Another Party Organiser](https://github.com/tbeswick96/BannerlordYetAnotherPartyOrganiser)
