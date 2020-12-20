@@ -33,6 +33,7 @@ namespace Bannerlord.UIExtenderEx.Tests
 
                 if (GetCustomTypes?.Invoke(this) is { } dictionary)
                 {
+                    dictionary.Add("SetAttribute", null!);
                     dictionary.Add("Insert", null!);
                     dictionary.Add("Replace", null!);
                     dictionary.Add("InsertAsSiblingAppend", null!);
@@ -52,7 +53,9 @@ namespace Bannerlord.UIExtenderEx.Tests
             <ListPanel>
               <Children>
                 <OptionsTabToggle Id=""InsertAsSibling""/>
+                <OptionsTabToggle Id=""InsertAsSibling""/>
                 <OptionsTabToggle Id=""Replace""/>
+                <OptionsTabToggle Id=""SetAttribute""/>
                 <OptionsTabToggle/>
                 <OptionsTabToggle/>
               </Children>
@@ -77,6 +80,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             {
                 __result = new Dictionary<string, string>
                 {
+                    { "SetAttribute", "SetAttribute.xml" },
                     { "Insert", "Insert.xml" },
                     { "Replace", "Replace.xml" },
                     { "InsertAsSiblingAppend", "InsertAsSiblingAppend.xml" },

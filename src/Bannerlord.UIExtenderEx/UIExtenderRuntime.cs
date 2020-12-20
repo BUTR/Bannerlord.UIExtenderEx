@@ -67,6 +67,10 @@ namespace Bannerlord.UIExtenderEx
                             // gauntlet xml extension
                             switch (constructor.Invoke(Array.Empty<object>()))
                             {
+                                case PrefabExtensionSetAttributePatch patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                                    break;
+
                                 case PrefabExtensionInsertPatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;

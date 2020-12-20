@@ -95,6 +95,17 @@ Example of inserting ``XML`` after a specific element:
     }
 ```
 
+Example of adding or replacing  ``XML`` attribute:
+```csharp
+    [PrefabExtension("SetAttribute", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='SetAttribute']")]
+    internal class TestPrefabExtensionSetAttributePatch : PrefabExtensionSetAttributePatch
+    {
+        public override string Id => "SetAttribute";
+        public override string Attribute => "CustomAttribute";
+        public override string Value => "Value";
+    }
+```
+
 Example of inserting ``XML`` before a specific element:
 ```csharp
     [PrefabExtension("InsertAsSiblingPrepend", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']")]
