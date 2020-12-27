@@ -95,6 +95,17 @@ Example of inserting ``XML`` after a specific element:
     }
 ```
 
+Example of adding or replacing  ``XML`` attribute:
+```csharp
+    [PrefabExtension("SetAttribute", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='SetAttribute']")]
+    internal class TestPrefabExtensionSetAttributePatch : PrefabExtensionSetAttributePatch
+    {
+        public override string Id => "SetAttribute";
+        public override string Attribute => "CustomAttribute";
+        public override string Value => "Value";
+    }
+```
+
 Example of inserting ``XML`` before a specific element:
 ```csharp
     [PrefabExtension("InsertAsSiblingPrepend", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']")]
@@ -156,6 +167,14 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply
               _extender.Enable();
           }
         }
+```
+
+To use the `OnRefresh` overload you will need to specify for UIExtenderEx the underlying method that acts as the conceptual 'Refresh' method in the `ViewModel`.  
+For example, `MapInfoVM` has a method `Refresh`.  
+If such method exists, specify it in the `ViewModelMixin` like this:
+```csharp
+[ViewModelMixin("Refresh")] // or [ViewModelMixin(nameof(MapInfoVM.Refresh))] // if the method is public
+public class MapInfoMixin : BaseViewModelMixin<MapInfoVM>
 ```
 
 ### Examples

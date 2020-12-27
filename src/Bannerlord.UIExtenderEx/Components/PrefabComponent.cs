@@ -125,6 +125,37 @@ namespace Bannerlord.UIExtenderEx.Components
         }
 
         /// <summary>
+        /// Register snippet set attribute patch
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="xpath"></param>
+        /// <param name="patch"></param>
+        public void RegisterPatch(string movie, string? xpath, PrefabExtensionSetAttributePatch patch)
+        {
+            RegisterPatch(movie, xpath, node =>
+            {
+                var ownerDocument = node is XmlDocument xmlDocument ? xmlDocument : node.OwnerDocument;
+                if (ownerDocument is null)
+                {
+                    return;
+                }
+
+                if (node.NodeType != XmlNodeType.Element)
+                {
+                    return;
+                }
+
+                if (node.Attributes![patch.Attribute] is null)
+                {
+                    var attribute = ownerDocument.CreateAttribute(patch.Attribute);
+                    node.Attributes.Append(attribute);
+                }
+
+                node.Attributes![patch.Attribute].Value = patch.Value;
+            });
+        }
+
+        /// <summary>
         /// Register snippet replace patch
         /// </summary>
         /// <param name="movie"></param>
