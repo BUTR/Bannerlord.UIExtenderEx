@@ -83,7 +83,7 @@ Make sure UIExtenderEx is loaded before them!";
         {
             foreach (string modulesName in Utilities.GetModulesNames())
             {
-                ModuleInfo moduleInfo = new ModuleInfo();
+                var moduleInfo = new ModuleInfo();
                 moduleInfo.Load(modulesName);
                 yield return moduleInfo;
             }

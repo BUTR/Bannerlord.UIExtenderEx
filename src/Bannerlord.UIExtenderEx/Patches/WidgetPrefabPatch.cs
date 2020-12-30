@@ -59,9 +59,9 @@ namespace Bannerlord.UIExtenderEx.Patches
             // ProcessMovie(path, xmlDocument);
             instructionsList.InsertRange(startIndex + 1, new List<CodeInstruction>
             {
-                new CodeInstruction(OpCodes.Ldarg_2),
-                new CodeInstruction(OpCodes.Ldloc_0),
-                new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ProcessMovie(null!, null!)))
+                new(OpCodes.Ldarg_2),
+                new(OpCodes.Ldloc_0),
+                new(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ProcessMovie(null!, null!)))
             });
             return instructionsList.AsEnumerable();
         }

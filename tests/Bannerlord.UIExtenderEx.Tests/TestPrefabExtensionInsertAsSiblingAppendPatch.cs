@@ -10,7 +10,7 @@ namespace Bannerlord.UIExtenderEx.Tests
     {
         public override string Id => "InsertAsSiblingAppend";
         public override InsertType Type => InsertType.Append;
-        private XmlDocument XmlDocument { get; } = new XmlDocument();
+        private XmlDocument XmlDocument { get; } = new();
 
         public TestPrefabExtensionInsertAsSiblingAppendPatch()
         {

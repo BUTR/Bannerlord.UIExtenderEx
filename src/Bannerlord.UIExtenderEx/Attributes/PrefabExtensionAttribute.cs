@@ -12,12 +12,12 @@ namespace Bannerlord.UIExtenderEx.Attributes
         /// <summary>
         /// Gauntlet Movie name to extend
         /// </summary>
-        public string Movie { get;  }
+        public string Movie { get; }
 
         /// <summary>
         /// XPath of the node to operate against (optional)
         /// </summary>
-        public string? XPath { get;  }
+        public string? XPath { get; }
 
         /// <summary>
         /// Constructor

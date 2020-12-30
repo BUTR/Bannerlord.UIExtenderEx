@@ -15,7 +15,7 @@ namespace Bannerlord.UIExtenderEx
     /// </summary>
     public class UIExtender
     {
-        private static readonly Harmony Harmony = new Harmony("bannerlord.uiextender.ex");
+        private static readonly Harmony Harmony = new("bannerlord.uiextender.ex");
 
         static UIExtender()
         {
@@ -28,7 +28,7 @@ namespace Bannerlord.UIExtenderEx
         /// Cache or runtime objects that will be accessed from patched code
         /// </summary>
         ///
-        private static readonly Dictionary<string, UIExtenderRuntime> RuntimeInstances = new Dictionary<string, UIExtenderRuntime>();
+        private static readonly Dictionary<string, UIExtenderRuntime> RuntimeInstances = new();
 
         /// <summary>
         /// Name of the module this instance is assigned to

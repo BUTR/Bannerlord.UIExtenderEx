@@ -10,7 +10,7 @@ namespace Bannerlord.UIExtenderEx.Tests
     {
         public override string Id => "Insert";
         public override int Position => 3;
-        private XmlDocument XmlDocument { get; } = new XmlDocument();
+        private XmlDocument XmlDocument { get; } = new();
 
         public TestPrefabExtensionInsertPatch()
         {

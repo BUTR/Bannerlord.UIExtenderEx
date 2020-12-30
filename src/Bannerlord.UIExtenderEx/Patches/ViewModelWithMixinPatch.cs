@@ -18,7 +18,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 {
     internal static class ViewModelWithMixinPatch
     {
-        private static ConcurrentDictionary<Type, object?> RegisteredViewModels { get; } = new ConcurrentDictionary<Type, object?>();
+        private static ConcurrentDictionary<Type, object?> RegisteredViewModels { get; } = new();
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "IteratorMethodResultIsIgnored")]

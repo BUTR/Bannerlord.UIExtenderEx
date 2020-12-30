@@ -30,7 +30,7 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <summary>
         /// Registered movie patches
         /// </summary>
-        private readonly ConcurrentDictionary<string, List<Action<XmlDocument>>> _moviePatches = new ConcurrentDictionary<string, List<Action<XmlDocument>>>();
+        private readonly ConcurrentDictionary<string, List<Action<XmlDocument>>> _moviePatches = new();
 
         public bool Enabled { get; private set; }
 

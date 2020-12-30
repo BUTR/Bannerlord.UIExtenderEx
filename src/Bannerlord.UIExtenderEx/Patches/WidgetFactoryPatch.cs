@@ -95,12 +95,12 @@ namespace Bannerlord.UIExtenderEx.Patches
             // if (!this._builtinTypes.ContainsKey(type.Name))
             instructionsList.InsertRange(startIndex, new List<CodeInstruction>
             {
-                new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(WidgetFactory), "_builtinTypes")),
-                new CodeInstruction(OpCodes.Ldloc, typeLocal.LocalIndex),
-                new CodeInstruction(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))),
-                new CodeInstruction(OpCodes.Callvirt, SymbolExtensions.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
-                new CodeInstruction(OpCodes.Brtrue_S, jmpEnumerator)
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(WidgetFactory), "_builtinTypes")),
+                new(OpCodes.Ldloc, typeLocal.LocalIndex),
+                new(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))),
+                new(OpCodes.Callvirt, SymbolExtensions.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
+                new(OpCodes.Brtrue_S, jmpEnumerator)
             });
             _transpilerSuccessful = true;
             return instructionsList.AsEnumerable();
