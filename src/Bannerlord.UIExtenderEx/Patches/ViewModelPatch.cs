@@ -35,12 +35,12 @@ namespace Bannerlord.UIExtenderEx.Patches
 
             instructionList.InsertRange(0, new List<CodeInstruction>
             {
-                new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Ldarg_1),
-                new CodeInstruction(OpCodes.Ldarg_2),
-                new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ExecuteCommand(null!, null!, null!))),
-                new CodeInstruction(OpCodes.Brtrue, jmpOriginalFlow),
-                new CodeInstruction(OpCodes.Ret)
+                new(OpCodes.Ldarg_0),
+                new(OpCodes.Ldarg_1),
+                new(OpCodes.Ldarg_2),
+                new(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ExecuteCommand(null!, null!, null!))),
+                new(OpCodes.Brtrue, jmpOriginalFlow),
+                new(OpCodes.Ret)
             });
             return instructionList;
         }

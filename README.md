@@ -32,7 +32,7 @@
 A library that enables multiple mods to alter standard game interface.
 
 ## Installation
-This module should be one of the highest in loading order. Ideally, it should be loaded after ``Bannerlord.Harmony`` or ``Bannerlord.ButterLub``.
+This module should be one of the highest in loading order. Ideally, it should be loaded after ``Bannerlord.Harmony`` or ``Bannerlord.ButterLib``.
 
 ## For Players
 This mod is a dependency mod that does not provide anything by itself. You need to additionaly install mods that use it.

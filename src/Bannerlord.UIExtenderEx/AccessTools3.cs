@@ -28,5 +28,22 @@ namespace Bannerlord.UIExtenderEx
             var field = typeof(T).GetField(fieldName, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic);
             return field is null ? null : AccessTools.FieldRefAccess<T, TF>(field);
         }
+
+        /// <summary>Get a delegate for a method described by <paramref name="methodInfo"/>.</summary>
+        /// <param name="methodInfo">The method's <see cref="MethodInfo"/>.</param>
+        /// <returns>A delegate or <see langword="null"/> when <paramref name="methodInfo"/> is <see langword="null"/>.</returns>
+        public static TDelegate? GetDelegate<TDelegate>(MethodInfo? methodInfo) where TDelegate : Delegate
+            => methodInfo is null ? null : Delegate.CreateDelegate(typeof(TDelegate), methodInfo) as TDelegate;
+
+        /// <summary>
+        /// Get a delegate for a method named <paramref name="method"/>, declared by <paramref name="type"/> or any of its base types.
+        /// </summary>
+        /// <param name="type">The type from which to start searching for the method's definition.</param>
+        /// <param name="method">The name of the method (case sensitive).</param>
+        /// <returns>
+        /// A delegate or <see langword="null"/> when <paramref name="type"/> or <paramref name="method"/>
+        /// is <see langword="null"/> or when the method cannot be found.
+        /// </returns>
+        public static TDelegate? GetDelegate<TDelegate>(Type type, string method) where TDelegate : Delegate => GetDelegate<TDelegate>(AccessTools.Method(type, method));
     }
 }

@@ -9,7 +9,7 @@ namespace Bannerlord.UIExtenderEx.Tests
     internal class TestPrefabExtensionReplacePatch : PrefabExtensionReplacePatch
     {
         public override string Id => "Replace";
-        private XmlDocument XmlDocument { get; } = new XmlDocument();
+        private XmlDocument XmlDocument { get; } = new();
 
         public TestPrefabExtensionReplacePatch()
         {
