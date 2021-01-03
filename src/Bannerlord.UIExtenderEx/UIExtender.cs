@@ -1,5 +1,6 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Patches;
+using Bannerlord.UIExtenderEx.ResourceManager;
 
 using HarmonyLib;
 
@@ -22,6 +23,8 @@ namespace Bannerlord.UIExtenderEx
             ViewModelPatch.Patch(Harmony);
             WidgetPrefabPatch.Patch(Harmony);
             WidgetFactoryPatch.Patch(Harmony);
+            BrushFactoryManager.Patch(Harmony);
+            WidgetFactoryManager.Patch(Harmony);
         }
 
         /// <summary>
