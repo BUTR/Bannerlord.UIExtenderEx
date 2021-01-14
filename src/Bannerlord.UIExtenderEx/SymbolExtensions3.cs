@@ -16,7 +16,7 @@ namespace Bannerlord.UIExtenderEx
         }
         public static PropertyInfo GetPropertyInfo(LambdaExpression expression)
         {
-            if (expression.Body is MemberExpression body && body.Member is PropertyInfo propertyInfo)
+            if (expression.Body is MemberExpression { Member: PropertyInfo propertyInfo })
                 return propertyInfo;
 
             throw new ArgumentException("Invalid Expression. Expression should consist of a Property return only.");

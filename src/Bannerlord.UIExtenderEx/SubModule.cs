@@ -1,13 +1,10 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
-using Bannerlord.BUTR.Shared.ModuleInfoExtended;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-using TaleWorlds.Engine;
 using TaleWorlds.MountAndBlade;
 
 namespace Bannerlord.UIExtenderEx
@@ -35,7 +32,7 @@ Make sure UIExtenderEx is loaded before them!";
 
         private static void CheckLoadOrder()
         {
-            var loadedModules = GetLoadedModulesEnumerable().ToList();
+            var loadedModules = ModuleUtils.GetLoadedModules().ToList();
 
             var sb = new StringBuilder();
 
@@ -80,14 +77,6 @@ Make sure UIExtenderEx is loaded before them!";
             }
         }
 
-        private static IEnumerable<ModuleInfo2> GetLoadedModulesEnumerable()
-        {
-            foreach (string modulesName in Utilities.GetModulesNames())
-            {
-                var moduleInfo = new ModuleInfo2();
-                moduleInfo.Load(modulesName);
-                yield return moduleInfo;
-            }
-        }
+
     }
 }
