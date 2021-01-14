@@ -76,7 +76,5 @@ Make sure UIExtenderEx is loaded before them!";
                 }
             }
         }
-
-
     }
 }

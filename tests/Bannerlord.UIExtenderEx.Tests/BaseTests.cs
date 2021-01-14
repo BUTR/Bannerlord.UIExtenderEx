@@ -19,7 +19,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
                 AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
 
-            public MockWidgetFactory() : base(new ResourceDepot(), string.Empty)
+            public MockWidgetFactory() : base(new ResourceDepot(string.Empty), string.Empty)
             {
                 var harmony = new Harmony($"{nameof(MockWidgetFactory)}.ctor");
                 harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
