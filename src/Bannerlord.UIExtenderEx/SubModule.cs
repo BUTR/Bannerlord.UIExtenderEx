@@ -32,7 +32,7 @@ Make sure UIExtenderEx is loaded before them!";
 
         private static void CheckLoadOrder()
         {
-            var loadedModules = ModuleUtils.GetLoadedModules().ToList();
+            var loadedModules = ModuleInfoHelper.GetLoadedModules().ToList();
 
             var sb = new StringBuilder();
 
@@ -41,7 +41,7 @@ Make sure UIExtenderEx is loaded before them!";
             if (harmonyModuleIndex == -1)
             {
                 if (sb.Length != 0) sb.AppendLine();
-                sb.AppendLine(TextObjectUtils.Create(SErrorHarmonyNotFound)?.ToString() ?? "ERROR");
+                sb.AppendLine(TextObjectHelper.Create(SErrorHarmonyNotFound)?.ToString() ?? "ERROR");
             }
 
             var uiExtenderModule = loadedModules.SingleOrDefault(x => x.Id == "Bannerlord.UIExtenderEx");
@@ -49,7 +49,7 @@ Make sure UIExtenderEx is loaded before them!";
             if (uiExtenderIndex == -1)
             {
                 if (sb.Length != 0) sb.AppendLine();
-                sb.AppendLine(TextObjectUtils.Create(SErrorUIExtenderExNotFound)?.ToString() ?? "ERROR");
+                sb.AppendLine(TextObjectHelper.Create(SErrorUIExtenderExNotFound)?.ToString() ?? "ERROR");
             }
 
             var officialModules = loadedModules.Where(x => x.IsOfficial).Select(x => (Module: x, Index: loadedModules.IndexOf(x)));
@@ -57,8 +57,8 @@ Make sure UIExtenderEx is loaded before them!";
             if (modulesLoadedBefore.Count > 0)
             {
                 if (sb.Length != 0) sb.AppendLine();
-                sb.AppendLine(TextObjectUtils.Create(SErrorOfficialModulesLoadedBefore)?.ToString() ?? "ERROR");
-                sb.AppendLine(TextObjectUtils.Create(SErrorOfficialModules)?.ToString() ?? "ERROR");
+                sb.AppendLine(TextObjectHelper.Create(SErrorOfficialModulesLoadedBefore)?.ToString() ?? "ERROR");
+                sb.AppendLine(TextObjectHelper.Create(SErrorOfficialModules)?.ToString() ?? "ERROR");
                 foreach (var (module, _) in modulesLoadedBefore)
                     sb.AppendLine(module.Id);
             }
@@ -66,9 +66,9 @@ Make sure UIExtenderEx is loaded before them!";
             if (sb.Length > 0)
             {
                 sb.AppendLine();
-                sb.AppendLine(TextObjectUtils.Create(SMessageContinue)?.ToString() ?? "ERROR");
+                sb.AppendLine(TextObjectHelper.Create(SMessageContinue)?.ToString() ?? "ERROR");
 
-                switch (MessageBox.Show(sb.ToString(), TextObjectUtils.Create(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
+                switch (MessageBox.Show(sb.ToString(), TextObjectHelper.Create(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
                 {
                     case DialogResult.Yes:
                         Environment.Exit(1);
