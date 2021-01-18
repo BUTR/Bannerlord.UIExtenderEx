@@ -42,20 +42,13 @@ jobs:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Download docfx
-      uses: i3h/download-release-asset@v1
+        
+    - uses: nuget/setup-nuget@v1
       with:
-        owner: dotnet
-        repo: docfx
-        tag: latest
-        file: docfx.zip
+        nuget-version: 'latest'
 
-    - name: Extract docfx
-      uses: DuckSoft/extract-7z-action@v1.0
-      with:
-        pathSource: docfx.zip
-        pathTarget: docfx
+    - name: Install DocFX
+      run: nuget install docfx.console -Version 2.56.6 -ExcludeVersion
 
     - name: Generating Newtonsoft.Json xref maps
       run: >-
@@ -80,13 +73,13 @@ jobs:
       shell: pwsh
 
     - name: DocFX metadata
-      run: mono docfx/docfx.exe metadata docs/docfx.json
+      run: mono docfx.console/tools/docfx.exe metadata docs/docfx.json
       env:
         DOCFX: true
       shell: pwsh
 
     - name: DocFX build
-      run: mono docfx/docfx.exe build docs/docfx.json;
+      run: mono docfx.console/tools/docfx.exe build docs/docfx.json;
       shell: pwsh
 
     - name: Deploy DocFX
