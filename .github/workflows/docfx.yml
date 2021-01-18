@@ -80,13 +80,13 @@ jobs:
       shell: pwsh
 
     - name: DocFX metadata
-      run: docfx/docfx.exe metadata docs/docfx.json
+      run: dotnet docfx/docfx.exe metadata docs/docfx.json
       env:
         DOCFX: true
       shell: pwsh
 
     - name: DocFX build
-      run: docfx/docfx.exe build docs/docfx.json;
+      run: dotnet docfx/docfx.exe build docs/docfx.json;
       shell: pwsh
 
     - name: Deploy DocFX
