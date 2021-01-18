@@ -23,7 +23,7 @@ env:
 jobs:
   docfx:
     name: DocFX documentation
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
