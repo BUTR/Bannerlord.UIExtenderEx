@@ -38,6 +38,12 @@ namespace Bannerlord.UIExtenderEx.Tests
                     dictionary.Add("Replace", null!);
                     dictionary.Add("InsertAsSiblingAppend", null!);
                     dictionary.Add("InsertAsSiblingPrepend", null!);
+
+                    dictionary.Add("SetAttribute2", null!);
+                    dictionary.Add("Insert2", null!);
+                    dictionary.Add("Replace2", null!);
+                    dictionary.Add("InsertAsSiblingAppend2", null!);
+                    dictionary.Add("InsertAsSiblingPrepend2", null!);
                 }
             }
 
@@ -85,6 +91,12 @@ namespace Bannerlord.UIExtenderEx.Tests
                     { "Replace", "Replace.xml" },
                     { "InsertAsSiblingAppend", "InsertAsSiblingAppend.xml" },
                     { "InsertAsSiblingPrepend", "InsertAsSiblingPrepend.xml" },
+
+                    { "SetAttribute2", "SetAttribute2.xml" },
+                    { "Insert2", "Insert2.xml" },
+                    { "Replace2", "Replace2.xml" },
+                    { "InsertAsSiblingAppend2", "InsertAsSiblingAppend2.xml" },
+                    { "InsertAsSiblingPrepend2", "InsertAsSiblingPrepend2.xml" },
                 };
                 return false;
             }

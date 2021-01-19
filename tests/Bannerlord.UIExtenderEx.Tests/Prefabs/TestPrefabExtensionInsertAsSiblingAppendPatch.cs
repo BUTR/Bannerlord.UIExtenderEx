@@ -1,9 +1,8 @@
+using System.Xml;
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs;
 
-using System.Xml;
-
-namespace Bannerlord.UIExtenderEx.Tests
+namespace Bannerlord.UIExtenderEx.Tests.Prefabs
 {
     [PrefabExtension("InsertAsSiblingAppend", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']")]
     internal class TestPrefabExtensionInsertAsSiblingAppendPatch : PrefabExtensionInsertAsSiblingPatch
