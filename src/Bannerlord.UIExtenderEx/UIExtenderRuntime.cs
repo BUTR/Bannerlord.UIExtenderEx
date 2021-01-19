@@ -1,6 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Components;
-using Bannerlord.UIExtenderEx.Prefabs;
 
 using System;
 using System.Collections.Generic;
@@ -67,27 +66,41 @@ namespace Bannerlord.UIExtenderEx
                             // gauntlet xml extension
                             switch (constructor.Invoke(Array.Empty<object>()))
                             {
-                                case PrefabExtensionSetAttributePatch patch:
+                                case Prefabs.PrefabExtensionSetAttributePatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
-
-                                case PrefabExtensionInsertPatch patch:
+                                case Prefabs.PrefabExtensionInsertPatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
-
-                                case PrefabExtensionReplacePatch patch:
+                                case Prefabs.PrefabExtensionReplacePatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
-
-                                case PrefabExtensionInsertAsSiblingPatch patch:
+                                case Prefabs.PrefabExtensionInsertAsSiblingPatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
-
-                                case CustomPatch<XmlDocument> patch:
+                                case Prefabs.CustomPatch<XmlDocument> patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, patch.Apply);
                                     break;
+                                case Prefabs.CustomPatch<XmlNode> patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch.Apply);
+                                    break;
 
-                                case CustomPatch<XmlNode> patch:
+                                case Prefabs2.PrefabExtensionSetAttributePatch patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                                    break;
+                                case Prefabs2.PrefabExtensionInsertPatch patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                                    break;
+                                case Prefabs2.PrefabExtensionReplacePatch patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                                    break;
+                                case Prefabs2.PrefabExtensionInsertAsSiblingPatch patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
+                                    break;
+                                case Prefabs2.PrefabCustomPatch<XmlDocument> patch:
+                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, patch.Apply);
+                                    break;
+                                case Prefabs2.PrefabCustomPatch<XmlNode> patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch.Apply);
                                     break;
 
