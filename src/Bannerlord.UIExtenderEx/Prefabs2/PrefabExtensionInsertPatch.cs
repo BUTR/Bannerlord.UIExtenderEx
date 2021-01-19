@@ -1,93 +1,53 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System.Xml;
-
-using TaleWorlds.Engine;
-
-using Path = System.IO.Path;
+using Bannerlord.UIExtenderEx.Attributes;
 
 namespace Bannerlord.UIExtenderEx.Prefabs2
 {
-    /// <summary>
-    /// Patch that inserts prefab extension as a child in XPath specified node, at specific position
-    /// </summary>
-    public abstract class PrefabExtensionInsertPatch : PrefabInsertPatch { }
+	/// <summary>
+	/// Patch that inserts node(s) relative to the target node specified in the <see cref="PrefabExtensionAttribute.XPath"/> property.
+	/// </summary>
+	public abstract class PrefabExtensionInsertPatch
+	{
+		/// <summary>
+		/// InsertType specifies the placement of the nodes fetched in <see cref="GetPrefabNodes"/> relative to the target node
+		/// specified in the <see cref="PrefabExtensionAttribute.XPath"/> property.<br/><br/>
+		/// <list type="bullet">
+		/// <item>
+		///	<term><see cref="InsertType.Prepend"/></term>
+		/// <description><see cref="GetPrefabNodes"/> are placed before the target node at the same height (siblings).</description>
+		/// </item>
+		/// <item>
+		///	<term><see cref="InsertType.Replace"/></term>
+		/// <description>Target node is replaced with <see cref="GetPrefabNodes"/>. The children of the removed node are added as children to the new node.
+		/// If <see cref="GetPrefabNodes"/> contains more than one child, <see cref="Index"/> will be used to specify which new node should inherit the children.</description>
+		/// </item>
+		/// <item>
+		///	<term><see cref="InsertType.ReplaceAll"/></term>
+		/// <description>Target node and all of its children are replaced with <see cref="GetPrefabNodes"/>.</description>
+		/// </item>
+		/// <item>
+		///	<term><see cref="InsertType.Child"/></term>
+		/// <description><see cref="GetPrefabNodes"/> are inserted as children of the target node.
+		/// If the target node has children, <see cref="Index"/> will be used to place the new nodes relative to the other children.</description>
+		/// </item>
+		/// <item>
+		///	<term><see cref="InsertType.Append"/></term>
+		/// <description><see cref="GetPrefabNodes"/> are placed after the target node at the same height (siblings).</description>
+		/// </item>
+		/// </list>
+		/// </summary>
+		public abstract InsertType Type { get; }
 
-    /// <summary>
-    /// Patch that inserts prefab extension (specified by `Name`) as a child in XPath specified node, at specific position (`Position` property)
-    /// Extension snippet should be named as `{Name}.xml` and located at module's `GUI/PrefabExtensions` folder.
-    /// </summary>
-    public abstract class ModulePrefabExtensionInsertPatch : PrefabExtensionInsertPatch
-    {
-        private string Name { get; }
-        private string ModuleName { get; }
+		/// <summary>
+		/// Only used when <see cref="Type"/> is set to <see cref="InsertType.Child"/> or <see cref="InsertType.Replace"/>.<br/>
+		/// See <seealso cref="Type"/> for more details.
+		/// </summary>
+		public virtual int Index { get; } = 0;
 
-        protected ModulePrefabExtensionInsertPatch(string name, string moduleName)
-        {
-            Name = name;
-            ModuleName = moduleName;
-        }
-
-        public override XmlNode GetPrefabExtension()
-        {
-            var path = Path.Combine(Utilities.GetBasePath(), "Modules", ModuleName, "GUI", "PrefabExtensions", Name + ".xml");
-            var doc = new XmlDocument();
-
-            if (File.Exists(path))
-            {
-                using var reader = XmlReader.Create(path, new XmlReaderSettings
-                {
-                    IgnoreComments = true,
-                    IgnoreWhitespace = true,
-                });
-                doc.Load(reader);
-            }
-            else
-            {
-                Utils.Fail($"Failed to get file {path} XML!");
-            }
-
-            if (!doc.HasChildNodes)
-                Utils.Fail($"Failed to parse extension ({Name}) XML!");
-
-            return doc;
-        }
-    }
-
-    public abstract class EmbedPrefabExtensionInsertPatch : PrefabExtensionInsertPatch
-    {
-        private Assembly Assembly { get; }
-        private string Path { get; }
-
-        protected EmbedPrefabExtensionInsertPatch(Assembly assembly, string path)
-        {
-            Assembly = assembly;
-            Path = path;
-        }
-
-        public override XmlNode GetPrefabExtension()
-        {
-            using var stream = Assembly.GetManifestResourceStream(Path);
-            var doc = new XmlDocument();
-
-            if (stream is not null)
-            {
-                using var reader = XmlReader.Create(stream, new XmlReaderSettings
-                {
-                    IgnoreComments = true,
-                    IgnoreWhitespace = true,
-                });
-                doc.Load(reader);
-            }
-            else
-            {
-                Utils.Fail($"Failed get stream from assembly resource ({Assembly.FullName} {Path})!");
-            }
-
-            if (!doc.HasChildNodes)
-                Utils.Fail($"Failed to parse extension ({Assembly.FullName} {Path}) XML!");
-
-            return doc;
-        }
-    }
+		/// <summary>
+		/// Nodes will be inserted in the same order that they appear in this list.
+		/// </summary>
+		public abstract IEnumerable<XmlNode> GetPrefabNodes();
+	}
 }
