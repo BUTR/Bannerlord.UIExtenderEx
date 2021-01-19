@@ -8,26 +8,26 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
     /// </summary>
     public abstract class PrefabExtensionSetAttributePatch
     {
-	    public abstract List<Attribute> Attributes { get; }
+        public abstract List<Attribute> Attributes { get; }
 
         public readonly struct Attribute
         {
-	        public Attribute( string name, string value )
-	        {
-		        Name = name;
-		        Value = value;
-	        }
+            public Attribute(string name, string value)
+            {
+                Name = name;
+                Value = value;
+            }
 
-	        public string Name { get; }
+            public string Name { get; }
             public string Value { get; }
         }
 
-        internal void ModifyAttributes( XmlElement element )
+        internal void ModifyAttributes(XmlElement element)
         {
-	        foreach ( Attribute attribute in Attributes )
-	        {
-		        element.SetAttribute( attribute.Name, attribute.Value );
-	        }
+            foreach (Attribute attribute in Attributes)
+            {
+                element.SetAttribute(attribute.Name, attribute.Value);
+            }
         }
     }
 }
