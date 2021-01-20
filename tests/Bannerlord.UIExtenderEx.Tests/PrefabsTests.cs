@@ -24,7 +24,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             Assert.True(childrenInsert3.Count == Elements + 1);
             Assert.True(childrenInsert3[4].Id == "Insert");
 
-            var widgetTemplateReplace = UIResourceManager.WidgetFactory.GetCustomType("Replace").RootTemplate;
+            var widgetTemplateReplace = UIResourceManager.WidgetFactory.GetCustomType("ReplaceKeepChildren").RootTemplate;
             var childrenReplace1 = GetChildren(widgetTemplateReplace);
             var childrenReplace2 = GetChildren(childrenReplace1[0]);
             var childrenReplace3 = GetChildren(childrenReplace2[0]);

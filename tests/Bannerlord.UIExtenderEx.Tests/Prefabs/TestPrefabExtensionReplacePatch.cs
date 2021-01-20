@@ -4,10 +4,10 @@ using Bannerlord.UIExtenderEx.Prefabs;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs
 {
-    [PrefabExtension("Replace", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='Replace']")]
+    [PrefabExtension("ReplaceKeepChildren", "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='ReplaceKeepChildren']")]
     internal class TestPrefabExtensionReplacePatch : PrefabExtensionReplacePatch
     {
-        public override string Id => "Replace";
+        public override string Id => "ReplaceKeepChildren";
         private XmlDocument XmlDocument { get; } = new();
 
         public TestPrefabExtensionReplacePatch()

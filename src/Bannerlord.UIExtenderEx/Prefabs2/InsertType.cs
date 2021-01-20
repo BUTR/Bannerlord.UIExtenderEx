@@ -3,8 +3,8 @@
     public enum InsertType
     {
         Prepend,
+        ReplaceKeepChildren,
         Replace,
-        ReplaceAll,
         Child,
         Append
     }

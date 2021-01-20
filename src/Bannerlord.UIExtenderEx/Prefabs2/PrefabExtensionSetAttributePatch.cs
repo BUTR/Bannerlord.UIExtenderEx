@@ -22,9 +22,9 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
             public string Value { get; }
         }
 
-        internal void ModifyAttributes(XmlElement element)
+        internal void ApplyAttributes(XmlElement element)
         {
-            foreach (Attribute attribute in Attributes)
+            foreach (var attribute in Attributes)
             {
                 element.SetAttribute(attribute.Name, attribute.Value);
             }

@@ -35,7 +35,7 @@ namespace Bannerlord.UIExtenderEx.Tests
                 {
                     dictionary.Add("SetAttribute", null!);
                     dictionary.Add("Insert", null!);
-                    dictionary.Add("Replace", null!);
+                    dictionary.Add("ReplaceKeepChildren", null!);
                     dictionary.Add("InsertAsSiblingAppend", null!);
                     dictionary.Add("InsertAsSiblingPrepend", null!);
 
@@ -60,7 +60,7 @@ namespace Bannerlord.UIExtenderEx.Tests
               <Children>
                 <OptionsTabToggle Id=""InsertAsSibling""/>
                 <OptionsTabToggle Id=""InsertAsSibling""/>
-                <OptionsTabToggle Id=""Replace""/>
+                <OptionsTabToggle Id=""ReplaceKeepChildren""/>
                 <OptionsTabToggle Id=""SetAttribute""/>
                 <OptionsTabToggle/>
                 <OptionsTabToggle/>
@@ -88,7 +88,7 @@ namespace Bannerlord.UIExtenderEx.Tests
                 {
                     { "SetAttribute", "SetAttribute.xml" },
                     { "Insert", "Insert.xml" },
-                    { "Replace", "Replace.xml" },
+                    { "ReplaceKeepChildren", "ReplaceKeepChildren.xml" },
                     { "InsertAsSiblingAppend", "InsertAsSiblingAppend.xml" },
                     { "InsertAsSiblingPrepend", "InsertAsSiblingPrepend.xml" },
 

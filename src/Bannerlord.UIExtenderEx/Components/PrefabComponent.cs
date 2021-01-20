@@ -22,7 +22,7 @@ namespace Bannerlord.UIExtenderEx.Components
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
-        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it cor consistency>")]
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it for consistency>")]
         private readonly string _moduleName;
 
         /// <summary>
