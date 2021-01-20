@@ -6,7 +6,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
     /// Custom patch on either whole XmlDocument (if T is XmlDocument) or Xpath specified node (if XmlNode is the generic argument)
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class PrefabCustomPatch<T> : IPrefabPatch where T : XmlNode
+    public abstract class PrefabCustomPatch<T> where T : XmlNode
     {
         /// <summary>
         /// Apply this patch to obj

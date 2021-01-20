@@ -11,10 +11,8 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         /// <summary>
         /// InsertType specifies the placement of <see cref="PrefabExtensionContentAttribute"/> relative to the target node
         /// specified in the <see cref="PrefabExtensionAttribute.XPath"/> property.<br/><br/>
-        /// <list type="table">
-        /// <listheader>
         ///	    <b>Insertion Methods</b>
-        /// </listheader>
+        /// <list type="bullet">
         /// <item>
         ///	    <term><see cref="InsertType.Prepend"/></term>
         ///	    <description>Content is placed before the target node at the same height (siblings).</description>
