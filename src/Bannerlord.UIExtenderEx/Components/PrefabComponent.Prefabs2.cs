@@ -116,7 +116,7 @@ namespace Bannerlord.UIExtenderEx.Components
                             }
                             else
                             {
-                                int position = Math.Max(0, Math.Min(patch.Index, node.ChildNodes.Count - 1));
+                                var position = Math.Max(0, Math.Min(patch.Index, node.ChildNodes.Count - 1));
                                 lastPlacedNode = node.InsertAfter(importedNode, node.ChildNodes[position]);
                             }
                             
