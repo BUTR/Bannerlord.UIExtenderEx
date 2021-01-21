@@ -18,6 +18,17 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal partial class PrefabComponent
     {
+        private readonly Lazy<IReadOnlyList<Type>> _contentAttributeTypes = new(() =>
+        {
+            Type contentAttributeType = typeof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute);
+            return contentAttributeType.Assembly.GetTypes().Where(t => !t.IsAbstract && contentAttributeType.IsAssignableFrom(t)).ToList();
+        });
+
+        private delegate string StringSignature();
+        private delegate XmlNode XmlNodeSignature();
+        private delegate XmlDocument XmlDocumentSignature();
+        private delegate IEnumerable<XmlNode> IEnumerableXmlNodeSignature();
+
         /// <summary>
         /// Register snippet insert patch
         /// </summary>
@@ -32,114 +43,79 @@ namespace Bannerlord.UIExtenderEx.Components
                 return;
             }
 
-            if (!TryGetNodes(patch, out IEnumerable<XmlNode>? nodes,  out string errorMessage))
+            if (!TryGetNodes(patch, out IEnumerable<XmlNode>? nodes, out string errorMessage))
             {
                 Utils.Fail(errorMessage);
                 return;
             }
 
+            if (patch.Type != InsertType.Child && node.ParentNode is null)
+            {
+                Utils.Fail($"Trying to place multiple root nodes into {movie}!");
+                return;
+            }
+
             XmlNode? lastPlacedNode = null;
             XmlNodeList? oldChildNodes = null;
-            var currentIndex = 0;
-            foreach (XmlNode rootNode in nodes!) // We know nodes is not null at this point.
+            XmlNode[] nodesArray = nodes!.ToArray();
+            for (var i = 0; i < nodesArray.Length; ++i)
             {
-                if(!TryRemoveComments(rootNode))
+                XmlNode rootNode = nodesArray[i];
+                if (!TryRemoveComments(rootNode))
                 {
                     continue;
                 }
 
-                XmlNode importedNode = ownerDocument.ImportNode(rootNode, true);
+                XmlNode importedNode = ownerDocument!.ImportNode(rootNode, true);
 
-                // Append successive nodes after the current node.
-                if(lastPlacedNode != null)
+                if (i == 0)
                 {
-                    if (node.ParentNode is null)
+                    // Insert initial node.
+                    lastPlacedNode = patch.Type switch
                     {
-                        Utils.Fail($"Trying to place multiple root nodes into {movie}!");
-                        return;
-                    }
-
-                    var insertedNode = node.ParentNode.InsertAfter(importedNode, lastPlacedNode);
-                    lastPlacedNode = insertedNode;
-
-                    if(patch.Type == InsertType.ReplaceKeepChildren && oldChildNodes != null && patch.Index == currentIndex)
-					{
+                        InsertType.Prepend => node!.ParentNode!.InsertBefore(importedNode, node),
+                        InsertType.ReplaceKeepChildren => ReplaceKeepChildren(node, importedNode, patch.Index == 0 || nodesArray.Length == 1, out oldChildNodes),
+                        InsertType.Replace => node!.ParentNode!.ReplaceChild(importedNode, node),
+                        InsertType.Child => node.ChildNodes.Count == 0 ? node.AppendChild(importedNode) : // Fixes issue in original API where you could not insert a node as a child if the target node had no pre-existing children.
+                            node.InsertAfter(importedNode, node.ChildNodes[Math.Max(0, Math.Min(patch.Index, node.ChildNodes.Count - 1))]),
+                        InsertType.Append => node!.ParentNode!.InsertAfter(importedNode, node),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+                }
+                else
+                {
+                    // Append successive nodes after the current node.
+                    var insertedNode = node.ParentNode!.InsertAfter(importedNode, lastPlacedNode);
+                    if (patch.Type == InsertType.ReplaceKeepChildren && oldChildNodes != null && patch.Index == i)
+                    {
                         foreach (XmlNode childNode in oldChildNodes)
                         {
                             insertedNode.AppendChild(childNode);
                         }
                     }
+                    lastPlacedNode = insertedNode;
                 }
-                else
-                {
-                    switch ( patch.Type )
-                    {
-                        case InsertType.Prepend:
-                            if (node.ParentNode is null)
-                            {
-                                Utils.Fail($"Trying to place multiple root nodes into {movie}!");
-                                return;
-                            }
-                            lastPlacedNode = node.ParentNode.InsertBefore(importedNode, node);
-                            break;
-
-                        case InsertType.ReplaceKeepChildren:
-                            if (node.ParentNode is null)
-                            {
-                                Utils.Fail($"Trying to place multiple root nodes into {movie}!");
-                                return;
-                            }
-                            oldChildNodes = node.ChildNodes;
-                            lastPlacedNode = node.ParentNode.ReplaceChild(importedNode, node);
-                            if(patch.Index == currentIndex)
-                            {
-                                foreach (XmlNode childNode in oldChildNodes)
-                                {
-                                    lastPlacedNode.AppendChild(childNode);
-                                }
-                            }
-                            break;
-
-                        case InsertType.Replace:
-                            if (node.ParentNode is null)
-                            {
-                                Utils.Fail($"Trying to place multiple root nodes into {movie}!");
-                                return;
-                            }
-                            lastPlacedNode = node.ParentNode.ReplaceChild(importedNode, node);
-                            break;
-
-                        case InsertType.Child:
-                            if(node.ChildNodes.Count == 0) // Fixes old issue where you could not insert a node as a child if the target node had no pre-existing children.
-                            {
-                                lastPlacedNode = node.AppendChild(importedNode);
-                            }
-                            else
-                            {
-                                var position = Math.Max(0, Math.Min(patch.Index, node.ChildNodes.Count - 1));
-                                lastPlacedNode = node.InsertAfter(importedNode, node.ChildNodes[position]);
-                            }
-                            
-                            break;
-
-                        case InsertType.Append:
-                            if (node.ParentNode is null)
-                            {
-                                Utils.Fail($"Trying to place multiple root nodes into {movie}!");
-                                return;
-                            }
-                            lastPlacedNode = node.ParentNode.InsertAfter(importedNode, node);
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
-
-                ++currentIndex;
             }
         });
 
+        private static XmlNode ReplaceKeepChildren(XmlNode targetNode, XmlNode importedNode, bool appendChildren, out XmlNodeList oldChildNodes )
+        {
+            oldChildNodes = targetNode.ChildNodes;
+            XmlNode lastPlacedNode = targetNode.ParentNode!.ReplaceChild(importedNode, targetNode);
+            if (appendChildren)
+            {
+                foreach (XmlNode childNode in oldChildNodes)
+                {
+                    lastPlacedNode.AppendChild(childNode);
+                }
+            }
+
+            return lastPlacedNode;
+        }
+
+        /// <summary>
+        /// Fixes issue where game will crash if injected patch contains comments.
+        /// </summary>
         private static bool TryRemoveComments(XmlNode? node)
 		{
             if(node?.SelectNodes("//comment()") is not {} commentNodes)
@@ -161,12 +137,15 @@ namespace Bannerlord.UIExtenderEx.Components
             return true;
         }
 
+        /// <summary>
+        /// Performs validation on <paramref name="patch"/> class, and returns true if everything is okay.
+        /// </summary>
         private bool TryGetNodes(PrefabExtensionInsertPatch patch, out IEnumerable<XmlNode>? nodes, out string errorMessage)
         {
             nodes = null;
 
             Type patchType = patch.GetType();
-            MemberInfo[] contentMembers = patchType.GetMembers().Where(m => _contentAttributeTypes.Any(t => Attribute.GetCustomAttribute(m, t) is not null)).ToArray();
+            MemberInfo[] contentMembers = patchType.GetMembers().Where(m => _contentAttributeTypes.Value.Any(t => Attribute.GetCustomAttribute(m, t) is not null)).ToArray();
 
             // Validate single members with Content attribute.
             if (contentMembers.Length != 1)
@@ -176,7 +155,7 @@ namespace Bannerlord.UIExtenderEx.Components
                 return false;
             }
 
-            Attribute[] contentAttributes = _contentAttributeTypes.Select(t => Attribute.GetCustomAttribute(contentMembers[0], t)).Where(a => a != null).ToArray();
+            Attribute[] contentAttributes = _contentAttributeTypes.Value.Select(t => Attribute.GetCustomAttribute(contentMembers[0], t)).Where(a => a != null).ToArray();
 
             // Validate member has single content attribute.
             if(contentAttributes.Length != 1)
@@ -206,6 +185,10 @@ namespace Bannerlord.UIExtenderEx.Components
             return true;
         }
 
+        /// <summary>
+        /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute"/>
+        /// is of type <see cref="XmlDocument"/>, then retrieves its nodes if everything is okay.
+        /// </summary>
         private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo, PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute attribute, ref string errorMessage)
         {
             if(!TryGetContent(contentMemberInfo, ref errorMessage, out XmlDocument? xmlDocument) || xmlDocument is null)
@@ -216,6 +199,10 @@ namespace Bannerlord.UIExtenderEx.Components
             return attribute.RemoveRootNode ? xmlDocument.ChildNodes.Cast<XmlNode>() : new List<XmlNode> {xmlDocument};
         }
 
+        /// <summary>
+        /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute"/>
+        /// is of type <see cref="XmlNode"/>, then retrieves its nodes if everything is okay.
+        /// </summary>
         private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo, PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute attribute, ref string errorMessage)
         {
             if (!TryGetContent(contentMemberInfo, ref errorMessage, out XmlNode? xmlNode) || xmlNode is null)
@@ -226,11 +213,20 @@ namespace Bannerlord.UIExtenderEx.Components
             return attribute.RemoveRootNode ? xmlNode.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { xmlNode };
         }
 
+        /// <summary>
+        /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute"/>
+        /// is an <see cref="IEnumerable{T}"/> of type <see cref="XmlNode"/>, then retrieves its nodes if everything is okay.
+        /// </summary>
+        // ReSharper disable once UnusedParameter.Local
         private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo, PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute attribute, ref string errorMessage)
         {
             return !TryGetContent(contentMemberInfo, ref errorMessage, out IEnumerable<XmlNode>? xmlNodes) ? null : xmlNodes;
         }
 
+        /// <summary>
+        /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionTextAttribute"/>
+        /// is of type <see cref="string"/>, then retrieves its nodes if everything is okay.
+        /// </summary>
         private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo, PrefabExtensionInsertPatch.PrefabExtensionTextAttribute attribute, ref string errorMessage)
         {
             if (!TryGetContent(contentMemberInfo, ref errorMessage, out string? text) || text is null)
@@ -252,6 +248,10 @@ namespace Bannerlord.UIExtenderEx.Components
             return attribute.RemoveRootNode ? document.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { document };
         }
 
+        /// <summary>
+        /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute"/>
+        /// is of type <see cref="string"/>, then attempts to load its nodes from file.
+        /// </summary>
         private IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo, PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute attribute, ref string errorMessage)
         {
             if (!TryGetContent(contentMemberInfo, ref errorMessage, out string? fileName) || fileName is null)
@@ -284,6 +284,10 @@ namespace Bannerlord.UIExtenderEx.Components
             return attribute.RemoveRootNode ? document.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { document };
         }
 
+        /// <summary>
+        /// Validates that the Property/Method specified in <paramref name="memberInfo"/> is of type <typeparamref name="T"/>.
+        /// Returns true if everything is okay, and outputs the cast content in <paramref name="output"/>.
+        /// </summary>
         private static bool TryGetContent<T>(MemberInfo memberInfo, ref string errorMessage, out T? output)
         {
             output = default;
@@ -314,9 +318,6 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <summary>
         /// Register snippet set attribute patch
         /// </summary>
-        /// <param name="movie"></param>
-        /// <param name="xpath"></param>
-        /// <param name="patch"></param>
         public void RegisterPatch(string movie, string? xpath, PrefabExtensionSetAttributePatch patch) => RegisterPatch(movie, xpath, node =>
         {
             if (node.OwnerDocument is not { } ownerDocument)
@@ -333,7 +334,7 @@ namespace Bannerlord.UIExtenderEx.Components
             {
                 if (node.Attributes![attribute.Name] is null)
                 {
-                    var newAttribute = ownerDocument.CreateAttribute(attribute.Name);
+                    var newAttribute = ownerDocument!.CreateAttribute(attribute.Name);
                     node.Attributes.Append(newAttribute);
                 }
 
@@ -341,57 +342,45 @@ namespace Bannerlord.UIExtenderEx.Components
             }
         });
 
-        private readonly IReadOnlyList<Type> _contentAttributeTypes = new List<Type>
-        {
-            typeof(PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute),
-            typeof(PrefabExtensionInsertPatch.PrefabExtensionTextAttribute),
-            typeof(PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute),
-            typeof(PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute),
-            typeof(PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute)
-        };
-
-        private delegate string StringSignature();
-        private delegate XmlNode XmlNodeSignature();
-        private delegate XmlDocument XmlDocumentSignature();
-        private delegate IEnumerable<XmlNode> IEnumerableXmlNodeSignature();
-
         private static Func<object?> GetFunction(Type returnType, MemberInfo memberInfo)
         {
             return memberInfo switch
             {
-                PropertyInfo propertyInfo => GetFunction(returnType, propertyInfo),
-                MethodInfo methodInfo => GetFunction(returnType, methodInfo),
+                PropertyInfo pi => GetPropertyFunction(pi),
+                MethodInfo mi => GetMethodFunction(mi),
                 _ => () => null
             };
-        }
 
-        private static Func<object?> GetFunction(Type returnType, PropertyInfo propertyInfo) =>
-            GetFunction(returnType, propertyInfo.GetMethod);
-
-        private static Func<object?> GetFunction(Type returnType, MethodInfo methodInfo)
-        {
-            if (returnType == typeof(string))
+            Func<object?> GetPropertyFunction( PropertyInfo propertyInfo)
             {
-                var @delegate = AccessTools3.GetDelegate<StringSignature>(methodInfo);
-                return () => @delegate?.Invoke();
-            }
-            if (returnType == typeof(XmlNode))
-            {
-                var @delegate = AccessTools3.GetDelegate<XmlNodeSignature>(methodInfo);
-                return () => @delegate?.Invoke();
-            }
-            if (returnType == typeof(XmlDocument))
-            {
-                var @delegate = AccessTools3.GetDelegate<XmlDocumentSignature>(methodInfo);
-                return () => @delegate?.Invoke();
-            }
-            if (returnType == typeof(IEnumerable<XmlNode>))
-            {
-                var @delegate = AccessTools3.GetDelegate<IEnumerableXmlNodeSignature>(methodInfo);
-                return () => @delegate?.Invoke();
+                return GetMethodFunction(propertyInfo.GetMethod);
             }
 
-            return () => null;
+            Func<object?> GetMethodFunction(MethodInfo methodInfo)
+            {
+                if (returnType == typeof(string))
+                {
+                    var @delegate = AccessTools3.GetDelegate<StringSignature>(methodInfo);
+                    return () => @delegate?.Invoke();
+                }
+                if (returnType == typeof(XmlNode))
+                {
+                    var @delegate = AccessTools3.GetDelegate<XmlNodeSignature>(methodInfo);
+                    return () => @delegate?.Invoke();
+                }
+                if (returnType == typeof(XmlDocument))
+                {
+                    var @delegate = AccessTools3.GetDelegate<XmlDocumentSignature>(methodInfo);
+                    return () => @delegate?.Invoke();
+                }
+                if (returnType == typeof(IEnumerable<XmlNode>))
+                {
+                    var @delegate = AccessTools3.GetDelegate<IEnumerableXmlNodeSignature>(methodInfo);
+                    return () => @delegate?.Invoke();
+                }
+
+                return () => null;
+            }
         }
     }
 }

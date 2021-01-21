@@ -18,6 +18,15 @@ namespace Bannerlord.UIExtenderEx
         public readonly string ModuleName;
 
         /// <summary>
+        /// <inheritdoc cref="PrefabComponent.LiveUIDebuggingEnabled"/>
+        /// </summary>
+        public bool LiveUIDebuggingEnabled
+        {
+            get => PrefabComponent.LiveUIDebuggingEnabled;
+            set => PrefabComponent.LiveUIDebuggingEnabled = value;
+        }
+
+        /// <summary>
         /// Instance of PrefabComponent, which deals with XML files
         /// </summary>
         public readonly PrefabComponent PrefabComponent;
@@ -89,12 +98,6 @@ namespace Bannerlord.UIExtenderEx
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
                                 case Prefabs2.PrefabExtensionInsertPatch patch:
-                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
-                                    break;
-                                case Prefabs2.PrefabExtensionReplacePatch patch:
-                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
-                                    break;
-                                case Prefabs2.PrefabExtensionInsertAsSiblingPatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
                                 case Prefabs2.PrefabCustomPatch<XmlDocument> patch:
