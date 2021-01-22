@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Xml;
 
@@ -11,6 +12,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs
     /// <summary>
     /// Patch that inserts prefab extension (specified by `Name`) as a child in XPath specified node, at specific position (`Position` property)
     /// </summary>
+    [Obsolete("Use Prefabs2.PrefabExtensionInsertPatch instead.")]
     public abstract class PrefabExtensionInsertPatch : InsertPatch { }
 
     /// <summary>

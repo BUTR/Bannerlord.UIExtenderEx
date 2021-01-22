@@ -72,7 +72,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         /// </list>
         /// See <see cref="PrefabExtensionContentAttribute"/> for info on other attribute types.
         /// </summary>
-        protected internal class PrefabExtensionFileNameAttribute : PrefabExtensionSingleContentAttribute
+        protected internal sealed class PrefabExtensionFileNameAttribute : PrefabExtensionSingleContentAttribute
         {
             /// <summary>
             /// <inheritdoc cref="PrefabExtensionFileNameAttribute"/><br/>
@@ -92,7 +92,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         /// will be ignored, and all of the root node's children will be placed at the target location instead.<br/>
         /// See <seealso cref="PrefabExtensionContentAttribute"/> for more info.
         /// </summary>
-        protected internal class PrefabExtensionTextAttribute : PrefabExtensionSingleContentAttribute
+        protected internal sealed class PrefabExtensionTextAttribute : PrefabExtensionSingleContentAttribute
         {
             /// <summary>
             /// <inheritdoc cref="PrefabExtensionTextAttribute"/><br/>
@@ -112,7 +112,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         /// will be ignored, and all of the root node's children will be placed at the target location instead.<br/>
         /// See <seealso cref="PrefabExtensionContentAttribute"/> for more info.
         /// </summary>
-        protected internal class PrefabExtensionXmlNodeAttribute : PrefabExtensionSingleContentAttribute
+        protected internal sealed class PrefabExtensionXmlNodeAttribute : PrefabExtensionSingleContentAttribute
         {
             /// <summary>
             /// <inheritdoc cref="PrefabExtensionXmlNodeAttribute"/><br/>
@@ -128,7 +128,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         /// Nodes will be inserted in the same order that they appear in this list at the target location.<br/>
         /// See <seealso cref="PrefabExtensionContentAttribute"/> for more info.
         /// </summary>
-        protected internal class PrefabExtensionXmlNodesAttribute : PrefabExtensionContentAttribute
+        protected internal sealed class PrefabExtensionXmlNodesAttribute : PrefabExtensionContentAttribute
         {
         }
 
@@ -140,7 +140,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         /// will be ignored, and all of the root node's children will be placed at the target location instead.<br/>
         /// See <seealso cref="PrefabExtensionContentAttribute"/> for more info.
         /// </summary>
-        protected internal class PrefabExtensionXmlDocumentAttribute : PrefabExtensionSingleContentAttribute
+        protected internal sealed class PrefabExtensionXmlDocumentAttribute : PrefabExtensionSingleContentAttribute
         {
             /// <summary>
             /// <inheritdoc cref="PrefabExtensionXmlDocumentAttribute"/><br/>

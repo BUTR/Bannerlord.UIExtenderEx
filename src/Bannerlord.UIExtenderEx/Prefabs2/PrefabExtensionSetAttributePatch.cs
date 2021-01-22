@@ -21,13 +21,5 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
             public string Name { get; }
             public string Value { get; }
         }
-
-        internal void ApplyAttributes(XmlElement element)
-        {
-            foreach (var attribute in Attributes)
-            {
-                element.SetAttribute(attribute.Name, attribute.Value);
-            }
-        }
     }
 }

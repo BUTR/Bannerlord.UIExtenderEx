@@ -130,29 +130,6 @@ namespace Bannerlord.UIExtenderEx.Components
         }
 
         /// <summary>
-        /// Fixes issue where game will crash if injected patch contains comments.
-        /// </summary>
-        private static bool TryRemoveComments(XmlNode? node)
-        {
-            if (string.Equals(node?.Name, "#comment"))
-            {
-                return false;
-            }
-
-            if (node?.SelectNodes("//comment()") is not { } commentNodes)
-            {
-                return false;
-            }
-
-            foreach (XmlNode xmlNode in commentNodes)
-            {
-                xmlNode.ParentNode!.RemoveChild(xmlNode);
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Performs validation on <paramref name="patch"/> class, and returns true if everything is okay.
         /// </summary>
         private bool TryGetNodes(PrefabExtensionInsertPatch patch, out IEnumerable<XmlNode>? nodes, out string errorMessage)

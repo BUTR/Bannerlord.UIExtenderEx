@@ -30,6 +30,11 @@ namespace Bannerlord.UIExtenderEx.Components
                 return;
             }
 
+            if (!TryRemoveComments(extensionNode))
+            {
+                Utils.Fail($"XML patch document's root node was a comment.");
+            }
+
             var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
             var position = Math.Min(patch.Position, node.ChildNodes.Count - 1);
             position = Math.Max(position, 0);
@@ -95,6 +100,11 @@ namespace Bannerlord.UIExtenderEx.Components
                 return;
             }
 
+            if (!TryRemoveComments(extensionNode))
+            {
+                Utils.Fail($"XML patch document's root node was a comment.");
+            }
+
             var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
 
             node.ParentNode.ReplaceChild(importedExtensionNode, node);
@@ -124,6 +134,11 @@ namespace Bannerlord.UIExtenderEx.Components
             {
                 Utils.Fail($"XML patch document for {movie} is null!");
                 return;
+            }
+
+            if (!TryRemoveComments(extensionNode))
+            {
+                Utils.Fail($"XML patch document's root node was a comment.");
             }
 
             var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);

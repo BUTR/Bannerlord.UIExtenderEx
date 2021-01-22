@@ -138,6 +138,30 @@ namespace Bannerlord.UIExtenderEx.Components
         }
 
         /// <summary>
+        /// Fixes issue where game will crash if injected patch contains comments.<br/>
+        /// Returns false when <paramref name="node"/> is a comment, or is null.
+        /// </summary>
+        private static bool TryRemoveComments(XmlNode? node)
+        {
+            if (string.Equals(node?.Name, "#comment"))
+            {
+                return false;
+            }
+
+            if (node?.SelectNodes("//comment()") is not { } commentNodes)
+            {
+                return false;
+            }
+
+            foreach (XmlNode xmlNode in commentNodes)
+            {
+                xmlNode.ParentNode!.RemoveChild(xmlNode);
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Get path for movie from WidgetFactory
         /// </summary>
         /// <param name="movie"></param>
