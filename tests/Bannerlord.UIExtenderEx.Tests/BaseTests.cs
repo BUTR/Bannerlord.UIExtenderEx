@@ -41,9 +41,12 @@ namespace Bannerlord.UIExtenderEx.Tests
 
                     dictionary.Add("SetAttribute2", null!);
                     dictionary.Add("Insert2", null!);
-                    dictionary.Add("Replace2", null!);
-                    dictionary.Add("InsertAsSiblingAppend2", null!);
-                    dictionary.Add("InsertAsSiblingPrepend2", null!);
+                    dictionary.Add("ReplaceKeepChildren2", null!);
+                    dictionary.Add("Append2", null!);
+                    dictionary.Add("Prepend2", null!);
+                    dictionary.Add("ReplaceKeepChildrenRemoveRootNode", null!);
+                    dictionary.Add("AppendRemoveRootNode", null!);
+                    dictionary.Add("PrependRemoveRootNode", null!);
                 }
             }
 
@@ -94,9 +97,12 @@ namespace Bannerlord.UIExtenderEx.Tests
 
                     { "SetAttribute2", "SetAttribute2.xml" },
                     { "Insert2", "Insert2.xml" },
-                    { "Replace2", "Replace2.xml" },
-                    { "InsertAsSiblingAppend2", "InsertAsSiblingAppend2.xml" },
-                    { "InsertAsSiblingPrepend2", "InsertAsSiblingPrepend2.xml" },
+                    { "ReplaceKeepChildren2", "ReplaceKeepChildren2.xml" },
+                    { "Append2", "Append2.xml" },
+                    { "Prepend2", "Prepend2.xml" },
+                    { "ReplaceKeepChildrenRemoveRootNode", "ReplaceKeepChildrenRemoveRootNode.xml" },
+                    { "AppendRemoveRootNode", "AppendRemoveRootNode.xml" },
+                    { "PrependRemoveRootNode", "PrependRemoveRootNode.xml" },
                 };
                 return false;
             }
@@ -105,8 +111,8 @@ namespace Bannerlord.UIExtenderEx.Tests
         protected AccessTools.FieldRef<WidgetTemplate, List<WidgetTemplate>> GetChildren { get; } =
             AccessTools.FieldRefAccess<WidgetTemplate, List<WidgetTemplate>>("_children");
 
-        [SetUp]
-        public void Setup()
+        [OneTimeSetUp]
+        public virtual void Setup()
         {
             var property = AccessTools.DeclaredProperty(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
             property.SetValue(null, new MockWidgetFactory());

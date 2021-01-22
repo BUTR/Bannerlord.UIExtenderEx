@@ -18,15 +18,6 @@ namespace Bannerlord.UIExtenderEx
         public readonly string ModuleName;
 
         /// <summary>
-        /// <inheritdoc cref="PrefabComponent.LiveUIDebuggingEnabled"/>
-        /// </summary>
-        public bool LiveUIDebuggingEnabled
-        {
-            get => PrefabComponent.LiveUIDebuggingEnabled;
-            set => PrefabComponent.LiveUIDebuggingEnabled = value;
-        }
-
-        /// <summary>
         /// Instance of PrefabComponent, which deals with XML files
         /// </summary>
         public readonly PrefabComponent PrefabComponent;

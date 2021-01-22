@@ -51,17 +51,7 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="moduleName">Module name, should match module folder</param>
         public UIExtender(string moduleName)
         {
-            LiveUIDebuggingEnabled = false;
             _moduleName = moduleName;
-        }
-
-        /// <summary>
-        /// <inheritdoc cref="UIExtenderRuntime.LiveUIDebuggingEnabled"/>
-        /// </summary>
-        public bool LiveUIDebuggingEnabled
-        {
-            get => RuntimeInstances[_moduleName].LiveUIDebuggingEnabled;
-            set => RuntimeInstances[_moduleName].LiveUIDebuggingEnabled = value;
         }
 
         /// <summary>
