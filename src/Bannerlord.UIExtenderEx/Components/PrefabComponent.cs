@@ -1,6 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Prefabs;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 
 using System;
 using System.Collections;
@@ -8,6 +6,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml;
+
+using Bannerlord.UIExtenderEx.Prefabs2;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -17,14 +17,14 @@ namespace Bannerlord.UIExtenderEx.Components
     /// <summary>
     /// Component that deals with Gauntlet prefab XML files
     /// </summary>
-    internal class PrefabComponent
+    internal partial class PrefabComponent
     {
         private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
             AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
-        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it cor consistency>")]
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it for consistency>")]
         private readonly string _moduleName;
 
         /// <summary>
@@ -33,6 +33,13 @@ namespace Bannerlord.UIExtenderEx.Components
         private readonly ConcurrentDictionary<string, List<Action<XmlDocument>>> _moviePatches = new();
 
         public bool Enabled { get; private set; }
+
+        /// <summary>
+        /// When set to true, patches that are loaded from file (<see cref="PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute"/>)
+        /// will be reloaded every time their target view is reloaded.<br/>
+        /// This is slower, so should only be enabled while in a development environment.
+        /// </summary>
+        public bool LiveUIDebuggingEnabled { get; set; }
 
         public PrefabComponent(string moduleName)
         {
@@ -67,174 +74,39 @@ namespace Bannerlord.UIExtenderEx.Components
         }
 
         /// <summary>
+        /// Register general XmlDocument patch
+        /// </summary>
+        /// <param name="movie"></param>
+        /// <param name="patcher"></param>
+        public void RegisterPatch(string movie, Action<XmlNode> patcher)
+        {
+            //RegisterPatch(movie, (XmlDocument node) => patcher(node));
+            if (string.IsNullOrEmpty(movie))
+            {
+                Utils.Fail("Invalid movie name!");
+                return;
+            }
+
+            _moviePatches.GetOrAdd(movie, _ => new List<Action<XmlDocument>>()).Add(patcher);
+        }
+
+        /// <summary>
         /// Register patch operating at node specified by XPath
         /// </summary>
         /// <param name="movie"></param>
         /// <param name="xpath"></param>
         /// <param name="patcher"></param>
-        public void RegisterPatch(string movie, string? xpath, Action<XmlNode> patcher)
+        public void RegisterPatch(string movie, string? xpath, Action<XmlNode> patcher) => RegisterPatch(movie, node =>
         {
-            RegisterPatch(movie, document =>
+            var node2 = node.SelectSingleNode(xpath ?? string.Empty);
+            if (node2 is null)
             {
-                var node = document.SelectSingleNode(xpath ?? string.Empty);
-                if (node is null)
-                {
-                    Utils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
-                    return;
-                }
+                Utils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
+                return;
+            }
 
-                patcher(node);
-            });
-        }
-
-        /// <summary>
-        /// Register snippet insert patch
-        /// </summary>
-        /// <param name="movie"></param>
-        /// <param name="xpath"></param>
-        /// <param name="patch"></param>
-        public void RegisterPatch(string movie, string? xpath, PrefabExtensionInsertPatch patch)
-        {
-            RegisterPatch(movie, xpath, node =>
-            {
-                var ownerDocument = node is XmlDocument xmlDocument ? xmlDocument : node.OwnerDocument;
-                if (ownerDocument is null)
-                {
-                    Utils.Fail($"XML original document for {movie} is null!");
-                    return;
-                }
-
-                var extensionNode = patch.GetPrefabExtension().DocumentElement;
-                if (extensionNode is null)
-                {
-                    Utils.Fail($"XML patch document for {movie} is null!");
-                    return;
-                }
-
-                var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
-                var position = Math.Min(patch.Position, node.ChildNodes.Count - 1);
-                position = Math.Max(position, 0);
-                if (position >= node.ChildNodes.Count)
-                {
-                    Utils.Fail($"Invalid position ({position}) for insert (patching in {patch.Id})");
-                    return;
-                }
-
-                node.InsertAfter(importedExtensionNode, node.ChildNodes[position]);
-            });
-        }
-
-        /// <summary>
-        /// Register snippet set attribute patch
-        /// </summary>
-        /// <param name="movie"></param>
-        /// <param name="xpath"></param>
-        /// <param name="patch"></param>
-        public void RegisterPatch(string movie, string? xpath, PrefabExtensionSetAttributePatch patch)
-        {
-            RegisterPatch(movie, xpath, node =>
-            {
-                var ownerDocument = node is XmlDocument xmlDocument ? xmlDocument : node.OwnerDocument;
-                if (ownerDocument is null)
-                {
-                    return;
-                }
-
-                if (node.NodeType != XmlNodeType.Element)
-                {
-                    return;
-                }
-
-                if (node.Attributes![patch.Attribute] is null)
-                {
-                    var attribute = ownerDocument.CreateAttribute(patch.Attribute);
-                    node.Attributes.Append(attribute);
-                }
-
-                node.Attributes![patch.Attribute].Value = patch.Value;
-            });
-        }
-
-        /// <summary>
-        /// Register snippet replace patch
-        /// </summary>
-        /// <param name="movie"></param>
-        /// <param name="xpath"></param>
-        /// <param name="patch"></param>
-        public void RegisterPatch(string movie, string? xpath, PrefabExtensionReplacePatch patch)
-        {
-            RegisterPatch(movie, xpath, node =>
-            {
-                var ownerDocument = node is XmlDocument xmlDocument ? xmlDocument : node.OwnerDocument;
-                if (ownerDocument is null)
-                {
-                    Utils.Fail($"XML original document for {movie} is null!");
-                    return;
-                }
-
-                if (node.ParentNode is null)
-                {
-                    Utils.Fail($"XML original document parent node for {movie} is null!");
-                    return;
-                }
-
-                var extensionNode = patch.GetPrefabExtension().DocumentElement;
-                if (extensionNode is null)
-                {
-                    Utils.Fail($"XML patch document for {movie} is null!");
-                    return;
-                }
-
-                var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
-
-                node.ParentNode.ReplaceChild(importedExtensionNode, node);
-            });
-        }
-
-        /// <summary>
-        /// Register snippet insert as sibling patch
-        /// </summary>
-        /// <param name="movie"></param>
-        /// <param name="xpath"></param>
-        /// <param name="patch"></param>
-        public void RegisterPatch(string movie, string? xpath, PrefabExtensionInsertAsSiblingPatch patch)
-        {
-            RegisterPatch(movie, xpath, node =>
-            {
-                var ownerDocument = node is XmlDocument xmlDocument ? xmlDocument : node.OwnerDocument;
-                if (ownerDocument is null)
-                {
-                    Utils.Fail($"XML original document for {movie} is null!");
-                    return;
-                }
-
-                if (node.ParentNode is null)
-                {
-                    Utils.Fail($"XML original document parent node for {movie} is null!");
-                    return;
-                }
-
-                var extensionNode = patch.GetPrefabExtension().DocumentElement;
-                if (extensionNode is null)
-                {
-                    Utils.Fail($"XML patch document for {movie} is null!");
-                    return;
-                }
-
-                var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
-
-                switch (patch.Type)
-                {
-                    case PrefabExtensionInsertAsSiblingPatch.InsertType.Append:
-                        node.ParentNode.InsertAfter(importedExtensionNode, node);
-                        break;
-
-                    case PrefabExtensionInsertAsSiblingPatch.InsertType.Prepend:
-                        node.ParentNode.InsertBefore(importedExtensionNode, node);
-                        break;
-                }
-            });
-        }
+            patcher(node2);
+        });
 
         /// <summary>
         /// Make WidgetFactory reload Movies that were extended by _moviePatches.
@@ -266,6 +138,30 @@ namespace Bannerlord.UIExtenderEx.Components
         }
 
         /// <summary>
+        /// Fixes issue where game will crash if injected patch contains comments.<br/>
+        /// Returns false when <paramref name="node"/> is a comment, or is null.
+        /// </summary>
+        private static bool TryRemoveComments(XmlNode? node)
+        {
+            if (string.Equals(node?.Name, "#comment"))
+            {
+                return false;
+            }
+
+            if (node?.SelectNodes("//comment()") is not { } commentNodes)
+            {
+                return false;
+            }
+
+            foreach (XmlNode xmlNode in commentNodes)
+            {
+                xmlNode.ParentNode!.RemoveChild(xmlNode);
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Get path for movie from WidgetFactory
         /// </summary>
         /// <param name="movie"></param>
@@ -273,7 +169,7 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             // TODO: figure out a method more prone to game updates
             var prefabNamesMethod = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
-            if (prefabNamesMethod is not null && prefabNamesMethod.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) is Dictionary<string, string> paths)
+            if (prefabNamesMethod?.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) is Dictionary<string, string> paths)
             {
                 return paths[movie];
             }

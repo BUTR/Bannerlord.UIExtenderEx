@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+using Bannerlord.UIExtenderEx.Prefabs2;
+
 namespace Bannerlord.UIExtenderEx
 {
     /// <summary>
@@ -96,7 +98,7 @@ namespace Bannerlord.UIExtenderEx
         {
             if (_runtime is null)
             {
-                Utils.Fail("Register() method was not called before Enable()!");
+                Utils.Fail("Register() method was not called before Disable()!");
                 return;
             }
             _runtime.Disable();
