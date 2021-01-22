@@ -33,6 +33,7 @@ namespace Bannerlord.UIExtenderEx.Components
             if (!TryRemoveComments(extensionNode))
             {
                 Utils.Fail($"XML patch document's root node was a comment.");
+                return;
             }
 
             var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
@@ -103,6 +104,7 @@ namespace Bannerlord.UIExtenderEx.Components
             if (!TryRemoveComments(extensionNode))
             {
                 Utils.Fail($"XML patch document's root node was a comment.");
+                return;
             }
 
             var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
@@ -139,6 +141,7 @@ namespace Bannerlord.UIExtenderEx.Components
             if (!TryRemoveComments(extensionNode))
             {
                 Utils.Fail($"XML patch document's root node was a comment.");
+                return;
             }
 
             var importedExtensionNode = ownerDocument.ImportNode(extensionNode, true);
