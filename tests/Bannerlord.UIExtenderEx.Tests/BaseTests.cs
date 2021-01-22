@@ -1,14 +1,16 @@
-using HarmonyLib;
-
-using NUnit.Framework;
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 
+using HarmonyLib;
+
+using NUnit.Framework;
+
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
 using TaleWorlds.Library;
+
+using StringReader = System.IO.StringReader;
 
 namespace Bannerlord.UIExtenderEx.Tests
 {
@@ -23,33 +25,36 @@ namespace Bannerlord.UIExtenderEx.Tests
             {
                 var harmony = new Harmony($"{nameof(MockWidgetFactory)}.ctor");
                 harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
-                    prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory),
+                    new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory),
                         nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix))));
-                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), nameof(WidgetFactory.GetCustomType)),
-                    prefix: new HarmonyMethod(
+                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), nameof(GetCustomType)),
+                    new HarmonyMethod(
                         AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix))));
                 harmony.Patch(SymbolExtensions.GetMethodInfo(() => XmlReader.Create("", null!)),
-                    prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(CreatePrefix))));
+                    new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(CreatePrefix))));
 
                 if (GetCustomTypes?.Invoke(this) is { } dictionary)
                 {
                     dictionary.Add("SetAttribute", null!);
                     dictionary.Add("Insert", null!);
-                    dictionary.Add("Replace", null!);
+                    dictionary.Add("ReplaceKeepChildren", null!);
                     dictionary.Add("InsertAsSiblingAppend", null!);
                     dictionary.Add("InsertAsSiblingPrepend", null!);
 
                     dictionary.Add("SetAttribute2", null!);
                     dictionary.Add("Insert2", null!);
-                    dictionary.Add("Replace2", null!);
-                    dictionary.Add("InsertAsSiblingAppend2", null!);
-                    dictionary.Add("InsertAsSiblingPrepend2", null!);
+                    dictionary.Add("ReplaceKeepChildren2", null!);
+                    dictionary.Add("Append2", null!);
+                    dictionary.Add("Prepend2", null!);
+                    dictionary.Add("ReplaceKeepChildrenRemoveRootNode", null!);
+                    dictionary.Add("AppendRemoveRootNode", null!);
+                    dictionary.Add("PrependRemoveRootNode", null!);
                 }
             }
 
             public static bool CreatePrefix(ref XmlReader __result)
             {
-                __result = XmlReader.Create(new System.IO.StringReader(@"
+                __result = XmlReader.Create(new StringReader(@"
 <Prefab>
   <Window>
     <OptionsScreenWidget Id=""Options"">
@@ -60,7 +65,7 @@ namespace Bannerlord.UIExtenderEx.Tests
               <Children>
                 <OptionsTabToggle Id=""InsertAsSibling""/>
                 <OptionsTabToggle Id=""InsertAsSibling""/>
-                <OptionsTabToggle Id=""Replace""/>
+                <OptionsTabToggle Id=""ReplaceKeepChildren""/>
                 <OptionsTabToggle Id=""SetAttribute""/>
                 <OptionsTabToggle/>
                 <OptionsTabToggle/>
@@ -72,7 +77,7 @@ namespace Bannerlord.UIExtenderEx.Tests
     </OptionsScreenWidget>
   </Window>
 </Prefab>
-"), new XmlReaderSettings { IgnoreComments = true });
+"), new XmlReaderSettings {IgnoreComments = true});
                 return false;
             }
 
@@ -86,17 +91,20 @@ namespace Bannerlord.UIExtenderEx.Tests
             {
                 __result = new Dictionary<string, string>
                 {
-                    { "SetAttribute", "SetAttribute.xml" },
-                    { "Insert", "Insert.xml" },
-                    { "Replace", "Replace.xml" },
-                    { "InsertAsSiblingAppend", "InsertAsSiblingAppend.xml" },
-                    { "InsertAsSiblingPrepend", "InsertAsSiblingPrepend.xml" },
+                    {"SetAttribute", "SetAttribute.xml"},
+                    {"Insert", "Insert.xml"},
+                    {"ReplaceKeepChildren", "ReplaceKeepChildren.xml"},
+                    {"InsertAsSiblingAppend", "InsertAsSiblingAppend.xml"},
+                    {"InsertAsSiblingPrepend", "InsertAsSiblingPrepend.xml"},
 
-                    { "SetAttribute2", "SetAttribute2.xml" },
-                    { "Insert2", "Insert2.xml" },
-                    { "Replace2", "Replace2.xml" },
-                    { "InsertAsSiblingAppend2", "InsertAsSiblingAppend2.xml" },
-                    { "InsertAsSiblingPrepend2", "InsertAsSiblingPrepend2.xml" },
+                    {"SetAttribute2", "SetAttribute2.xml"},
+                    {"Insert2", "Insert2.xml"},
+                    {"ReplaceKeepChildren2", "ReplaceKeepChildren2.xml"},
+                    {"Append2", "Append2.xml"},
+                    {"Prepend2", "Prepend2.xml"},
+                    {"ReplaceKeepChildrenRemoveRootNode", "ReplaceKeepChildrenRemoveRootNode.xml"},
+                    {"AppendRemoveRootNode", "AppendRemoveRootNode.xml"},
+                    {"PrependRemoveRootNode", "PrependRemoveRootNode.xml"}
                 };
                 return false;
             }
@@ -105,8 +113,8 @@ namespace Bannerlord.UIExtenderEx.Tests
         protected AccessTools.FieldRef<WidgetTemplate, List<WidgetTemplate>> GetChildren { get; } =
             AccessTools.FieldRefAccess<WidgetTemplate, List<WidgetTemplate>>("_children");
 
-        [SetUp]
-        public void Setup()
+        [OneTimeSetUp]
+        public virtual void Setup()
         {
             var property = AccessTools.DeclaredProperty(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
             property.SetValue(null, new MockWidgetFactory());

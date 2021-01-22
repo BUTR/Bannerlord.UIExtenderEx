@@ -91,18 +91,6 @@ namespace Bannerlord.UIExtenderEx
                                 case Prefabs2.PrefabExtensionInsertPatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
-                                case Prefabs2.PrefabExtensionReplacePatch patch:
-                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
-                                    break;
-                                case Prefabs2.PrefabExtensionInsertAsSiblingPatch patch:
-                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
-                                    break;
-                                case Prefabs2.PrefabCustomPatch<XmlDocument> patch:
-                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, patch.Apply);
-                                    break;
-                                case Prefabs2.PrefabCustomPatch<XmlNode> patch:
-                                    PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch.Apply);
-                                    break;
 
                                 default:
                                     Utils.Fail($"Patch class is unsupported - {extensionType}!");

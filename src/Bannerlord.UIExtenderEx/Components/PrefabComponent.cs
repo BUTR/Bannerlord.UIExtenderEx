@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 
+using Bannerlord.UIExtenderEx.Prefabs2;
+
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
 
@@ -22,7 +24,7 @@ namespace Bannerlord.UIExtenderEx.Components
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
-        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it cor consistency>")]
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it for consistency>")]
         private readonly string _moduleName;
 
         /// <summary>
@@ -31,6 +33,13 @@ namespace Bannerlord.UIExtenderEx.Components
         private readonly ConcurrentDictionary<string, List<Action<XmlDocument>>> _moviePatches = new();
 
         public bool Enabled { get; private set; }
+
+        /// <summary>
+        /// When set to true, patches that are loaded from file (<see cref="PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute"/>)
+        /// will be reloaded every time their target view is reloaded.<br/>
+        /// This is slower, so should only be enabled while in a development environment.
+        /// </summary>
+        public bool LiveUIDebuggingEnabled { get; set; }
 
         public PrefabComponent(string moduleName)
         {
@@ -129,6 +138,30 @@ namespace Bannerlord.UIExtenderEx.Components
         }
 
         /// <summary>
+        /// Fixes issue where game will crash if injected patch contains comments.<br/>
+        /// Returns false when <paramref name="node"/> is a comment, or is null.
+        /// </summary>
+        private static bool TryRemoveComments(XmlNode? node)
+        {
+            if (string.Equals(node?.Name, "#comment"))
+            {
+                return false;
+            }
+
+            if (node?.SelectNodes("//comment()") is not { } commentNodes)
+            {
+                return false;
+            }
+
+            foreach (XmlNode xmlNode in commentNodes)
+            {
+                xmlNode.ParentNode!.RemoveChild(xmlNode);
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Get path for movie from WidgetFactory
         /// </summary>
         /// <param name="movie"></param>
@@ -136,7 +169,7 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             // TODO: figure out a method more prone to game updates
             var prefabNamesMethod = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
-            if (prefabNamesMethod is not null && prefabNamesMethod.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) is Dictionary<string, string> paths)
+            if (prefabNamesMethod?.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) is Dictionary<string, string> paths)
             {
                 return paths[movie];
             }
