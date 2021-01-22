@@ -399,43 +399,40 @@ namespace Bannerlord.UIExtenderEx.Components
             PrefabExtensionInsertPatch instance,
             MemberInfo memberInfo)
         {
-            return memberInfo switch
+            var methodInfo = memberInfo switch
             {
-                PropertyInfo pi => GetPropertyFunction(pi),
-                MethodInfo mi => GetMethodFunction(mi),
-                _ => () => null
+                PropertyInfo pi => pi.GetMethod,
+                MethodInfo mi => mi,
+                _ => null
             };
 
-            Func<object?> GetPropertyFunction(PropertyInfo propertyInfo)
+            if(methodInfo is null)
             {
-                return GetMethodFunction(propertyInfo.GetMethod);
-            }
-
-            Func<object?> GetMethodFunction(MethodInfo methodInfo)
-            {
-                if (returnType == typeof(string))
-                {
-                    var @delegate = Delegate.CreateDelegate(typeof(StringSignature), instance, methodInfo) as StringSignature;
-                    return () => @delegate?.Invoke();
-                }
-                if (returnType == typeof(XmlNode))
-                {
-                    var @delegate = Delegate.CreateDelegate(typeof(XmlNodeSignature), instance, methodInfo) as XmlNodeSignature;
-                    return () => @delegate?.Invoke();
-                }
-                if (returnType == typeof(XmlDocument))
-                {
-                    var @delegate = Delegate.CreateDelegate(typeof(XmlDocumentSignature), instance, methodInfo) as XmlDocumentSignature;
-                    return () => @delegate?.Invoke();
-                }
-                if (returnType == typeof(IEnumerable<XmlNode>))
-                {
-                    var @delegate = Delegate.CreateDelegate(typeof(IEnumerableXmlNodeSignature), instance, methodInfo) as IEnumerableXmlNodeSignature;
-                    return () => @delegate?.Invoke();
-                }
-
                 return () => null;
             }
+
+            if (returnType == typeof(string))
+            {
+                var @delegate = Delegate.CreateDelegate(typeof(StringSignature), instance, methodInfo) as StringSignature;
+                return () => @delegate?.Invoke();
+            }
+            if (returnType == typeof(XmlNode))
+            {
+                var @delegate = Delegate.CreateDelegate(typeof(XmlNodeSignature), instance, methodInfo) as XmlNodeSignature;
+                return () => @delegate?.Invoke();
+            }
+            if (returnType == typeof(XmlDocument))
+            {
+                var @delegate = Delegate.CreateDelegate(typeof(XmlDocumentSignature), instance, methodInfo) as XmlDocumentSignature;
+                return () => @delegate?.Invoke();
+            }
+            if (returnType == typeof(IEnumerable<XmlNode>))
+            {
+                var @delegate = Delegate.CreateDelegate(typeof(IEnumerableXmlNodeSignature), instance, methodInfo) as IEnumerableXmlNodeSignature;
+                return () => @delegate?.Invoke();
+            }
+
+            return () => null;
         }
     }
 }
