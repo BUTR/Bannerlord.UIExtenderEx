@@ -75,7 +75,7 @@ namespace Bannerlord.UIExtenderEx.Components
                     {
                         InsertType.Prepend => node!.ParentNode!.InsertBefore(importedNode, node),
                         InsertType.ReplaceKeepChildren => ReplaceKeepChildren(node, importedNode, patch.Index == 0 || nodesArray.Length == 1, out oldChildNodes),
-                        InsertType.Replace => node!.ParentNode!.ReplaceChild(importedNode, node),
+                        InsertType.Replace => ReplaceNode(node, importedNode),
                         InsertType.Child => InsertAsChild(node, importedNode, patch.Index),
                         InsertType.Append => node!.ParentNode!.InsertAfter(importedNode, node),
                         _ => throw new ArgumentOutOfRangeException()
@@ -97,6 +97,12 @@ namespace Bannerlord.UIExtenderEx.Components
                 }
             }
         });
+
+        private static XmlNode ReplaceNode(XmlNode targetNode, XmlNode importedNode)
+        {
+            targetNode!.ParentNode!.ReplaceChild(importedNode, targetNode);
+            return importedNode;
+        }
 
         private static XmlNode ReplaceKeepChildren(XmlNode targetNode, XmlNode importedNode, bool appendChildren, out XmlNodeList oldChildNodes)
         {

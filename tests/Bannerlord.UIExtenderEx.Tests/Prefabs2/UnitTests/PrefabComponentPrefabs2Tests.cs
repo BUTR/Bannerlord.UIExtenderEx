@@ -143,6 +143,30 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
         }
 
         [Test]
+        public void RegisterPatch_Text_ReplaceRemoveRootNode()
+        {
+            // Arrange
+            const string MovieName = "TestMovieName";
+            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
+            var patch = PatchCreator.ConstructInsertPatch(InsertType.Replace, "<DiscardedRoot><SomeChild1/><SomeChild2/></DiscardedRoot>", 10, true);
+
+            PrefabComponent prefabComponent = new("TestModule");
+            var movieDocument = GetBaseDocument();
+
+            // Act
+            prefabComponent.RegisterPatch(MovieName, XPath, patch);
+            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+
+            // Assert
+            var someChild1Node = movieDocument.SelectSingleNode("descendant::SomeChild1");
+            Assert.IsNotNull(someChild1Node);
+            Assert.AreEqual("Children", someChild1Node!.ParentNode!.Name);
+            Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
+            Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
+            Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
+        }
+
+        [Test]
         public void RegisterPatch_XmlNodes_InsertMultipleChildren()
         {
             // Arrange
