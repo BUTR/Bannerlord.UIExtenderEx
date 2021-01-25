@@ -279,5 +279,33 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
             Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
             Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
         }
+
+        [Test]
+        public void RegisterPatch_RemoveComments_FirstNodeRootComment()
+        {
+            // Arrange
+            const string MovieName = "TestMovieName";
+            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+            XmlDocument patchedDocument = new();
+            patchedDocument.LoadXml("<DiscardedRoot><!--Root Comment--><ValidRoot><SomeChild/></ValidRoot></DiscardedRoot>");
+            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
+
+            PrefabComponent prefabComponent = new("TestModule");
+            var movieDocument = GetBaseDocument();
+
+            // Act
+            prefabComponent.RegisterPatch(MovieName, XPath, patch);
+            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+
+            // Assert
+            Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
+
+            // Validate that every node we did want inserted are actually inserted.
+            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+            Assert.IsNotNull(validRootNode);
+            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+            Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        }
     }
 }

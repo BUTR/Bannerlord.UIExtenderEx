@@ -58,6 +58,7 @@ namespace Bannerlord.UIExtenderEx.Components
             XmlNode? lastPlacedNode = null;
             XmlNodeList? oldChildNodes = null;
             XmlNode[] nodesArray = nodes!.ToArray();
+            var firstNodeInserted = false;
             for (var i = 0; i < nodesArray.Length; ++i)
             {
                 XmlNode currentNode = nodesArray[i];
@@ -68,8 +69,9 @@ namespace Bannerlord.UIExtenderEx.Components
 
                 XmlNode importedNode = ownerDocument!.ImportNode(currentNode, true);
 
-                if (i == 0)
+                if (!firstNodeInserted)
                 {
+                    firstNodeInserted = true;
                     // Insert initial node.
                     lastPlacedNode = patch.Type switch
                     {
