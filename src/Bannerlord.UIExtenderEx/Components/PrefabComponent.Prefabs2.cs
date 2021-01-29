@@ -85,7 +85,6 @@ namespace Bannerlord.UIExtenderEx.Components
                 }
                 else
                 {
-
                     // Append successive nodes after the current node.
                     var insertedNode = lastPlacedNode!.ParentNode!.InsertAfter(importedNode, lastPlacedNode);
                     if (patch.Type == InsertType.ReplaceKeepChildren && oldChildNodes != null && patch.Index == i)

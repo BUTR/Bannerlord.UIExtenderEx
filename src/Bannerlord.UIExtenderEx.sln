@@ -37,6 +37,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V1Doc", "V1Doc", "{650D0252-BC32-4728-87CB-8BA2CDA85840}"
+	ProjectSection(SolutionItems) = preProject
+		..\V1Doc\README.md = ..\V1Doc\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Beta_Debug|Any CPU = Beta_Debug|Any CPU
@@ -72,6 +77,7 @@ Global
 		{53D6522F-4AE2-427F-911A-50B857888883} = {7A221C05-991C-4552-A535-6C698C70E12B}
 		{74E13D44-2846-49A3-A5AC-D432AD83C9F0} = {9D2C61D6-D1B6-4C89-80B2-6DAE2D5FCEE4}
 		{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988} = {74E13D44-2846-49A3-A5AC-D432AD83C9F0}
+		{650D0252-BC32-4728-87CB-8BA2CDA85840} = {9D2C61D6-D1B6-4C89-80B2-6DAE2D5FCEE4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31629F18-48B4-4C3E-87C3-BDCB9BBF1BBD}
