@@ -20,64 +20,20 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
             // To pass XmlDocument as XmlNode
             if (typeof(T) == typeof(XmlNode) && contentValue is XmlNode nodeContent)
             {
-                if (removeRootNode)
-                {
-                    var nodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatchRemoveRootNode>();
-                    nodePatch.GetPrefabExtension().Returns(nodeContent);
-                    patch = nodePatch;
-                }
-                else
-                {
-                    var nodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatch>();
-                    nodePatch.GetPrefabExtension().Returns(nodeContent);
-                    patch = nodePatch;
-                }
+                patch = CreatePatch(nodeContent, removeRootNode);
             }
             else
             {
                 switch ( contentValue )
                 {
                     case string textPatchContent:
-                        if (removeRootNode)
-                        {
-                            var textPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatchRemoveRootNode>();
-                            textPatch.GetPrefabExtension().Returns(textPatchContent);
-                            patch = textPatch;
-                        }
-                        else
-                        {
-                            var textPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatch>();
-                            textPatch.GetPrefabExtension().Returns(textPatchContent);
-                            patch = textPatch;
-                        }
+                        patch = CreatePatch(textPatchContent, removeRootNode);
                         break;
                     case XmlDocument documentPatchContent:
-                        if (removeRootNode)
-                        {
-                            var documentPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatchRemoveRootNode>();
-                            documentPatch.GetPrefabExtension().Returns(documentPatchContent);
-                            patch = documentPatch;
-                        }
-                        else
-                        {
-                            var documentPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatch>();
-                            documentPatch.GetPrefabExtension().Returns(documentPatchContent);
-                            patch = documentPatch;
-                        }
+                        patch = CreatePatch(documentPatchContent, removeRootNode);
                         break;
                     case XmlNode nodePatchContent:
-                        if (removeRootNode)
-                        {
-                            var nodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatchRemoveRootNode>();
-                            nodePatch.GetPrefabExtension().Returns(nodePatchContent);
-                            patch = nodePatch;
-                        }
-                        else
-                        {
-                            var nodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatch>();
-                            nodePatch.GetPrefabExtension().Returns(nodePatchContent);
-                            patch = nodePatch;
-                        }
+                        patch = CreatePatch(nodePatchContent, removeRootNode);
                         break;
                     case IEnumerable<XmlNode> nodesPatchContent:
                         var nodesPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodesPatch>();
@@ -91,6 +47,48 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
             patch!.Index.Returns(index);
             patch.Type.Returns(insertType);
 
+            return patch;
+        }
+
+        private static PrefabExtensionInsertPatch CreatePatch(XmlNode patchContent, bool removeRootNode)
+        {
+            if (removeRootNode)
+            {
+                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatchRemoveRootNode>();
+                removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
+                return removeRootNodePatch;
+            }
+
+            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatch>();
+            patch.GetPrefabExtension().Returns(patchContent);
+            return patch;
+        }
+
+        private static PrefabExtensionInsertPatch CreatePatch(XmlDocument patchContent, bool removeRootNode)
+        {
+            if (removeRootNode)
+            {
+                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatchRemoveRootNode>();
+                removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
+                return removeRootNodePatch;
+            }
+
+            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatch>();
+            patch.GetPrefabExtension().Returns(patchContent);
+            return patch;
+        }
+
+        private static PrefabExtensionInsertPatch CreatePatch(string patchContent, bool removeRootNode)
+        {
+            if (removeRootNode)
+            {
+                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatchRemoveRootNode>();
+                removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
+                return removeRootNodePatch;
+            }
+
+            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatch>();
+            patch.GetPrefabExtension().Returns(patchContent);
             return patch;
         }
     }
