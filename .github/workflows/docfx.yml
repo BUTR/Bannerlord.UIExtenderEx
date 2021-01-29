@@ -6,6 +6,7 @@ on:
       #- master
       # documentation will cover the dev branch for now
       - dev
+      - dev-docs
     paths:
       - '.github/workflows/docfx.yml'
       - 'src/Bannerlord.UIExtenderEx/**.cs'

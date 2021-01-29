@@ -1,8 +1,8 @@
-# PrefabsV1 Documentation
+# v1 Documentation
 If possible, it is recommended to now use the PrefabsV2 API.
 
 ## Quickstart
-You mark your _prefab extensions_ based on one of the `IPrefabPatch` descendants and marking it with `PrefabExtension` attribute, therefore enabling you to make additions to the specified Movie's XML data.
+You mark your _prefab extensions_ based on one of the [``IPrefabPatch``](xref:Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch) descendants and marking it with [``PrefabExtension``](xref:Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute) attribute, therefore enabling you to make additions to the specified Movie's XML data.
 
 Example of inserting ``XML`` at a specific position:
 ```csharp
@@ -85,7 +85,7 @@ Example of inserting ``XML`` before a specific element:
         public override XmlDocument GetPrefabExtension() => XmlDocument;
     }
 ```
-In order to add data to the prefab, you need to add properties to the target datasource class, this is done by making a _mixin_ class, inheriting from `BaseViewModelMixin<T>` and marking it with `ViewModelMixin` attribute. This class will be mixed in to the target view model `T`, making fields and methods accessible in the prefab:
+In order to add data to the prefab, you need to add properties to the target datasource class, this is done by making a _mixin_ class, inheriting from [``BaseViewModelMixin<T>``](xref:Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin) and marking it with [``ViewModelMixin``](xref:Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute) attribute. This class will be mixed in to the target view model `T`, making fields and methods accessible in the prefab:
 
 ```csharp
     [ViewModelMixin]
@@ -131,9 +131,9 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply
         }
 ```
 
-To use the `OnRefresh` overload you will need to specify for UIExtenderEx the underlying method that acts as the conceptual 'Refresh' method in the `ViewModel`.  
-For example, `MapInfoVM` has a method `Refresh`.  
-If such method exists, specify it in the `ViewModelMixin` like this:
+To use the `OnRefresh` overload you will need to specify for UIExtenderEx the underlying method that acts as the conceptual 'Refresh' method in the [``ViewModel``](xref:TaleWorlds.Library.ViewModel).  
+For example, [``MapInfoVM``](xref:TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapInfoVM) has a method `Refresh`.  
+If such method exists, specify it in the [``ViewModelMixin``](xref:Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute) like this:
 ```csharp
 [ViewModelMixin("Refresh")] // or [ViewModelMixin(nameof(MapInfoVM.Refresh))] // if the method is public
 public class MapInfoMixin : BaseViewModelMixin<MapInfoVM>
