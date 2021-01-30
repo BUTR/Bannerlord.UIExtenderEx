@@ -1,5 +1,5 @@
 ### Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch
-Patch that adds or replaces a node's attributes. The target node should be specified by the XPath in the ``PrefabExtension``
+Patch that adds or replaces a node's attributes. The target node should be specified by the XPath in the [``PrefabExtension``](xref:Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute)
 If the attribute already exists on the target node, it's value will be replaced by the specified value. Otherwise, the new attribute is added with the specified value.
 
 ---
