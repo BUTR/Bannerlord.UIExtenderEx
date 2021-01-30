@@ -36,3 +36,6 @@ This module should be one of the highest in loading order. Ideally, it should be
 
 ## For Players
 This mod is a dependency mod that does not provide anything by itself. You need to additionaly install mods that use it.
+
+## Usage
+Check the [``Articles``](https://butr.github.io/Bannerlord.UIExtenderEx/articles/v2/Overview.html) section of our documentation!
