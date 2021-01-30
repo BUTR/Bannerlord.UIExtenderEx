@@ -1,5 +1,5 @@
 ### [``PrefabExtensionInsertPatch``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch)  
-Versatile patch that can be used to Prepend, Append, Replace (entirely, or while keeping children) or AddAsChild. Insertion type is determined by the [``Type``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch%23Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Type) Property.
+Versatile patch that can be used to Prepend, Append, Replace (entirely, or while keeping children) or AddAsChild. Insertion type is determined by the [``Type``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch#collapsible-Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Type) Property.
 
 Your class insertion patch class should contain a single Property or Method flagged with one of the attributes inheriting from [``PrefabExtensionContent``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute).
 Supported types are the following:

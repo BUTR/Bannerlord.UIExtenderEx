@@ -1,4 +1,4 @@
-## ViewModelMixin
+### ViewModelMixin
 
 In order to add data to the prefab, you need to add properties to the target datasource class, this is done by making a _mixin_ class, inheriting from [``BaseViewModelMixin<T>``](xref:Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1) and marking it with [``ViewModelMixin``](xref:Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute) attribute. This class will be mixed in to the target view model `T`, making fields and methods accessible in the prefab:
 
