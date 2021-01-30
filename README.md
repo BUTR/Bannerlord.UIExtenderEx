@@ -30,7 +30,7 @@
 </p>
 
 A library that enables multiple mods to alter standard game interface.  
-Previously, a fork of [UIExtenderLib](https://github.com/shdwp/UIExtenderLib).
+Previously, a fork of [UIExtenderLib](https://github.com/shdwp/UIExtenderLib) that was de-forked.
 
 ## Installation
 This module should be one of the highest in loading order. Ideally, it should be loaded after ``Bannerlord.Harmony`` or ``Bannerlord.ButterLib``.
