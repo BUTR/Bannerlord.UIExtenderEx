@@ -1,12 +1,12 @@
 ### [``PrefabExtensionInsertPatch``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch)  
-Versatile patch that can be used to Prepend, Append, Replace (entirely, or while keeping children) or AddAsChild. Insertion type is determined by the [``Type``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch%23Type) Property.
+Versatile patch that can be used to Prepend, Append, Replace (entirely, or while keeping children) or AddAsChild. Insertion type is determined by the [``Type``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch%23Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Type) Property.
 
-Your class insertion patch class should contain a single Property or Method flagged with one of the attributes inheriting from [``PrefabExtensionContent``](xref:Bannerlord.UIExtenderEx.Prefabs2.Attributes.PrefabExtensionContentAttribute).
+Your class insertion patch class should contain a single Property or Method flagged with one of the attributes inheriting from [``PrefabExtensionContent``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute).
 Supported types are the following:
 - [``XmlDocument``](xref:System.Xml.XmlDocument)
 - [``XmlNode``](xref:System.Xml.XmlNode)
-- [``IEnumerable<XmlNode>``](xref:System.Collections.Generic.IEnumerable)
-- string (can represent either a file name ([``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionFileNameAttribute)), or Xml ([``PrefabExtensionText``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionTextAttribute)))
+- [``IEnumerable<XmlNode>``](xref:System.Collections.Generic.IEnumerable`1)
+- string (can represent either a file name ([``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute)), or Xml ([``PrefabExtensionText``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute)))
 
 The Attribute you use will depend on the return type of the method, or the type of the property that it is associated with.
 
@@ -283,10 +283,10 @@ internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 ```
 
 Inserting multiple children at the "root" level like in the above example can be tidier by using the "RemoveRootNode" parameter available with the following attribute types:
-- [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionFileNameAttribute)
-- [``PrefabExtensionText``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionTextAttribute)
-- [``PrefabExtensionXmlNode``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionXmlNodeAttribute)
-- [``PrefabExtensionXmlDocument``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionXmlDocumentAttribute)
+- [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute)
+- [``PrefabExtensionText``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute)
+- [``PrefabExtensionXmlNode``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute)
+- [``PrefabExtensionXmlDocument``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute)
 
 **Example of using RemoveRootNode. The result will be the same as the example above:**
 
@@ -309,7 +309,7 @@ internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 [``PrefabExtensionInsertPatch``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch) also supports fetching and inserting xml from a file inside of your module's GUI folder.
 The biggest advantage of doing this is being able to perform live debugging on your injected patch!
 
-**Example of appending the content of a file using [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionFileNameAttribute):**
+**Example of appending the content of a file using [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute):**
 
 ```csharp
 [PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
