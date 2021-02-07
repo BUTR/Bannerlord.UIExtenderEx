@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 
+using Bannerlord.UIExtenderEx.Tests.Utils;
+
 using HarmonyLib;
 
 using NUnit.Framework;
@@ -21,7 +23,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
                 AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
 
-            public MockWidgetFactory() : base(new ResourceDepot(string.Empty), string.Empty)
+            public MockWidgetFactory() : base(ResourceDepotUtils.Create(), string.Empty)
             {
                 var harmony = new Harmony($"{nameof(MockWidgetFactory)}.ctor");
                 harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),

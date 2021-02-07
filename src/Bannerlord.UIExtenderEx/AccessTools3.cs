@@ -31,6 +31,9 @@ namespace Bannerlord.UIExtenderEx
             return field is null ? null : AccessTools.FieldRefAccess<T, TF>(field);
         }
 
+        public static TDelegate? GetDelegate<TDelegate>(ConstructorInfo? constructorInfo) where TDelegate : Delegate
+            => ReflectionHelper.GetDelegate<TDelegate>(constructorInfo);
+
         /// <summary>Get a delegate for a method described by <paramref name="methodInfo"/>.</summary>
         /// <param name="methodInfo">The method's <see cref="MethodInfo"/>.</param>
         /// <returns>A delegate or <see langword="null"/> when <paramref name="methodInfo"/> is <see langword="null"/>.</returns>
