@@ -1,4 +1,5 @@
-﻿using Bannerlord.UIExtenderEx.Patches;
+﻿using Bannerlord.UIExtenderEx.Extensions;
+using Bannerlord.UIExtenderEx.Patches;
 
 using HarmonyLib;
 
@@ -12,6 +13,7 @@ using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
+using TaleWorlds.GauntletUI.Data;
 using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.ResourceManager
@@ -51,27 +53,39 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         internal static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.GetCustomType(null!)),
-                prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetFactoryManager), nameof(GetCustomTypePrefix))));
+                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.GetCustomType)),
+                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(GetCustomTypePrefix))));
 
             harmony.Patch(
-                SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.CreateBuiltinWidget(null!, null!)),
-                prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetFactoryManager), nameof(CreateBuiltinWidgetPrefix))));
+                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.CreateBuiltinWidget)),
+                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(CreateBuiltinWidgetPrefix))));
 
             harmony.Patch(
-                SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.GetWidgetTypes()),
-                prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix))));
+                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.GetWidgetTypes)),
+                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix))));
 
             harmony.Patch(
-                SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.IsCustomType(null!)),
-                prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetFactoryManager), nameof(IsCustomTypePrefix))));
+                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.IsCustomType)),
+                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(IsCustomTypePrefix))));
 
-            if (AccessTools.DeclaredMethod(typeof(WidgetFactory), "OnUnload") is { } onUnloadMethod)
-            {
-                harmony.Patch(
-                    onUnloadMethod,
-                    prefix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix))));
-            }
+            harmony.TryPatch(
+                AccessTools.Method(typeof(WidgetFactory), "OnUnload"),
+                prefix: AccessTools.Method(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix)));
+
+            // GetCustomType is too complex to be inlined
+            // CreateBuiltinWidget is too complex to be inlined
+            // GetWidgetTypes is not used?
+            // Preventing inlining IsCustomType
+            harmony.TryPatch(
+                AccessTools.Method(typeof(WidgetTemplate), "CreateWidgets"),
+                transpiler: AccessTools.Method(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
+            harmony.TryPatch(
+                AccessTools.Method(typeof(WidgetTemplate), "OnRelease"),
+                transpiler: AccessTools.Method(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
+            // Preventing inlining GetCustomType
+            //harmony.Patch(
+            //    AccessTools.Method(typeof(GauntletMovie), "LoadMovie"),
+            //    transpiler: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(BlankTranspiler))));
         }
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
@@ -100,7 +114,9 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private static bool IsCustomTypePrefix(string typeName, ref bool __result)
         {
             if (!CustomTypes.ContainsKey(typeName))
+            {
                 return true;
+            }
 
             __result = true;
             return false;
@@ -113,11 +129,15 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         {
             // Post154
             if (LiveCustomTypesFieldRef is not null && LiveCustomTypesFieldRef(__instance).Contains(typeName))
+            {
                 return true;
+            }
             // Post154
 
             if (!CustomTypes.ContainsKey(typeName))
+            {
                 return true;
+            }
 
             if (LiveCustomTypes.TryGetValue(typeName, out var liveWidgetPrefab))
             {
@@ -154,5 +174,8 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
 
             return true;
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static IEnumerable<CodeInstruction> BlankTranspiler(IEnumerable<CodeInstruction> instructions) => instructions;
     }
 }

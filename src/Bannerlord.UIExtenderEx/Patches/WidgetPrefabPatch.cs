@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using System;
+
+using HarmonyLib;
 
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Xml;
 
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -30,6 +33,7 @@ namespace Bannerlord.UIExtenderEx.Patches
         {
             var instructionsList = instructions.ToList();
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             IEnumerable<CodeInstruction> ReturnDefault(string place)
             {
                 Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
@@ -37,12 +41,15 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
 
             var constructor = AccessTools.DeclaredConstructor(typeof(WidgetPrefab));
+            var processMovieMethod = SymbolExtensions.GetMethodInfo(() => ProcessMovie(null!, null!));
 
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(WidgetPrefab));
 
             if (typeLocal is null)
+            {
                 return ReturnDefault("Local not found");
+            }
 
             var startIndex = -1;
             for (var i = 0; i < instructionsList.Count - 2; i++)
@@ -58,14 +65,16 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
 
             if (startIndex == -1)
+            {
                 return ReturnDefault("Pattern not found");
+            }
 
             // ProcessMovie(path, xmlDocument);
             instructionsList.InsertRange(startIndex + 1, new List<CodeInstruction>
             {
                 new(OpCodes.Ldarg_2),
                 new(OpCodes.Ldloc_0),
-                new(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ProcessMovie(null!, null!)))
+                new(OpCodes.Call, processMovieMethod)
             });
             return instructionsList.AsEnumerable();
         }
@@ -75,7 +84,9 @@ namespace Bannerlord.UIExtenderEx.Patches
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
                 if (!runtime.PrefabComponent.Enabled)
+                {
                     continue;
+                }
 
                 var movieName = Path.GetFileNameWithoutExtension(path);
                 runtime.PrefabComponent.ProcessMovieIfNeeded(movieName, document);
@@ -102,7 +113,9 @@ namespace Bannerlord.UIExtenderEx.Patches
                 var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(XmlDocument));
 
                 if (typeLocal is null)
+                {
                     return returnNull;
+                }
 
                 var constructorIndex = -1;
                 var constructor = AccessTools.Constructor(typeof(WidgetPrefab));
@@ -113,7 +126,9 @@ namespace Bannerlord.UIExtenderEx.Patches
                 }
 
                 if (constructorIndex == -1)
+                {
                     return returnNull;
+                }
 
                 for (var i = 0; i < constructorIndex; i++)
                 {
