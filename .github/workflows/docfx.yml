@@ -6,6 +6,7 @@ on:
       #- master
       # documentation will cover the dev branch for now
       - dev
+      - dev-docs
     paths:
       - '.github/workflows/docfx.yml'
       - 'src/Bannerlord.UIExtenderEx/**.cs'
@@ -31,10 +32,14 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-    - name: Setup .NET Core
+    - name: Setup .NET Core 5.0.x
       uses: actions/setup-dotnet@master
       with:
         dotnet-version: 5.0.x
+    - name: Setup .NET Core 3.1.x
+      uses: actions/setup-dotnet@master
+      with:
+        dotnet-version: 3.1.x
     - name: Setup BUTR GPR
       uses: actions/setup-dotnet@master
       with:

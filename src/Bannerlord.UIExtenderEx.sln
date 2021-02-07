@@ -37,6 +37,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6A6FB1BE-5426-4835-A308-0E74E66299D5}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\articles\toc.yml = ..\docs\articles\toc.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1", "v1", "{395402D4-28B5-4974-943D-04B7D5F6673D}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\articles\v1\Overview.md = ..\docs\articles\v1\Overview.md
+		..\docs\articles\v1\toc.yml = ..\docs\articles\v1\toc.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v2", "v2", "{B4D6A888-2D8F-49A4-87C5-6CD18D8F818B}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\articles\v2\Examples.md = ..\docs\articles\v2\Examples.md
+		..\docs\articles\v2\Overview.md = ..\docs\articles\v2\Overview.md
+		..\docs\articles\v2\PrefabExtensionInsertPatch.md = ..\docs\articles\v2\PrefabExtensionInsertPatch.md
+		..\docs\articles\v2\PrefabExtensionSetAttributePatch.md = ..\docs\articles\v2\PrefabExtensionSetAttributePatch.md
+		..\docs\articles\v2\toc.yml = ..\docs\articles\v2\toc.yml
+		..\docs\articles\v2\ViewModelMixin.md = ..\docs\articles\v2\ViewModelMixin.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Beta_Debug|Any CPU = Beta_Debug|Any CPU
@@ -72,6 +93,9 @@ Global
 		{53D6522F-4AE2-427F-911A-50B857888883} = {7A221C05-991C-4552-A535-6C698C70E12B}
 		{74E13D44-2846-49A3-A5AC-D432AD83C9F0} = {9D2C61D6-D1B6-4C89-80B2-6DAE2D5FCEE4}
 		{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988} = {74E13D44-2846-49A3-A5AC-D432AD83C9F0}
+		{6A6FB1BE-5426-4835-A308-0E74E66299D5} = {9D2C61D6-D1B6-4C89-80B2-6DAE2D5FCEE4}
+		{395402D4-28B5-4974-943D-04B7D5F6673D} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
+		{B4D6A888-2D8F-49A4-87C5-6CD18D8F818B} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31629F18-48B4-4C3E-87C3-BDCB9BBF1BBD}

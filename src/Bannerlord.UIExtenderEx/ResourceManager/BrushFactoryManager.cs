@@ -6,8 +6,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml;
 
+using Bannerlord.UIExtenderEx.Extensions;
+
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
+using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.ResourceManager
 {
@@ -45,12 +48,30 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         internal static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                SymbolExtensions3.GetPropertyInfo((BrushFactory bf) => bf.Brushes).GetMethod,
+                AccessTools.PropertyGetter(typeof(BrushFactory), nameof(BrushFactory.Brushes)),
                 postfix: new HarmonyMethod(AccessTools.Method(typeof(BrushFactoryManager), nameof(GetBrushesPostfix))));
 
             harmony.Patch(
-                SymbolExtensions.GetMethodInfo((BrushFactory bf) => bf.GetBrush(null!)),
+                AccessTools.Method(typeof(BrushFactory), nameof(BrushFactory.GetBrush)),
                 prefix: new HarmonyMethod(AccessTools.Method(typeof(BrushFactoryManager), nameof(GetBrushPrefix))));
+
+            // Preventing inlining GetBrush
+            harmony.TryPatch(
+                AccessTools.Method(typeof(ConstantDefinition), "GetValue"),
+                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+            harmony.TryPatch(
+                AccessTools.Method(typeof(WidgetExtensions), "SetWidgetAttributeFromString"),
+                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+            harmony.TryPatch(
+                AccessTools.Method(typeof(UIContext), "GetBrush"),
+                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+            harmony.TryPatch(
+                AccessTools.Method(typeof(WidgetExtensions), "ConvertObject"),
+                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+            //harmony.Patch(
+            //    AccessTools.Method(typeof(BoolBrushChanger), "OnBooleanUpdated"),
+            //    transpiler: new HarmonyMethod(AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler))));
+            // Preventing inlining GetBrush
         }
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
@@ -67,7 +88,9 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private static bool GetBrushPrefix(string name, Dictionary<string, Brush> ____brushes, ref Brush __result)
         {
             if (____brushes.ContainsKey(name) || !CustomBrushes.ContainsKey(name))
+            {
                 return true;
+            }
 
             if (CustomBrushes[name] is { } brush)
             {
@@ -77,5 +100,8 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
 
             return true;
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static IEnumerable<CodeInstruction> BlankTranspiler(IEnumerable<CodeInstruction> instructions) => instructions;
     }
 }

@@ -9,8 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Bannerlord.UIExtenderEx.Prefabs2;
-
 namespace Bannerlord.UIExtenderEx
 {
     /// <summary>
