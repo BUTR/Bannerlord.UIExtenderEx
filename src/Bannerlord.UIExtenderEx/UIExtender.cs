@@ -9,8 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Bannerlord.UIExtenderEx.Prefabs2;
-
 namespace Bannerlord.UIExtenderEx
 {
     /// <summary>
@@ -18,6 +16,17 @@ namespace Bannerlord.UIExtenderEx
     /// </summary>
     public class UIExtender
     {
+        private static readonly Harmony Harmony = new("bannerlord.uiextender.ex");
+
+        static UIExtender()
+        {
+            ViewModelPatch.Patch(Harmony);
+            WidgetPrefabPatch.Patch(Harmony);
+            WidgetFactoryPatch.Patch(Harmony);
+            BrushFactoryManager.Patch(Harmony);
+            WidgetFactoryManager.Patch(Harmony);
+        }
+
         /// <summary>
         /// Cache or runtime objects that will be accessed from patched code
         /// </summary>

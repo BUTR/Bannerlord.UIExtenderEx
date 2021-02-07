@@ -5,29 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-using Bannerlord.UIExtenderEx.Patches;
-using Bannerlord.UIExtenderEx.ResourceManager;
-
-using HarmonyLib;
-
 using TaleWorlds.MountAndBlade;
 
 namespace Bannerlord.UIExtenderEx
 {
     public class SubModule : MBSubModuleBase
     {
-        private static readonly Harmony Harmony = new("bannerlord.uiextender.ex");
-
-        static SubModule()
-        {
-            ViewModelPatch.Patch(Harmony);
-            WidgetPrefabPatch.Patch(Harmony);
-            WidgetFactoryPatch.Patch(Harmony);
-            BrushFactoryManager.Patch(Harmony);
-            WidgetFactoryManager.Patch(Harmony);
-        }
-
-
         private const string SWarningTitle =
 @"{=eySpdc25EE}Warning from Bannerlord.UIExtenderEx!";
         private const string SErrorHarmonyNotFound =
