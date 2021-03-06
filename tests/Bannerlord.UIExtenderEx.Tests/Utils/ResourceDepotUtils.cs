@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using HarmonyLib;
+﻿using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using TaleWorlds.Library;
 
@@ -24,9 +19,9 @@ namespace Bannerlord.UIExtenderEx.Tests.Utils
             {
                 var @params = constructorInfo.GetParameters();
                 if (@params.Length == 0)
-                    V1 = AccessTools3.GetDelegate<V1Delegate>(constructorInfo);
+                    V1 = AccessTools2.GetDelegate<V1Delegate>(constructorInfo);
                 if (@params.Length == 1 && @params[0].ParameterType == typeof(string))
-                    V2 = AccessTools3.GetDelegate<V2Delegate>(constructorInfo);
+                    V2 = AccessTools2.GetDelegate<V2Delegate>(constructorInfo);
             }
         }
 

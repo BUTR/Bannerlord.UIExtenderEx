@@ -1,6 +1,7 @@
 ﻿using Bannerlord.UIExtenderEx.Extensions;
 
 using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections.Generic;
@@ -106,7 +107,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             return instructionsList.AsEnumerable();
         }
 
-        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } = AccessTools3.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
+        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } = AccessTools2.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
         private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]

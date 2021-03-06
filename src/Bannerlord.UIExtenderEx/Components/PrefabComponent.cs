@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections;
@@ -20,7 +21,7 @@ namespace Bannerlord.UIExtenderEx.Components
     internal partial class PrefabComponent
     {
         private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
-            AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
+            AccessTools2.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
