@@ -2,6 +2,7 @@
 using Bannerlord.UIExtenderEx.Patches;
 
 using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections;
@@ -13,7 +14,6 @@ using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
-using TaleWorlds.GauntletUI.Data;
 using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.ResourceManager
@@ -21,7 +21,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
     public static class WidgetFactoryManager
     {
         private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? LiveCustomTypesFieldRef =
-            AccessTools3.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");
+            AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");
 
         private static readonly Dictionary<string, Func<WidgetPrefab?>> CustomTypes = new();
         private static readonly Dictionary<string, Type> BuiltinTypes = new();

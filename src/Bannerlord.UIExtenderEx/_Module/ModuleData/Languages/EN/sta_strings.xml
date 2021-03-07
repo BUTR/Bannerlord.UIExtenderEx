@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="string">
+  <tags>
+    <tag language="English" />
+  </tags>
+  <strings>
+    <string id="eySpdc25EE" text="Warning from Bannerlord.UIExtenderEx!" />
+    <string id="YjsGP3mUaj" text="Bannerlord.UIExtenderEx module was not found!" />
+    <string id="UZ8zfvudMs" text="UIExtenderEx is loaded after the official modules!\nMake sure UIExtenderEx is loaded before them!" />
+    <string id="F62r44tj2C" text="The following modules were loaded before UIExtenderEx:" />
+    <string id="eXs6FLm5DP" text="It's strongly recommended to terminate the game now. Do you wish to terminate it?" />
+  </strings>
+</base>

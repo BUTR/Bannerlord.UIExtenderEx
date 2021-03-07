@@ -5,12 +5,12 @@ using System.Xml;
 using Bannerlord.UIExtenderEx.Tests.Utils;
 
 using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using NUnit.Framework;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
-using TaleWorlds.Library;
 
 using StringReader = System.IO.StringReader;
 
@@ -21,7 +21,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         protected class MockWidgetFactory : WidgetFactory
         {
             private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
-                AccessTools3.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
+                AccessTools2.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
 
             public MockWidgetFactory() : base(ResourceDepotUtils.Create(), string.Empty)
             {

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -21,7 +22,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private delegate Brush LoadBrushFromDelegate(BrushFactory instance, XmlNode brushNode);
 
         private static readonly LoadBrushFromDelegate? LoadBrushFrom =
-            AccessTools3.GetDelegate<LoadBrushFromDelegate>(typeof(BrushFactory), "LoadBrushFrom");
+            AccessTools2.GetDelegate<LoadBrushFromDelegate>(typeof(BrushFactory), "LoadBrushFrom");
 
         public static IEnumerable<Brush> Create(XmlDocument xmlDocument)
         {
