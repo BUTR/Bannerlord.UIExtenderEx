@@ -11,10 +11,13 @@ namespace Bannerlord.UIExtenderEx
 {
     public class SubModule : MBSubModuleBase
     {
-        private const string SWarningTitle =
-@"{=eySpdc25EE}Warning from Bannerlord.UIExtenderEx!";
+        // We can't rely on EN since the game assumes that the default locale is always English
         private const string SErrorHarmonyNotFound =
 @"{=EEVJa5azpB}Bannerlord.Harmony module was not found!";
+        private const string SMessageContinue =
+@"{=eXs6FLm5DP}It's strongly recommended to terminate the game now. Do you wish to terminate it?";
+        private const string SWarningTitle =
+@"{=eySpdc25EE}Warning from Bannerlord.UIExtenderEx!";
         private const string SErrorUIExtenderExNotFound =
 @"{=YjsGP3mUaj}Bannerlord.UIExtenderEx module was not found!";
         private const string SErrorOfficialModulesLoadedBefore =
@@ -22,8 +25,6 @@ namespace Bannerlord.UIExtenderEx
 Make sure UIExtenderEx is loaded before them!";
         private const string SErrorOfficialModules =
 @"{=F62r44tj2C}The following modules were loaded before UIExtenderEx:";
-        private const string SMessageContinue =
-@"{=eXs6FLm5DP}It's strongly recommended to terminate the game now. Do you wish to terminate it?";
 
         public SubModule()
         {
