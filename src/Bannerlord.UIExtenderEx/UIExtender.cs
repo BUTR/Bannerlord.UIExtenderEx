@@ -60,7 +60,7 @@ namespace Bannerlord.UIExtenderEx
 
         /// <summary>
         /// Register extension types from specified assembly
-        /// Should be called during `OnSubModuleLoad`, called by `Register`
+        /// Should be called during `OnSubModuleLoad`
         /// </summary>
         /// <param name="assembly"></param>
         public void Register(Assembly assembly)
@@ -69,6 +69,26 @@ namespace Bannerlord.UIExtenderEx
                 .GetTypes()
                 .Where(t => t.CustomAttributes.Any(a => a.AttributeType.IsSubclassOf(typeof(BaseUIExtenderAttribute))));
 
+            if (RuntimeInstances.ContainsKey(_moduleName))
+            {
+                Utils.DisplayUserError($"Failed to load extension module {_moduleName} - already loaded!");
+                return;
+            }
+
+            var runtime = new UIExtenderRuntime(_moduleName);
+            _runtime = runtime;
+            RuntimeInstances[_moduleName] = runtime;
+
+            runtime.Register(types);
+        }
+
+        /// <summary>
+        /// Register extension types
+        /// Should be called during `OnSubModuleLoad`
+        /// </summary>
+        /// <param name="types"></param>
+        public void Register(IEnumerable<Type> types)
+        {
             if (RuntimeInstances.ContainsKey(_moduleName))
             {
                 Utils.DisplayUserError($"Failed to load extension module {_moduleName} - already loaded!");
