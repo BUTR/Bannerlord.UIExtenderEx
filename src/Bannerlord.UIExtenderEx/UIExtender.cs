@@ -20,6 +20,7 @@ namespace Bannerlord.UIExtenderEx
 
         static UIExtender()
         {
+            GauntletMoviePatch.Patch(Harmony);
             ViewModelPatch.Patch(Harmony);
             WidgetPrefabPatch.Patch(Harmony);
             WidgetFactoryPatch.Patch(Harmony);
