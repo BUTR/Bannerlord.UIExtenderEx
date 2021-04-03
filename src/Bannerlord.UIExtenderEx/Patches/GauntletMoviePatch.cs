@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,7 +25,9 @@ namespace Bannerlord.UIExtenderEx.Patches
 
         public static void Patch(Harmony harmony)
         {
-            if (AccessTools.Method(typeof(GauntletMovie), "Load") is { } methodInfo)
+            if (AccessTools.Method(typeof(GauntletMovie), "Load") is { } methodInfo &&
+                methodInfo.GetParameters() is { } @params &&
+                @params.Any(p => p.Name == "doNotUseGeneratedPrefabs"))
             {
                 harmony.Patch(
                     methodInfo,
