@@ -1,16 +1,23 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
 
+using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
+
 using System;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
 namespace Bannerlord.UIExtenderEx
 {
     public class SubModule : MBSubModuleBase
     {
+        private delegate void SetDoNotUseGeneratedPrefabs(bool value);
+
         // We can't rely on EN since the game assumes that the default locale is always English
         private const string SErrorHarmonyNotFound =
 @"{=EEVJa5azpB}Bannerlord.Harmony module was not found!";
@@ -25,6 +32,8 @@ namespace Bannerlord.UIExtenderEx
 Make sure UIExtenderEx is loaded before them!";
         private const string SErrorOfficialModules =
 @"{=F62r44tj2C}The following modules were loaded before UIExtenderEx:";
+
+        private static Type _ignore = typeof(UIResourceManager); // trigger assembly loading
 
         public SubModule()
         {
@@ -76,6 +85,25 @@ Make sure UIExtenderEx is loaded before them!";
                         break;
                 }
             }
+        }
+
+        protected override void OnSubModuleLoad()
+        {
+            base.OnSubModuleLoad();
+
+            var gv = ApplicationVersionHelper.GameVersion() ?? ApplicationVersion.Empty;
+            if (gv.Major == 1 && gv.Minor == 5 && gv.Revision >= 9 || gv.Major == 1 && gv.Minor > 5)
+            {
+                DisableAutoGens();
+            }
+        }
+
+        private static void DisableAutoGens()
+        {
+            var type = AccessTools.TypeByName("TaleWorlds.Engine.GauntletUI.UIConfig");
+            var property = AccessTools.Property(type, "DoNotUseGeneratedPrefabs");
+            var setter = AccessTools2.GetDelegate<SetDoNotUseGeneratedPrefabs>(property?.SetMethod);
+            setter?.Invoke(true);
         }
     }
 }
