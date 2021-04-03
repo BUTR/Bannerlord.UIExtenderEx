@@ -20,14 +20,21 @@ namespace Bannerlord.UIExtenderEx.Attributes
         public string? XPath { get; }
 
         /// <summary>
+        /// Gauntlet Movie name to prevent from loading as an auto-generated Widget (optional)
+        /// </summary>
+        public string? AutoGenWidgetName { get; }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="movie">Gauntlet Movie name to extend</param>
         /// <param name="xpath">XPath of the node to operate against (optional)</param>
-        public PrefabExtensionAttribute(string movie, string? xpath = null)
+        /// <param name="autoGenWidgetName">Gauntlet Movie name to prevent from loading as an auto-generated Widget (optional)</param>
+        public PrefabExtensionAttribute(string movie, string? xpath = null, string? autoGenWidgetName = null)
         {
             Movie = movie;
             XPath = xpath;
+            AutoGenWidgetName = autoGenWidgetName;
         }
     }
 }

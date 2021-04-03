@@ -1,5 +1,6 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Components;
+using Bannerlord.UIExtenderEx.Patches;
 
 using System;
 using System.Collections.Generic;
@@ -96,6 +97,8 @@ namespace Bannerlord.UIExtenderEx
                                     Utils.Fail($"Patch class is unsupported - {extensionType}!");
                                     break;
                             }
+
+                            GauntletMoviePatch.Register(this, xmlExtension.AutoGenWidgetName);
 
                             break;
                         }
