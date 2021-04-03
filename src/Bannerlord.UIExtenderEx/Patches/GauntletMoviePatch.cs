@@ -12,8 +12,11 @@ namespace Bannerlord.UIExtenderEx.Patches
     {
         private static readonly ConcurrentDictionary<UIExtenderRuntime, List<string>> WidgetNames = new();
 
-        public static void Register(UIExtenderRuntime runtime, string autoGenWidgetName)
+        public static void Register(UIExtenderRuntime runtime, string? autoGenWidgetName)
         {
+            if (string.IsNullOrEmpty(autoGenWidgetName))
+                return;
+
             WidgetNames.AddOrUpdate(runtime,
                 _ => new List<string> { autoGenWidgetName },
                 (_, list) =>
