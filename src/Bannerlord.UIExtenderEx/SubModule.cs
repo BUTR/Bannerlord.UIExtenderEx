@@ -11,8 +11,6 @@ namespace Bannerlord.UIExtenderEx
 {
     public class SubModule : MBSubModuleBase
     {
-        private delegate void SetDoNotUseGeneratedPrefabs(bool value);
-
         // We can't rely on EN since the game assumes that the default locale is always English
         private const string SErrorHarmonyNotFound =
 @"{=EEVJa5azpB}Bannerlord.Harmony module was not found!";

@@ -1,6 +1,4 @@
-﻿using System;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Xml;
 
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -79,7 +76,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             return instructionsList.AsEnumerable();
         }
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ProcessMovie(string path, XmlDocument document)
+        public static void ProcessMovie(string path, XmlDocument document)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
