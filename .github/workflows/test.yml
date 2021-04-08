@@ -40,12 +40,12 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@master
       with:
         dotnet-version: 5.0.x
 
     - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@master
       with:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
@@ -89,6 +89,7 @@ jobs:
       run: >-
           $game_version=$env:STABLE_VERSION;
           $game_version=$game_version.substring(1);
+          dotnet restore src/Bannerlord.UIExtenderEx.sln;
           dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
           dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
       env:
