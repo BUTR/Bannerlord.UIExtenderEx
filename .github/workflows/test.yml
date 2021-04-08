@@ -40,12 +40,12 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@master
+      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
 
     - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@master
+      uses: actions/setup-dotnet@v1
       with:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
