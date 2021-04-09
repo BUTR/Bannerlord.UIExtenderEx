@@ -85,8 +85,8 @@ jobs:
         pathSource: opencover.4.7.922.zip
         pathTarget: opencover
 
-    - name: Clean
-      run: dotnet msbuild /t:Clean ./src/Bannerlord.UIExtenderEx.sln --configuration Debug && dotnet msbuild /t:Clean ./src/Bannerlord.UIExtenderEx.sln --configuration Release && dotnet nuget locals all --clear
+    - name: Ensure NuGet Source
+      uses: fabriciomurta/ensure-nuget-source@v1
 
     - name: Test
       run: >-
