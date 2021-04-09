@@ -85,10 +85,6 @@ jobs:
         pathSource: opencover.4.7.922.zip
         pathTarget: opencover
 
-    # https://github.com/actions/setup-dotnet/issues/155#issuecomment-801915594
-    - name: Clean
-      run: dotnet clean src/Bannerlord.UIExtenderEx.sln && dotnet nuget locals all --clear
-
     - name: Test Debug
       run: >-
           $game_version=$env:STABLE_VERSION;
