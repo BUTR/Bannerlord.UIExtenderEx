@@ -86,7 +86,7 @@ jobs:
         pathTarget: opencover
 
     - name: Clean
-      run: dotnet clean ./src/Bannerlord.UIExtenderEx.sln --configuration Debug && dotnet clean ./src/Bannerlord.UIExtenderEx.sln --configuration Release && dotnet nuget locals all --clear
+      run: dotnet msbuild /t:Clean ./src/Bannerlord.UIExtenderEx.sln --configuration Debug && dotnet msbuild /t:Clean ./src/Bannerlord.UIExtenderEx.sln --configuration Release && dotnet nuget locals all --clear
 
     - name: Test
       run: >-
