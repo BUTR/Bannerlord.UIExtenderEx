@@ -89,7 +89,6 @@ jobs:
       run: >-
           $game_version=$env:STABLE_VERSION;
           $game_version=$game_version.substring(1);
-          dotnet restore src/Bannerlord.UIExtenderEx.sln;
           dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
           dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
       env:
