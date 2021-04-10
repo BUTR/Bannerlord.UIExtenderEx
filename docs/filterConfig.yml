@@ -1,0 +1,4 @@
+apiRules:
+- exclude:
+    uidRegex: ^HarmonyLib\.BUTR\.Extensions$
+    type: Namespace
