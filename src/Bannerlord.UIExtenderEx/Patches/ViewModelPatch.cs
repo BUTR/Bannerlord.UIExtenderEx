@@ -67,16 +67,19 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 var nativeMethod = viewModel.GetType().GetMethod(commandName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 var isNativeMethod = nativeMethod is not null;
-                var hasMixins = runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(ViewModelComponent.MixinCacheKey(viewModel), out var list);
+                var hasMixins = runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list);
 
                 if (!isNativeMethod && !hasMixins)
                     return false; // stop original command execution
                 if (isNativeMethod && !hasMixins)
                     continue; // skip to next Runtime
 
-                foreach (var mixin in list!)
+                foreach (var mixin in list)
                 {
-                    if (!(runtime.ViewModelComponent.MixinInstanceMethodCache[mixin].FirstOrDefault(e => e.Key == commandName).Value is { } method))
+                    if(!runtime.ViewModelComponent.MixinInstanceMethodCache.TryGetValue(mixin, out var methodExtensions))
+                        continue;
+
+                    if (!(methodExtensions.FirstOrDefault(e => e.Key == commandName).Value is { } method))
                         continue;
 
                     if (method.GetParameters() is { } methodParameters && methodParameters.Length == parameters.Length)

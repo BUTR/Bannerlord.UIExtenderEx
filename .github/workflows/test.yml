@@ -51,6 +51,12 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
+    - name: Ensure NuGet Source
+      uses: fabriciomurta/ensure-nuget-source@v1
+      with:
+        name: 'nuget.org'
+        url: 'https://api.nuget.org/v3/index.json'
+
     - name: Download DepotDownloader_2.3.6
       uses: i3h/download-release-asset@v1
       with:
@@ -85,7 +91,7 @@ jobs:
         pathSource: opencover.4.7.922.zip
         pathTarget: opencover
 
-    - name: Test Debug
+    - name: Test
       run: >-
           $game_version=$env:STABLE_VERSION;
           $game_version=$game_version.substring(1);

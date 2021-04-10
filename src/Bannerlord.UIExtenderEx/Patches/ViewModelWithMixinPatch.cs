@@ -1,5 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Components;
-using Bannerlord.UIExtenderEx.Extensions;
+﻿using Bannerlord.UIExtenderEx.Extensions;
 
 using HarmonyLib;
 
@@ -61,15 +60,23 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 runtime.ViewModelComponent.InitializeMixinsForVMInstance(viewModel.GetType(), viewModel);
 
-                if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(ViewModelComponent.MixinCacheKey(viewModel), out var list))
+                if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
                     continue;
 
                 foreach (var mixin in list)
                 {
-                    foreach (var (key, value) in runtime.ViewModelComponent.MixinInstancePropertyCache[mixin])
-                    {
+                    if (!runtime.ViewModelComponent.MixinInstancePropertyCache.TryGetValue(mixin, out var propertyExtensions))
+                        continue;
+
+                    foreach (var (key, value) in propertyExtensions)
                         viewModel.AddProperty(key, value);
-                    }
+                }
+
+                if (runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.TryGetValue(viewModel, out _))
+                {
+                    foreach (var mixin in list)
+                        mixin.OnRefresh();
+                    runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.Remove(viewModel);
                 }
             }
         }
@@ -83,8 +90,14 @@ namespace Bannerlord.UIExtenderEx.Patches
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
-                if (!runtime.ViewModelComponent.Enabled || !runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(ViewModelComponent.MixinCacheKey(viewModel), out var list))
+                if (!runtime.ViewModelComponent.Enabled)
                     continue;
+
+                if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
+                {
+                    runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => null!);
+                    continue;
+                }
 
                 foreach (var mixin in list)
                     mixin.OnRefresh();
@@ -94,27 +107,13 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
-            {
-                if (instruction.opcode == OpCodes.Ret)
-                {
-                    var labels = instruction.labels;
-                    instruction.labels = new List<Label>();
-                    yield return new CodeInstruction(OpCodes.Ldarg_0) { labels = labels };
-                    yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Finalize(null!)));
-                }
-
-                yield return instruction;
-            }
-        }
+        private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions.GetMethodInfo(() => Finalize(null!)));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Finalize(ViewModel viewModel)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
-                if (!runtime.ViewModelComponent.Enabled || !runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(ViewModelComponent.MixinCacheKey(viewModel), out var list))
+                if (!runtime.ViewModelComponent.Enabled || !runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
                     continue;
 
                 foreach (var mixin in list)
