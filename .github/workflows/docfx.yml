@@ -24,7 +24,7 @@ env:
 jobs:
   docfx:
     name: DocFX documentation
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -46,6 +46,12 @@ jobs:
         source-url: https://nuget.pkg.github.com/BUTR/index.json
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Ensure NuGet Source
+      uses: fabriciomurta/ensure-nuget-source@v1
+      with:
+        name: 'nuget.org'
+        url: 'https://api.nuget.org/v3/index.json'
 
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
