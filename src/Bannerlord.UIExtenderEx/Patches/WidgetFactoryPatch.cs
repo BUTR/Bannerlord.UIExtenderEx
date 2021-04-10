@@ -1,4 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Extensions;
+﻿using Bannerlord.BUTR.Shared.Extensions;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
