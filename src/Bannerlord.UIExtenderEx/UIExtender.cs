@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.GauntletUI.CodeGenerator.Patches;
 using Bannerlord.UIExtenderEx.Patches;
 using Bannerlord.UIExtenderEx.ResourceManager;
 
@@ -7,6 +8,7 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -21,7 +23,14 @@ namespace Bannerlord.UIExtenderEx
 
         static UIExtender()
         {
+            var codeGenPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TaleWorlds.MountAndBlade.GauntletUI.CodeGenerator.exe");
+            if (File.Exists(codeGenPath))
+                Assembly.LoadFrom(codeGenPath);
+
             GauntletMoviePatch.Patch(Harmony);
+            UICodeGenerationContextPatch.Patch(Harmony);
+            UICodeGenerationDatabindingVariantExtensionPatch.Patch(Harmony);
+            WidgetCodeGenerationInfoDatabindingExtensionPatch.Patch(Harmony);
             ViewModelPatch.Patch(Harmony);
             WidgetPrefabPatch.Patch(Harmony);
             WidgetFactoryPatch.Patch(Harmony);
