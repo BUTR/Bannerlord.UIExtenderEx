@@ -24,10 +24,10 @@ namespace Bannerlord.UIExtenderEx.Components
             return contentAttributeType.Assembly.GetTypes().Where(t => !t.IsAbstract && contentAttributeType.IsAssignableFrom(t)).ToList();
         });
 
-        public delegate string StringSignature();
-        public delegate XmlNode XmlNodeSignature();
-        public delegate XmlDocument XmlDocumentSignature();
-        public delegate IEnumerable<XmlNode> IEnumerableXmlNodeSignature();
+        private delegate string StringSignature();
+        private delegate XmlNode XmlNodeSignature();
+        private delegate XmlDocument XmlDocumentSignature();
+        private delegate IEnumerable<XmlNode> IEnumerableXmlNodeSignature();
 
         /// <summary>
         /// Register snippet insert patch
