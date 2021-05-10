@@ -6,6 +6,7 @@
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
 
+    <DefineConstants>$(DefineConstants);HARMONYEXTENSIONS_DISABLE_2_0_4;</DefineConstants>
     <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
   </PropertyGroup>
 
