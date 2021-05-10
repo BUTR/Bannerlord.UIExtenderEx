@@ -6,12 +6,25 @@ using Bannerlord.UIExtenderEx.Components;
 using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities;
 
+using HarmonyLib;
+
 using NUnit.Framework;
+
+using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
 {
     public class PrefabComponentPrefabs2Tests
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static bool MockedGetBasePathPath(ref string __result)
+        {
+            __result = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+            return false;
+        }
+
         private static XmlDocument GetBaseDocument()
         {
             XmlDocument document = new();
@@ -149,6 +162,57 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
             const string MovieName = "TestMovieName";
             const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
             var patch = PatchCreator.ConstructInsertPatch(InsertType.Replace, "<DiscardedRoot><SomeChild1/><SomeChild2/></DiscardedRoot>", 10, true);
+
+            PrefabComponent prefabComponent = new("TestModule");
+            var movieDocument = GetBaseDocument();
+
+            // Act
+            prefabComponent.RegisterPatch(MovieName, XPath, patch);
+            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+
+            // Assert
+            var someChild1Node = movieDocument.SelectSingleNode("descendant::SomeChild1");
+            Assert.IsNotNull(someChild1Node);
+            Assert.AreEqual("Children", someChild1Node!.ParentNode!.Name);
+            Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
+            Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
+            Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
+        }
+
+        [Test]
+        public void RegisterPatch_FileName_InsertAsLastChild()
+        {
+            var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_FileName_InsertAsLastChild)}");
+            harmony.Patch(SymbolExtensions.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
+                prefix: new HarmonyMethod(AccessTools.Method(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath))));
+
+            // Arrange
+            const string MovieName = "TestMovieName";
+            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+            var patch = PatchCreator.ConstructInsertPatchPath(InsertType.Child, "Prefab", 10);
+
+            PrefabComponent prefabComponent = new("TestModule");
+            var movieDocument = GetBaseDocument();
+
+            // Act
+            prefabComponent.RegisterPatch(MovieName, XPath, patch);
+            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+
+            // Assert
+            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+            Assert.IsNotNull(validRootNode);
+            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+            Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        }
+
+        [Test]
+        public void RegisterPatch_FileName_ReplaceRemoveRootNode()
+        {
+            // Arrange
+            const string MovieName = "TestMovieName";
+            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
+            var patch = PatchCreator.ConstructInsertPatchPath(InsertType.Replace, "PrefabRemoveRootNode", 10, true);
 
             PrefabComponent prefabComponent = new("TestModule");
             var movieDocument = GetBaseDocument();

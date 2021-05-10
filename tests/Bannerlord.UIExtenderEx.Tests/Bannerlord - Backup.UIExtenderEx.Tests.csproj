@@ -51,12 +51,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Assets\Modules\TestModule\GUI\Prefabs\Prefab.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Assets\Modules\TestModule\GUI\Prefabs\PrefabRemoveRootNode.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Assets\Modules\" />
   </ItemGroup>
 
 </Project>
