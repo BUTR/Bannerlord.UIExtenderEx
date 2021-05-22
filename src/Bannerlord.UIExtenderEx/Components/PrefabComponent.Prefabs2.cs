@@ -80,6 +80,7 @@ namespace Bannerlord.UIExtenderEx.Components
                         InsertType.Replace => ReplaceNode(node, importedNode),
                         InsertType.Child => InsertAsChild(node, importedNode, patch.Index),
                         InsertType.Append => node!.ParentNode!.InsertAfter(importedNode, node),
+                        InsertType.Remove => node!.ParentNode!.RemoveChild(node),
                         _ => throw new ArgumentOutOfRangeException()
                     };
                 }

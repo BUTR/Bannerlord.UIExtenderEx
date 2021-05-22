@@ -371,5 +371,29 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
             Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
             Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
         }
+
+        [Test]
+        public void RegisterPatch_Remove()
+        {
+            var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_Remove)}");
+            harmony.Patch(SymbolExtensions.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
+                prefix: new HarmonyMethod(AccessTools.Method(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath))));
+
+            // Arrange
+            const string MovieName = "TestMovieName";
+            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']";
+            var patch = PatchCreator.ConstructInsertRemovePatchPath("Prefab");
+
+            PrefabComponent prefabComponent = new("TestModule");
+            var movieDocument = GetBaseDocument();
+
+            // Act
+            prefabComponent.RegisterPatch(MovieName, XPath, patch);
+            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+
+            // Assert
+            var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
+            Assert.IsNull(removedNode);
+        }
     }
 }

@@ -17,8 +17,18 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
         {
             var patch = CreatePatchPath(path, removeRootNode);
 
-            patch!.Index.Returns(index);
+            patch.Index.Returns(index);
             patch.Type.Returns(insertType);
+
+            return patch;
+        }
+
+        public static PrefabExtensionInsertPatch ConstructInsertRemovePatchPath(string path, bool removeRootNode = false)
+        {
+            var patch = CreatePatchPath(path, removeRootNode);
+
+            patch.Index.Returns(0);
+            patch.Type.Returns(InsertType.Remove);
 
             return patch;
         }
