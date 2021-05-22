@@ -106,7 +106,8 @@ namespace Bannerlord.UIExtenderEx.Tests
                     {"Prepend2", "Prepend2.xml"},
                     {"ReplaceKeepChildrenRemoveRootNode", "ReplaceKeepChildrenRemoveRootNode.xml"},
                     {"AppendRemoveRootNode", "AppendRemoveRootNode.xml"},
-                    {"PrependRemoveRootNode", "PrependRemoveRootNode.xml"}
+                    {"PrependRemoveRootNode", "PrependRemoveRootNode.xml"},
+                    {"Remove", "Remove.xml"},
                 };
                 return false;
             }
