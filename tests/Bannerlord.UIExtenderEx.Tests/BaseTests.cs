@@ -119,6 +119,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         [OneTimeSetUp]
         public virtual void Setup()
         {
+            System.Diagnostics.Trace.Listeners.Clear();
             var property = AccessTools.DeclaredProperty(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
             property.SetValue(null, new MockWidgetFactory());
         }
