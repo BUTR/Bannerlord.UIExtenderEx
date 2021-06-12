@@ -41,7 +41,7 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         /// <param name="name">name of the field</param>
         /// <typeparam name="TValue">type</typeparam>
         /// <returns></returns>
-        protected TValue GetPrivate<TValue>(string name) => _vm.PrivateValue<TValue>(name);
+        protected TValue? GetPrivate<TValue>(string name) => _vm.PrivateValue<TValue>(name);
 
         /// <summary>
         /// Helper method to set private value of attached view model instance
@@ -49,6 +49,6 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         /// <param name="name">name of the field</param>
         /// <param name="value">new value</param>
         /// <typeparam name="TValue">type</typeparam>
-        protected void SetPrivate<TValue>(string name, TValue value) => _vm.PrivateValueSet(name, value);
+        protected void SetPrivate<TValue>(string name, TValue? value) => _vm.PrivateValueSet(name, value);
     }
 }

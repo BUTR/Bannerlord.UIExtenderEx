@@ -6,6 +6,7 @@ using HarmonyLib;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -66,21 +67,13 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="assembly"></param>
         public void Register(Assembly assembly)
         {
+            Trace.TraceInformation("{0} - Register: {1}", _moduleName, assembly);
+
             var types = assembly
                 .GetTypes()
                 .Where(t => t.CustomAttributes.Any(a => a.AttributeType.IsSubclassOf(typeof(BaseUIExtenderAttribute))));
 
-            if (RuntimeInstances.ContainsKey(_moduleName))
-            {
-                Utils.DisplayUserError($"Failed to load extension module {_moduleName} - already loaded!");
-                return;
-            }
-
-            var runtime = new UIExtenderRuntime(_moduleName);
-            _runtime = runtime;
-            RuntimeInstances[_moduleName] = runtime;
-
-            runtime.Register(types);
+            Register(types);
         }
 
         /// <summary>
@@ -90,6 +83,8 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="types"></param>
         public void Register(IEnumerable<Type> types)
         {
+            Trace.TraceInformation("{0} - Register Types", _moduleName);
+
             if (RuntimeInstances.ContainsKey(_moduleName))
             {
                 Utils.DisplayUserError($"Failed to load extension module {_moduleName} - already loaded!");
@@ -105,6 +100,8 @@ namespace Bannerlord.UIExtenderEx
 
         public void Enable()
         {
+            Trace.TraceInformation("{0} - Enabled", _moduleName);
+
             if (_runtime is null)
             {
                 Utils.Fail("Register() method was not called before Enable()!");
@@ -115,6 +112,8 @@ namespace Bannerlord.UIExtenderEx
 
         public void Disable()
         {
+            Trace.TraceInformation("{0} - Disabled", _moduleName);
+
             if (_runtime is null)
             {
                 Utils.Fail("Register() method was not called before Disable()!");

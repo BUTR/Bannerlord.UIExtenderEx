@@ -6,6 +6,7 @@
         ReplaceKeepChildren,
         Replace,
         Child,
-        Append
+        Append,
+        Remove
     }
 }

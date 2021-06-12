@@ -43,6 +43,10 @@ namespace Bannerlord.UIExtenderEx.Prefabs2
         ///	    <term><see cref="InsertType.Append"/></term>
         ///	    <description>Content is placed after the target node at the same height (siblings).</description>
         /// </item>
+        /// <item>
+        ///	    <term><see cref="InsertType.Remove"/></term>
+        ///	    <description>Removes the node.</description>
+        /// </item>
         /// </list>
         /// </summary>
         public abstract InsertType Type { get; }

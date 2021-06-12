@@ -1,7 +1,7 @@
-﻿using TaleWorlds.Core;
-using TaleWorlds.Library;
+﻿using System.Diagnostics;
 
-using Debug = System.Diagnostics.Debug;
+using TaleWorlds.Core;
+using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx
 {
@@ -9,13 +9,13 @@ namespace Bannerlord.UIExtenderEx
     {
         public static void Fail(string text)
         {
-            Debug.Fail(text);
+            Trace.Fail(text);
             DisplayUserError(text);
         }
 
         public static void Assert(bool condition, string text = "no description")
         {
-            Debug.Assert(condition, $"UIExtenderEx failure: {text}.");
+            Trace.Assert(condition, $"UIExtenderEx failure: {text}.");
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="text"></param>
         public static void CompatAssert(bool condition, string text = "no description")
         {
-            Debug.Assert(condition, $"Bannerlord compatibility failure: {text}.");
+            Trace.Assert(condition, $"Bannerlord compatibility failure: {text}.");
         }
 
         /// <summary>
@@ -36,6 +36,7 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="args"></param>
         public static void DisplayUserError(string text, params object[] args)
         {
+            Trace.TraceError(text, args);
             InformationManager.DisplayMessage(new InformationMessage($"UIExtenderEx: {string.Format(text, args)}", Colors.Red));
         }
 
@@ -46,6 +47,7 @@ namespace Bannerlord.UIExtenderEx
         /// <param name="args"></param>
         public static void DisplayUserWarning(string text, params object[] args)
         {
+            Trace.TraceWarning(text, args);
             InformationManager.DisplayMessage(new InformationMessage($"UIExtender: {string.Format(text, args)}", Colors.Yellow));
         }
     }

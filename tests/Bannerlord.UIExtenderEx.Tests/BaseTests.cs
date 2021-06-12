@@ -106,7 +106,8 @@ namespace Bannerlord.UIExtenderEx.Tests
                     {"Prepend2", "Prepend2.xml"},
                     {"ReplaceKeepChildrenRemoveRootNode", "ReplaceKeepChildrenRemoveRootNode.xml"},
                     {"AppendRemoveRootNode", "AppendRemoveRootNode.xml"},
-                    {"PrependRemoveRootNode", "PrependRemoveRootNode.xml"}
+                    {"PrependRemoveRootNode", "PrependRemoveRootNode.xml"},
+                    {"Remove", "Remove.xml"},
                 };
                 return false;
             }
@@ -118,6 +119,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         [OneTimeSetUp]
         public virtual void Setup()
         {
+            System.Diagnostics.Trace.Listeners.Clear();
             var property = AccessTools.DeclaredProperty(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
             property.SetValue(null, new MockWidgetFactory());
         }

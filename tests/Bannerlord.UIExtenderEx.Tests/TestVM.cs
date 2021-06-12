@@ -13,4 +13,16 @@ namespace Bannerlord.UIExtenderEx.Tests
             base.OnFinalize();
         }
     }
+
+    public class DerivedTestVM : TestVM
+    {
+        [DataSourceProperty]
+        public object Test2Property => null!;
+        public object Test2Method() => null!;
+
+        public override void OnFinalize()
+        {
+            base.OnFinalize();
+        }
+    }
 }

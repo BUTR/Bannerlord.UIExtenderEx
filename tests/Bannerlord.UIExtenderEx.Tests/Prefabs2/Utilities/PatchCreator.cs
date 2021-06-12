@@ -13,6 +13,26 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
 {
     public static class PatchCreator
     {
+        public static PrefabExtensionInsertPatch ConstructInsertPatchPath(InsertType insertType, string path, int index = 0, bool removeRootNode = false)
+        {
+            var patch = CreatePatchPath(path, removeRootNode);
+
+            patch.Index.Returns(index);
+            patch.Type.Returns(insertType);
+
+            return patch;
+        }
+
+        public static PrefabExtensionInsertPatch ConstructInsertRemovePatchPath(string path, bool removeRootNode = false)
+        {
+            var patch = CreatePatchPath(path, removeRootNode);
+
+            patch.Index.Returns(0);
+            patch.Type.Returns(InsertType.Remove);
+
+            return patch;
+        }
+
         public static PrefabExtensionInsertPatch ConstructInsertPatch<T>(InsertType insertType, T contentValue, int index = 0, bool removeRootNode = false)
         {
             PrefabExtensionInsertPatch? patch;
@@ -24,7 +44,7 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
             }
             else
             {
-                switch ( contentValue )
+                switch (contentValue)
                 {
                     case string textPatchContent:
                         patch = CreatePatch(textPatchContent, removeRootNode);
@@ -89,6 +109,20 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
 
             var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatch>();
             patch.GetPrefabExtension().Returns(patchContent);
+            return patch;
+        }
+
+        private static PrefabExtensionInsertPatch CreatePatchPath(string patchPath, bool removeRootNode)
+        {
+            if (removeRootNode)
+            {
+                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertFileNamePatchRemoveRootNode>();
+                removeRootNodePatch.GetPrefabExtension().Returns(patchPath);
+                return removeRootNodePatch;
+            }
+
+            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertFileNamePatch>();
+            patch.GetPrefabExtension().Returns(patchPath);
             return patch;
         }
     }

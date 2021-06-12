@@ -19,6 +19,17 @@ namespace Bannerlord.UIExtenderEx.Tests
         }
 
         [Test]
+        public void MixinDerivedTest()
+        {
+            var uiExtender = new UIExtender(nameof(MixinPropertyIsInjectedTest));
+            uiExtender.Register(typeof(PrefabsTests).Assembly);
+            uiExtender.Enable();
+
+            var viewModel = new DerivedTestVM();
+            Assert.True(viewModel.Properties.Contains(nameof(DerivedTestVMMixin.DerivedMixinProperty)));
+        }
+
+        [Test]
         public void MixinMethodIsCalledTest()
         {
             var uiExtender = new UIExtender(nameof(MixinMethodIsCalledTest));
