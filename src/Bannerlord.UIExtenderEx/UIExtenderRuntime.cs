@@ -105,7 +105,7 @@ namespace Bannerlord.UIExtenderEx
 
                         case ViewModelMixinAttribute viewModelExtension:
                             // view model mixin
-                            ViewModelComponent.RegisterViewModelMixin(extensionType, viewModelExtension.RefreshMethodName);
+                            ViewModelComponent.RegisterViewModelMixin(extensionType, viewModelExtension.RefreshMethodName, viewModelExtension.HandleDerived);
                             break;
 
                         default:

@@ -4,6 +4,7 @@ using Bannerlord.UIExtenderEx.Patches;
 using Bannerlord.UIExtenderEx.ViewModels;
 
 using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections.Concurrent;
@@ -64,18 +65,35 @@ namespace Bannerlord.UIExtenderEx.Components
         /// </summary>
         /// <param name="mixinType">mixin type, should be a subclass of ViewModelExtender<T> where T specify view model to extend</param>
         /// <param name="refreshMethodName"></param>
-        public void RegisterViewModelMixin(Type mixinType, string? refreshMethodName = null)
+        /// <param name="handleDerived"></param>
+        public void RegisterViewModelMixin(Type mixinType, string? refreshMethodName = null, bool handleDerived = false)
         {
+            void Patch(Type viewModelType_)
+            {
+                Mixins.GetOrAdd(viewModelType_, _ => new List<Type>()).Add(mixinType);
+                ViewModelWithMixinPatch.Patch(_harmony, viewModelType_, Mixins.Keys, refreshMethodName);
+
+            }
+
             var viewModelType = GetViewModelType(mixinType);
             if (viewModelType is null)
             {
                 Utils.Fail($"Failed to find base type for mixin {mixinType}, should be specialized as T of ViewModelMixin<T>!");
                 return;
             }
-
             Mixins.GetOrAdd(viewModelType, _ => new List<Type>()).Add(mixinType);
 
-            ViewModelWithMixinPatch.Patch(_harmony, viewModelType, Mixins.Keys, refreshMethodName);
+            if (handleDerived)
+            {
+                foreach (var type in AccessTools2.AllTypes().Where(t => viewModelType.IsAssignableFrom(t)))
+                {
+                    Patch(type);
+                }
+            }
+            else
+            {
+                Patch(viewModelType);
+            }
         }
 
         /// <summary>
