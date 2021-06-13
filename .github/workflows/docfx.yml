@@ -69,7 +69,7 @@ jobs:
     - name: Build Bannerlord.UIExtenderEx and DocFx.Plugin.LastModified
       run: >-
         dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj;
-        dotnet build build/DocFx.Plugin.LastModified/DocFx.Plugin.LastModified --configuration Release --output docs/_template/last-modified/plugins;
+        #dotnet build build/DocFx.Plugin.LastModified/DocFx.Plugin.LastModified --configuration Release --output docs/_template/last-modified/plugins;
       shell: pwsh
 
     - name: Run DocFX
