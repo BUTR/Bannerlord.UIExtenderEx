@@ -1,6 +1,8 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
 
 using System;
+using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 using TaleWorlds.MountAndBlade;
@@ -17,10 +19,21 @@ namespace Bannerlord.UIExtenderEx
 
         public SubModule()
         {
+            CheckLoadOrder();
+        }
+
+        private static void CheckLoadOrder()
+        {
+            var loadedModules = ModuleInfoHelper.GetLoadedModules().ToList();
+            if (loadedModules.Count == 0) return;
+
+            var sb = new StringBuilder();
             if (!ModuleInfoHelper.ValidateLoadOrder(typeof(SubModule), out var report))
             {
-                report += $"{Environment.NewLine}{SMessageContinue}";
-                switch (MessageBox.Show(report, TextObjectHelper.Create(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
+                sb.AppendLine(report);
+                sb.AppendLine();
+                sb.AppendLine(TextObjectHelper.Create(SMessageContinue)?.ToString() ?? "ERROR");
+                switch (MessageBox.Show(sb.ToString(), TextObjectHelper.Create(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
                 {
                     case DialogResult.Yes:
                         Environment.Exit(1);
