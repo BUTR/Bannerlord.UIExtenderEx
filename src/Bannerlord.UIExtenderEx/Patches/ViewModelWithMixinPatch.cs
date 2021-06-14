@@ -73,6 +73,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                         viewModel.AddProperty(key, value);
                 }
 
+                // Call Refresh on Constructor end if it was called within it
                 if (runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.TryGetValue(viewModel, out _))
                 {
                     foreach (var mixin in list)
@@ -94,6 +95,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (!runtime.ViewModelComponent.Enabled)
                     continue;
 
+                // Refresh was called from VM Constructor, delay the call to Refresh()
                 if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
                 {
                     runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => null!);

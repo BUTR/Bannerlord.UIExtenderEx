@@ -1,4 +1,6 @@
-﻿using Bannerlord.UIExtenderEx.Attributes;
+﻿using Bannerlord.BUTR.Shared.Utils;
+
+using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Extensions;
 using Bannerlord.UIExtenderEx.Patches;
 using Bannerlord.UIExtenderEx.ViewModels;
