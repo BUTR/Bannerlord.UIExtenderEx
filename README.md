@@ -1,33 +1,48 @@
 # Bannerlord.UIExtenderEx
 <p align="center">
-  <!--
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Logo">
-  <img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/resources/Butter.png?raw=true" /></a>
+    <img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/resources/Butter.png?raw=true" />
+  </a>
   </br>
-  -->
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Lines Of Code">
-  <img src="https://tokei.rs/b1/github/BUTR/Bannerlord.UIExtenderEx?category=code" /></a>
-  <a href="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex"><img src="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex/badge" alt="CodeFactor" /></a>
+    <img src="https://tokei.rs/b1/github/BUTR/Bannerlord.UIExtenderEx?category=code" />
+  </a>
+  <a href="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex">
+    <img src="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex/badge" alt="CodeFactor" />
+  </a>
+  <a href="https://codeclimate.com/github/BUTR/Bannerlord.UIExtenderEx/maintainability">
+    <img alt="Code Climate maintainability" src="https://img.shields.io/codeclimate/maintainability-percentage/BUTR/Bannerlord.UIExtenderEx">
+  </a>
+  <a href="https://butr.github.io/Bannerlord.UIExtenderEx" alt="Documentation">
+    <img src="https://img.shields.io/badge/Documentation-%F0%9F%94%8D-blue?style=flat" />
+  </a>
   </br>
-  <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions?query=workflow%3ATest"><img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/workflows/Test/badge.svg?branch=dev&event=push" alt="Test" /></a>
-  <a href="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx"><img src="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx/branch/dev/graph/badge.svg" />
-   </a>
+  <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions/workflows/test.yml?query=branch%3Adev">
+    <img alt="GitHub Workflow Status (event)" src="https://img.shields.io/github/workflow/status/BUTR/Bannerlord.UIExtenderEx/Test?branch=dev&label=Game%20Stable%20and%20Beta">
+  </a>
+  <a href="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx">
+    <img src="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx/branch/dev/graph/badge.svg" />
+  </a>
   </br>
   <a href="https://www.nuget.org/packages/Bannerlord.UIExtenderEx" alt="NuGet Bannerlord.UIExtenderEx">
-  <img src="https://img.shields.io/nuget/v/Bannerlord.UIExtenderEx.svg?label=NuGet%20Bannerlord.UIExtenderEx&colorB=blue" /></a>
-  <a href="https://butr.github.io/Bannerlord.UIExtenderEx" alt="Documentation">
-  <img src="https://img.shields.io/badge/Documentation-%F0%9F%94%8D-blue?style=flat" /></a>
+    <img src="https://img.shields.io/nuget/v/Bannerlord.UIExtenderEx.svg?label=NuGet%20Bannerlord.UIExtenderEx&colorB=blue" />
+  </a>
   </br>
   <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="NexusMods UIExtenderEx">
-  <img src="https://img.shields.io/badge/NexusMods-UIExtenderEx-yellow.svg" /></a>  
+    <img src="https://img.shields.io/badge/NexusMods-UIExtenderEx-yellow.svg" />
+  </a>  
   <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="NexusMods UIExtenderEx">
-  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-version-pzk4e0ejol6j.runkit.sh%3FgameId%3Dmountandblade2bannerlord%26modId%3D2102" /></a>
+    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-version-pzk4e0ejol6j.runkit.sh%3FgameId%3Dmountandblade2bannerlord%26modId%3D2102" />
+  </a>
   <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="NexusMods UIExtenderEx">
-  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dunique%26gameId%3D3174%26modId%3D2102" /></a>
+    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dunique%26gameId%3D3174%26modId%3D2102" />
+  </a>
   <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="NexusMods UIExtenderEx">
-  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dtotal%26gameId%3D3174%26modId%3D2102" /></a>
+    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dtotal%26gameId%3D3174%26modId%3D2102" />
+  </a>
   <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" alt="NexusMods UIExtenderEx">
-  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dviews%26gameId%3D3174%26modId%3D2102" /></a>
+    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fnexusmods-downloads-ayuqql60xfxb.runkit.sh%2F%3Ftype%3Dviews%26gameId%3D3174%26modId%3D2102" />
+  </a>
   </br>
 </p>
 
