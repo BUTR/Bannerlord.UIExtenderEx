@@ -41,7 +41,7 @@ jobs:
     - name: Tests Setup
       uses: butr/actions-tests-setup@v1.2
       with:
-        github-token: ${{secrets.GITHUB_TOKEN}
+        github-token: ${{secrets.GITHUB_TOKEN}}
         steam-login: ${{secrets.STEAM_LOGIN}}
         steam-password: ${{secrets.STEAM_PASSWORD}}
         stable-version: ${{secrets.SYNCED_GAME_STABLE_VERSION}}
