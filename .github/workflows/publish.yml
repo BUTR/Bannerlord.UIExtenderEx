@@ -18,26 +18,10 @@ jobs:
     name: Build for NexusMods
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@master
+    - name: Setup
+      uses: butr/actions-common-setup@v1.1
       with:
-        dotnet-version: 5.0.x
-
-    - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@master
-      with:
-        source-url: https://nuget.pkg.github.com/BUTR/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Ensure NuGet Source
-      uses: fabriciomurta/ensure-nuget-source@v1
-      with:
-        name: 'nuget.org'
-        url: 'https://api.nuget.org/v3/index.json'
+        github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Build Bannerlord.UIExtenderEx
       run: >-
@@ -60,26 +44,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{false}}
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@master
+    - name: Setup
+      uses: butr/actions-common-setup@v1.1
       with:
-        dotnet-version: 3.1.x
-
-    - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@master
-      with:
-        source-url: https://nuget.pkg.github.com/BUTR/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Ensure NuGet Source
-      uses: fabriciomurta/ensure-nuget-source@v1
-      with:
-        name: 'nuget.org'
-        url: 'https://api.nuget.org/v3/index.json'
+        github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Download stable bannerlord folder
       uses: actions/download-artifact@v2
@@ -138,31 +106,10 @@ jobs:
     name: Publish on NuGet (Stable)
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Setup .NET Core 5.0
-      uses: actions/setup-dotnet@master
+    - name: Setup
+      uses: butr/actions-common-setup@v1.1
       with:
-        dotnet-version: 5.0.x
-
-    - name: Setup .NET Core 3.1
-      uses: actions/setup-dotnet@master
-      with:
-        dotnet-version: 3.1.x
-
-    - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@master
-      with:
-        source-url: https://nuget.pkg.github.com/BUTR/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Ensure NuGet Source
-      uses: fabriciomurta/ensure-nuget-source@v1
-      with:
-        name: 'nuget.org'
-        url: 'https://api.nuget.org/v3/index.json'
+        github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Pack Bannerlord.UIExtenderEx (Release)
       run: dotnet pack src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -o "./packages"
@@ -201,26 +148,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["build-module"]
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@master
+    - name: Setup
+      uses: butr/actions-common-setup@v1.1
       with:
-        dotnet-version: 3.1.x
-
-    - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@master
-      with:
-        source-url: https://nuget.pkg.github.com/BUTR/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Ensure NuGet Source
-      uses: fabriciomurta/ensure-nuget-source@v1
-      with:
-        name: 'nuget.org'
-        url: 'https://api.nuget.org/v3/index.json'
+        github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Download bannerlord folder
       uses: actions/download-artifact@v2
