@@ -19,6 +19,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs
     /// Patch that inserts prefab extension (specified by `Name`) as a child in XPath specified node, at specific position (`Position` property)
     /// Extension snippet should be named as `{Name}.xml` and located at module's `GUI/PrefabExtensions` folder.
     /// </summary>
+    [Obsolete("Use Prefabs2.PrefabExtensionInsertPatch instead.")]
     public abstract class ModulePrefabExtensionInsertPatch : PrefabExtensionInsertPatch
     {
         private string Name { get; }

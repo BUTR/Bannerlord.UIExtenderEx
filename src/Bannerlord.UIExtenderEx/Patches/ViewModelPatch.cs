@@ -1,14 +1,13 @@
-﻿using Bannerlord.UIExtenderEx.Components;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+
+using HarmonyLib.BUTR.Extensions;
 
 using TaleWorlds.Library;
 
@@ -65,7 +64,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (!runtime.ViewModelComponent.Enabled)
                     continue;
 
-                var nativeMethod = viewModel.GetType().GetMethod(commandName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                var nativeMethod = AccessTools2.Method(viewModel.GetType(), commandName);
                 var isNativeMethod = nativeMethod is not null;
                 var hasMixins = runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list);
 

@@ -18,10 +18,10 @@ namespace Bannerlord.UIExtenderEx.Patches
                 return;
 
             WidgetNames.AddOrUpdate(runtime,
-                _ => new List<string> { autoGenWidgetName },
+                _ => new List<string> { autoGenWidgetName! },
                 (_, list) =>
                 {
-                    list.Add(autoGenWidgetName);
+                    list.Add(autoGenWidgetName!);
                     return list;
                 });
         }

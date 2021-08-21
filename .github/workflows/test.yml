@@ -31,66 +31,20 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   # Disable sending .NET CLI telemetry to Microsoft.
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+  TEST_FILTERS: "+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]* -[*]System.Diagnostics.CodeAnalysis* -[*]BUTR.DependencyInjection* -[*]Bannerlord.BUTR.Shared* -[*]HarmonyLib.BUTR*"
 
 jobs:
   test:
     name: Test
     runs-on: windows-latest
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@master
+    steps:    
+    - name: Tests Setup
+      uses: butr/actions-tests-setup@v1.5
       with:
-        dotnet-version: 5.0.x
-
-    - name: Setup BUTR GPR
-      uses: actions/setup-dotnet@master
-      with:
-        source-url: https://nuget.pkg.github.com/BUTR/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-    - name: Ensure NuGet Source
-      uses: fabriciomurta/ensure-nuget-source@v1
-      with:
-        name: 'nuget.org'
-        url: 'https://api.nuget.org/v3/index.json'
-
-    - name: Download DepotDownloader_2.3.6
-      uses: i3h/download-release-asset@v1
-      with:
-        owner: SteamRE
-        repo: DepotDownloader
-        tag: DepotDownloader_2.3.6
-        file: depotdownloader-2.3.6.zip
-
-    - name: Extract DepotDownloader_2.3.6
-      uses: DuckSoft/extract-7z-action@v1.0
-      with:
-        pathSource: depotdownloader-2.3.6.zip
-        pathTarget: depotdownloader
-
-    - name: Download Bannerlord binaries
-      run: >-
-        dotnet depotdownloader/DepotDownloader.dll -app 261550 -depot 261551 -beta ${{secrets.SYNCED_GAME_STABLE_VERSION}} -username ${{secrets.STEAM_LOGIN}}
-        -password ${{secrets.STEAM_PASSWORD}} -filelist ./.github/resources/FileFilters.regexp -dir bannerlord
-      shell: pwsh
-
-    - name: Download opencover.4.7.922
-      uses: i3h/download-release-asset@v1
-      with:
-        owner: OpenCover
-        repo: opencover
-        tag: 4.7.922
-        file: opencover.4.7.922.zip
-
-    - name: Extract opencover.4.7.922
-      uses: DuckSoft/extract-7z-action@v1.0
-      with:
-        pathSource: opencover.4.7.922.zip
-        pathTarget: opencover
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        steam-login: ${{secrets.STEAM_LOGIN}}
+        steam-password: ${{secrets.STEAM_PASSWORD}}
+        stable-version: ${{secrets.SYNCED_GAME_STABLE_VERSION}}
 
     - name: Test
       run: >-
@@ -104,12 +58,12 @@ jobs:
 
     - name: Test Coverage
       run: >-
-          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug --no-build" -filter:"+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]*" -output:coverage_uiextenderex_debug.xml -mergebyhash;
-          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release --no-build" -filter:"+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]*" -output:coverage_uiextenderex_release.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug --no-build" -filter:"${{env.TEST_FILTERS}}" -output:coverage_uiextenderex_debug.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release --no-build" -filter:"${{env.TEST_FILTERS}}" -output:coverage_uiextenderex_release.xml -mergebyhash;
       shell: pwsh
 
     - name: ReportGenerator
-      uses: danielpalme/ReportGenerator-GitHub-Action@4.6.1
+      uses: danielpalme/ReportGenerator-GitHub-Action@4.8.12
       with:
         reports: 'coverage_uiextenderex_debug.xml;coverage_uiextenderex_release.xml'
         targetdir: 'coveragereport'
@@ -124,7 +78,7 @@ jobs:
         path: coveragereport
 
     - name: Upload ReportGenerator to CodeCov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2.0.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
         file: coveragereport/Cobertura.xml

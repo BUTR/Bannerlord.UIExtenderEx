@@ -16,6 +16,7 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <param name="movie"></param>
         /// <param name="xpath"></param>
         /// <param name="patch"></param>
+        [Obsolete("Use Prefabs2.PrefabExtensionInsertPatch instead.")]
         public void RegisterPatch(string movie, string? xpath, PrefabExtensionInsertPatch patch) => RegisterPatch(movie, xpath, node =>
         {
             if (node.OwnerDocument is not { } ownerDocument)

@@ -20,8 +20,7 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal partial class PrefabComponent
     {
-        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
-            AccessTools2.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
+        private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? GetCustomTypes = AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_customTypes");
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
