@@ -56,7 +56,7 @@ jobs:
         path: ./bannerlord
 
     - name: Zip Bannerlord.UIExtenderEx
-      run: 7z a -tzip Bannerlord.UIExtenderEx.zip ./bannerlord/*
+      run: 7z a -t7z Bannerlord.UIExtenderEx.7z ./bannerlord/* -mx9
       #shell: pwsh
       # pwsh casues it to include the root folder
 
@@ -84,7 +84,7 @@ jobs:
       run: >-
         bannerlord_nexusmods_uploader upload -g mountandblade2bannerlord -m 2102 -n "UIExtenderEx"
         -v "v${{steps.changelog.outputs.mod_version}}" -l true -e true -d "${{steps.changelog.outputs.mod_description}}"
-        -p "$PWD/Bannerlord.UIExtenderEx.zip";
+        -p "$PWD/Bannerlord.UIExtenderEx.7z";
       env:
         NEXUSMODS_COOKIES_JSON: '${{secrets.NEXUSMODS_COOKIES_JSON}}'
       shell: pwsh
@@ -160,7 +160,7 @@ jobs:
         path: ./bannerlord
 
     - name: Zip Bannerlord.UIExtenderEx
-      run: 7z a -tzip Bannerlord.UIExtenderEx.zip ./bannerlord/*
+      run: 7z a -t7z Bannerlord.UIExtenderEx.7z ./bannerlord/* -mx9
       #shell: pwsh
       # pwsh casues it to include the root folder
 
@@ -198,8 +198,8 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{steps.create_release.outputs.upload_url}}
-        asset_path: ./Bannerlord.UIExtenderEx.zip
-        asset_name: Bannerlord.UIExtenderEx.zip
-        asset_content_type: application/zip
+        asset_path: ./Bannerlord.UIExtenderEx.7z
+        asset_name: Bannerlord.UIExtenderEx.7z
+        asset_content_type: application/x-7z-compressed
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
