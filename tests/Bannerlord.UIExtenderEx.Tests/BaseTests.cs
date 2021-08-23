@@ -1,13 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
-
-using Bannerlord.UIExtenderEx.Tests.Utils;
+﻿using Bannerlord.UIExtenderEx.Tests.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
 using NUnit.Framework;
+
+using System.Collections;
+using System.Collections.Generic;
+using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -79,7 +79,7 @@ namespace Bannerlord.UIExtenderEx.Tests
     </OptionsScreenWidget>
   </Window>
 </Prefab>
-"), new XmlReaderSettings {IgnoreComments = true});
+"), new XmlReaderSettings { IgnoreComments = true });
                 return false;
             }
 

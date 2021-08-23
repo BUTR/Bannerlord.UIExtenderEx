@@ -1,8 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using HarmonyLib;
+
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-
-using HarmonyLib;
 
 using TaleWorlds.GauntletUI.Data;
 

@@ -1,7 +1,7 @@
+﻿using NUnit.Framework;
+
 using System.Collections.Generic;
 using System.Linq;
-
-using NUnit.Framework;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
