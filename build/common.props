@@ -10,7 +10,7 @@
     <!--BuildResources Version-->
     <BuildResourcesVersion>1.0.0.38</BuildResourcesVersion>
     <BUTRSharedVersion>1.6.1.54</BUTRSharedVersion>
-    <HarmonyExtensionsVersion>2.0.0.44</HarmonyExtensionsVersion>
+    <HarmonyExtensionsVersion>2.0.0.45</HarmonyExtensionsVersion>
     <!--Current Bannerlord Version-->
     <GameVersion>1.4.3</GameVersion>
     <!--Bannerlord's Root Folder. Leave empty if you want it to be tried to be autoresolved.-->
