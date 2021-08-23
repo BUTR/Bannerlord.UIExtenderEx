@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Attributes;
+﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.ViewModels;
 
 using System.Diagnostics.CodeAnalysis;

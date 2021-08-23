@@ -69,7 +69,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                     continue;
 
                 if (!instructionsList[i + 2].IsLdloc())
-                       continue;
+                    continue;
 
                 if (!instructionsList[i + 3].Calls(AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))))
                     continue;
@@ -122,7 +122,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)
                 {
                     var method = AccessTools.Method(prefabExtension.GetType(), "RegisterAttributeTypes");
-                    method.Invoke(prefabExtension, new object[] {__instance.WidgetAttributeContext});
+                    method.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
                 }
 
                 foreach (var type in WidgetInfo.CollectWidgetTypes())

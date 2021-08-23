@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Bannerlord.UIExtenderEx.Prefabs2;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
-
-using Bannerlord.UIExtenderEx.Prefabs2;
 
 using TaleWorlds.Engine;
 
@@ -333,7 +333,7 @@ namespace Bannerlord.UIExtenderEx.Components
             var value = GetFunction(typeof(T), instance, memberInfo)();
             if (value is null)
             {
-                Type memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo)memberInfo).ReturnType;
+                Type memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo) memberInfo).ReturnType;
                 errorMessage += $"is of type: {memberType.Name}. A Member flagged with a Content attribute must be " +
                                 $"of one of the types listed in {nameof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute)}";
                 return false;
@@ -341,7 +341,7 @@ namespace Bannerlord.UIExtenderEx.Components
 
             if (value is not T castContent)
             {
-                Type memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo)memberInfo).ReturnType;
+                Type memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo) memberInfo).ReturnType;
                 errorMessage += $"is of type: {memberType.Name}, while its attribute type expects a {typeof(T).Name}. " +
                                 $"See {nameof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute)} for more information.";
                 return false;
@@ -391,7 +391,7 @@ namespace Bannerlord.UIExtenderEx.Components
                 _ => null
             };
 
-            if(methodInfo is null)
+            if (methodInfo is null)
             {
                 return () => null;
             }

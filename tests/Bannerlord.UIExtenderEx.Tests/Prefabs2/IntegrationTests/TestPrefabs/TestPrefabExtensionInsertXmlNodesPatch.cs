@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs2;
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-
-using Bannerlord.UIExtenderEx.Attributes;
-using Bannerlord.UIExtenderEx.Prefabs2;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
 {

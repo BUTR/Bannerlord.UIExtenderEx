@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
-
-using Bannerlord.UIExtenderEx.Components;
+﻿using Bannerlord.UIExtenderEx.Components;
 using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities;
 
@@ -11,8 +7,11 @@ using HarmonyLib;
 using NUnit.Framework;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
 {
@@ -269,7 +268,7 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
             patchedDocument2.LoadXml("<Child2/>");
             XmlDocument patchedDocument3 = new();
             patchedDocument3.LoadXml("<Child3/>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, new List<XmlNode> {patchedDocument1, patchedDocument2, patchedDocument3});
+            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, new List<XmlNode> { patchedDocument1, patchedDocument2, patchedDocument3 });
 
             PrefabComponent prefabComponent = new("TestModule");
             var movieDocument = GetBaseDocument();
