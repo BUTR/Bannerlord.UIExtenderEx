@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Attributes;
+﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs

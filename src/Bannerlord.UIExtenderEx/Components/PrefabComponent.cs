@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using Bannerlord.UIExtenderEx.Prefabs2;
+
+using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
 using System;
@@ -7,8 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml;
-
-using Bannerlord.UIExtenderEx.Prefabs2;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
