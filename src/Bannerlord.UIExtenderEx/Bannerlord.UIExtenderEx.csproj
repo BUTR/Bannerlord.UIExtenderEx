@@ -47,12 +47,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Bannerlord.ModuleManager.Source" Version="$(BUTRModuleManagerVersion)" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core.EarlyAccess" Version="$(GameVersion).*" PrivateAssets="all" />
     <PackageReference Include="Harmony.Extensions" Version="$(HarmonyExtensionsVersion)">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="IsExternalInit" Version="1.0.1">
+    <PackageReference Include="IsExternalInit" Version="1.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
