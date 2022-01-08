@@ -5,12 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.MountAndBlade;
 
 namespace Bannerlord.UIExtenderEx
 {
     public class SubModule : MBSubModuleBase
     {
+        static SubModule()
+        {
+            UIConfig.DoNotUseGeneratedPrefabs = true;
+        }
+
         // We can't rely on EN since the game assumes that the default locale is always English
         private const string SWarningTitle =
             @"{=eySpdc25EE}Warning from Bannerlord.UIExtenderEx!";
