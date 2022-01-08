@@ -22,6 +22,7 @@ namespace Bannerlord.UIExtenderEx.Attributes
         /// <summary>
         /// Gauntlet Movie name to prevent from loading as an auto-generated Widget (optional)
         /// </summary>
+        [Obsolete("AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.")]
         public string? AutoGenWidgetName { get; }
 
         /// <summary>

@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Bannerlord.UIExtenderEx.Prefabs2;
+
+using NSubstitute;
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Xml;
-
-using Bannerlord.UIExtenderEx.Prefabs2;
-
-using NSubstitute;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 

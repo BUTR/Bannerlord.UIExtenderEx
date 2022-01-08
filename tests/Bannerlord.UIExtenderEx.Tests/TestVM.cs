@@ -1,4 +1,4 @@
-using TaleWorlds.Library;
+﻿using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Tests
 {

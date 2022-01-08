@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections.Generic;
@@ -6,8 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-
-using HarmonyLib.BUTR.Extensions;
 
 using TaleWorlds.Library;
 
@@ -75,7 +74,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 foreach (var mixin in list)
                 {
-                    if(!runtime.ViewModelComponent.MixinInstanceMethodCache.TryGetValue(mixin, out var methodExtensions))
+                    if (!runtime.ViewModelComponent.MixinInstanceMethodCache.TryGetValue(mixin, out var methodExtensions))
                         continue;
 
                     if (!(methodExtensions.FirstOrDefault(e => e.Key == commandName).Value is { } method))
