@@ -8,7 +8,7 @@
     <!--Harmony Version-->
     <HarmonyVersion>2.0.2</HarmonyVersion>
     <!--BuildResources Version-->
-    <BuildResourcesVersion>1.0.0.39</BuildResourcesVersion>
+    <BuildResourcesVersion>1.0.1.64</BuildResourcesVersion>
     <BUTRSharedVersion>2.0.0.71</BUTRSharedVersion>
     <BUTRModuleManagerVersion>2.0.80</BUTRModuleManagerVersion>
     <HarmonyExtensionsVersion>2.0.0.51</HarmonyExtensionsVersion>
