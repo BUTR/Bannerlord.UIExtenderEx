@@ -12,6 +12,7 @@
 
   <!--Module Creation-->
   <PropertyGroup>
+    <ModuleId>$(MSBuildProjectName)</ModuleId>
     <ModuleName>$(MSBuildProjectName)</ModuleName>
   </PropertyGroup>
   <!--Module Creation-->
