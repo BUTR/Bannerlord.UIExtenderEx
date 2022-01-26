@@ -12,8 +12,8 @@
 
   <!--Module Creation-->
   <PropertyGroup>
-    <ModuleId>$(MSBuildProjectName)</ModuleId>
-    <ModuleName>$(MSBuildProjectName)</ModuleName>
+    <ModuleId>Bannerlord.UIExtenderEx</ModuleId>
+    <ModuleName>UIExtenderEx</ModuleName>
   </PropertyGroup>
   <!--Module Creation-->
 
