@@ -24,7 +24,8 @@ env:
 jobs:
   docfx:
     name: DocFX documentation
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2004
     steps:
     - name: DocFX Setup
       uses: butr/actions-docfx-setup@v3.0
