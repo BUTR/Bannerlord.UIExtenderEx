@@ -10,8 +10,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-using TaleWorlds.Engine.GauntletUI;
-
 namespace Bannerlord.UIExtenderEx
 {
     /// <summary>
@@ -25,6 +23,7 @@ namespace Bannerlord.UIExtenderEx
         {
             // AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.
             //GauntletMoviePatch.Patch(Harmony);
+            UIConfigPatch.Patch(Harmony);
             ViewModelPatch.Patch(Harmony);
             WidgetPrefabPatch.Patch(Harmony);
             WidgetFactoryPatch.Patch(Harmony);
