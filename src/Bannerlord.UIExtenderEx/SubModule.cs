@@ -4,6 +4,7 @@ using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 
@@ -14,13 +15,25 @@ namespace Bannerlord.UIExtenderEx
     public class SubModule : MBSubModuleBase
     {
         private delegate void SetDoNotUseGeneratedPrefabsDelegate(bool value);
-        private static readonly SetDoNotUseGeneratedPrefabsDelegate? SetDoNotUseGeneratedPrefabs =
-            AccessTools2.GetPropertySetterDelegate<SetDoNotUseGeneratedPrefabsDelegate>("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs");
 
         static SubModule()
         {
-            if (SetDoNotUseGeneratedPrefabs is not null)
-                SetDoNotUseGeneratedPrefabs(true);
+            // Disable AutoGens as early as possible
+            try
+            {
+                // Force load TaleWorlds.Engine.GauntletUI as it might not be loaded yet!
+                Assembly.Load("TaleWorlds.Engine.GauntletUI");
+            }
+            catch (Exception e)
+            {
+                Utils.Fail($"Failed to load 'TaleWorlds.Engine.GauntletUI'! Exception: {e}");
+            }
+            var setDoNotUseGeneratedPrefabs = AccessTools2.GetPropertySetterDelegate<SetDoNotUseGeneratedPrefabsDelegate>("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs");
+            if (setDoNotUseGeneratedPrefabs is not null)
+                setDoNotUseGeneratedPrefabs(true);
+            else
+                Utils.Fail("Failed to find 'DoNotUseGeneratedPrefabs'!");
+
         }
 
         // We can't rely on EN since the game assumes that the default locale is always English
