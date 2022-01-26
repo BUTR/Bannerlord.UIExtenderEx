@@ -33,8 +33,7 @@ env:
 jobs:
   test:
     name: Test
-    #runs-on: windows-latest
-    runs-on: buildjet-4vcpu-ubuntu-2004
+    runs-on: windows-latest
     steps:    
     - name: Tests Setup
       uses: butr/actions-tests-setup@v1.5.2
