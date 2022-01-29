@@ -24,9 +24,9 @@
   <!-- Prototype -->
   <SubModules>
     <SubModule>
-      <Name value="UIExtenderEx" />
-      <DLLName value="$modulename$.dll" />
-      <SubModuleClassType value="$modulename$.SubModule" />
+      <Name value="$modulename$" />
+      <DLLName value="$moduleid$.dll" />
+      <SubModuleClassType value="$moduleid$.SubModule" />
       <Tags />
     </SubModule>
   </SubModules>
