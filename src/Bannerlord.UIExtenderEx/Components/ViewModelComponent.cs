@@ -83,7 +83,6 @@ namespace Bannerlord.UIExtenderEx.Components
                 Utils.Fail($"Failed to find base type for mixin {mixinType}, should be specialized as T of ViewModelMixin<T>!");
                 return;
             }
-            Mixins.GetOrAdd(viewModelType, _ => new List<Type>()).Add(mixinType);
 
             if (handleDerived)
             {
