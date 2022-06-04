@@ -57,6 +57,7 @@ namespace Bannerlord.UIExtenderEx.Prefabs
         }
     }
 
+    [Obsolete("PrefabExtensionInsertPatch is obsolete")]
     public abstract class EmbedPrefabExtensionInsertPatch : PrefabExtensionInsertPatch
     {
         private Assembly Assembly { get; }

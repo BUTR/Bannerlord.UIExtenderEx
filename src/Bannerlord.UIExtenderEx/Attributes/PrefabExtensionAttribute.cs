@@ -42,6 +42,7 @@ namespace Bannerlord.UIExtenderEx.Attributes
         /// <param name="movie">Gauntlet Movie name to extend</param>
         /// <param name="xpath">XPath of the node to operate against (optional)</param>
         /// <param name="autoGenWidgetName">Gauntlet Movie name to prevent from loading as an auto-generated Widget (optional)</param>
+        [Obsolete("AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.")]
         public PrefabExtensionAttribute(string movie, string? xpath = null, string? autoGenWidgetName = null)
         {
             Movie = movie;

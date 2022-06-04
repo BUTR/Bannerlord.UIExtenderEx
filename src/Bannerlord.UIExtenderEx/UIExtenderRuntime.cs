@@ -70,9 +70,11 @@ namespace Bannerlord.UIExtenderEx
                                 case Prefabs.PrefabExtensionSetAttributePatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
+#pragma warning disable CS0618
                                 case Prefabs.PrefabExtensionInsertPatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
+#pragma warning restore CS0618
                                 case Prefabs.PrefabExtensionReplacePatch patch:
                                     PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
                                     break;
@@ -98,7 +100,9 @@ namespace Bannerlord.UIExtenderEx
                                     break;
                             }
 
+#pragma warning disable CS0618
                             GauntletMoviePatch.Register(this, xmlExtension.AutoGenWidgetName);
+#pragma warning restore CS0618
 
                             break;
                         }
