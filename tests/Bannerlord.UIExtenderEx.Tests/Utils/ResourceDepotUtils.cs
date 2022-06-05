@@ -25,7 +25,7 @@ namespace Bannerlord.UIExtenderEx.Tests.Utils
             }
         }
 
-        public static ResourceDepot Create()
+        public static ResourceDepot? Create()
         {
             if (V1 is not null)
                 return V1();

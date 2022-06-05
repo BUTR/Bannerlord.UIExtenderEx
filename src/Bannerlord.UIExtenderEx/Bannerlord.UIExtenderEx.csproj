@@ -5,6 +5,7 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
 
     <DefineConstants>$(DefineConstants);HARMONYEXTENSIONS_DISABLE_2_0_4;</DefineConstants>
     <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
@@ -35,7 +36,7 @@
 
   <!--Windows Forms-->
   <ItemGroup>
-    <_SDKImplicitReference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <!--Windows Forms-->
 
