@@ -66,5 +66,13 @@ namespace Bannerlord.UIExtenderEx
                 }
             }
         }
+
+        /// <inheritdoc />
+        protected override void OnBeforeInitialModuleScreenSetAsRoot()
+        {
+            base.OnBeforeInitialModuleScreenSetAsRoot();
+            
+            //UIPatchSubModule.OnBeforeInitialModuleScreenSetAsRoot();
+        }
     }
 }
