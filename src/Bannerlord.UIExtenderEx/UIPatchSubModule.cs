@@ -29,10 +29,10 @@ namespace Bannerlord.UIExtenderEx
                 new Attribute("Parameter.IsEnabled", "true")
             };
         }
-        
+
         private static readonly UIExtender Extender = new("Bannerlord.UIExtenderEx.UIPatch");
         private static readonly Harmony Harmony = new("Bannerlord.UIExtenderEx.UIPatch");
-        
+
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
@@ -47,7 +47,7 @@ namespace Bannerlord.UIExtenderEx
                 }
             }
         }
-        
+
         private static void SandBoxSubModuleOnSubModuleLoadPostfix()
         {
             Extender.Register(new[]
