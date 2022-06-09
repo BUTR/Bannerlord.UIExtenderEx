@@ -1,5 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Extensions;
-using Bannerlord.UIExtenderEx.Patches;
+﻿using Bannerlord.UIExtenderEx.Patches;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -20,6 +19,11 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
 {
     public static class WidgetFactoryManager
     {
+        private delegate void ReloadDelegate();
+        private static readonly ReloadDelegate? Reload =
+            AccessTools2.GetDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:ReLoad") ??
+            AccessTools2.GetDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:Reload");
+
         private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? LiveCustomTypesFieldRef =
             AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");
 
@@ -39,8 +43,10 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
 
         public static void Register(Type widgetType)
         {
+            if (Reload is null) return;
+            
             BuiltinTypes[widgetType.Name] = widgetType;
-            WidgetInfo.ReLoad();
+            Reload();
         }
 
         public static void Register(string name, Func<WidgetPrefab?> create)
@@ -99,12 +105,12 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool CreateBuiltinWidgetPrefix(UIContext context, string typeName, ref Widget? __result)
+        private static bool CreateBuiltinWidgetPrefix(UIContext context, string typeName, ref object? __result)
         {
             if (!BuiltinTypes.TryGetValue(typeName, out var type))
                 return true;
 
-            __result = type.GetConstructor(AccessTools.all, null, new[] { typeof(UIContext) }, null)?.Invoke(new object[] { context }) as Widget;
+            __result = type.GetConstructor(AccessTools.all, null, new[] { typeof(UIContext) }, null)?.Invoke(new object[] { context });
             return false;
         }
 
