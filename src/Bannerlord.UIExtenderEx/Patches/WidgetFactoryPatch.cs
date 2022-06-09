@@ -21,12 +21,15 @@ namespace Bannerlord.UIExtenderEx.Patches
     /// </summary>
     public static class WidgetFactoryPatch
     {
+        private static readonly MethodInfo? _initializeMethod =
+            AccessTools2.Method("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize");
+        
         private static bool _transpilerSuccessful;
 
         public static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.Initialize()),
+                _initializeMethod,
                 transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializeTranspiler(null!, null!))));
 
             // Transpilers are very sensitive to code changes.
@@ -34,7 +37,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             if (!_transpilerSuccessful)
             {
                 harmony.Patch(
-                    SymbolExtensions.GetMethodInfo((WidgetFactory wf) => wf.Initialize()),
+                    _initializeMethod,
                     prefix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializePrefix(null!))));
             }
         }
