@@ -44,7 +44,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         public static void Register(Type widgetType)
         {
             if (Reload is null) return;
-            
+
             BuiltinTypes[widgetType.Name] = widgetType;
             Reload();
         }
