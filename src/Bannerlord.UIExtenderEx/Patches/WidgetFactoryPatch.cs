@@ -23,7 +23,7 @@ namespace Bannerlord.UIExtenderEx.Patches
     {
         private static readonly MethodInfo? _initializeMethod =
             AccessTools2.Method("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize");
-        
+
         private static bool _transpilerSuccessful;
 
         public static void Patch(Harmony harmony)
