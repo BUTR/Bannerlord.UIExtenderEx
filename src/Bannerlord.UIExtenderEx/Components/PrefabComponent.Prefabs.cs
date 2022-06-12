@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Prefabs;
+using Bannerlord.UIExtenderEx.Utils;
 
 using System;
 using System.Xml;
@@ -21,19 +22,19 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             if (node.OwnerDocument is not { } ownerDocument)
             {
-                Utils.Fail($"XML original document for {movie} is null!");
+                MessageUtils.Fail($"XML original document for {movie} is null!");
                 return;
             }
 
             if (patch.GetPrefabExtension().DocumentElement is not { } extensionNode)
             {
-                Utils.Fail($"XML patch document for {movie} is null!");
+                MessageUtils.Fail($"XML patch document for {movie} is null!");
                 return;
             }
 
             if (!TryRemoveComments(extensionNode))
             {
-                Utils.Fail($"XML patch document's root node was a comment.");
+                MessageUtils.Fail($"XML patch document's root node was a comment.");
                 return;
             }
 
@@ -42,7 +43,7 @@ namespace Bannerlord.UIExtenderEx.Components
             position = Math.Max(position, 0);
             if (position >= node.ChildNodes.Count)
             {
-                Utils.Fail($"Invalid position ({position}) for insert (patching in {patch.Id})");
+                MessageUtils.Fail($"Invalid position ({position}) for insert (patching in {patch.Id})");
                 return;
             }
 
@@ -86,25 +87,25 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             if (node.OwnerDocument is not { } ownerDocument)
             {
-                Utils.Fail($"XML original document for {movie} is null!");
+                MessageUtils.Fail($"XML original document for {movie} is null!");
                 return;
             }
 
             if (node.ParentNode is null)
             {
-                Utils.Fail($"XML original document parent node for {movie} is null!");
+                MessageUtils.Fail($"XML original document parent node for {movie} is null!");
                 return;
             }
 
             if (patch.GetPrefabExtension().DocumentElement is not { } extensionNode)
             {
-                Utils.Fail($"XML patch document for {movie} is null!");
+                MessageUtils.Fail($"XML patch document for {movie} is null!");
                 return;
             }
 
             if (!TryRemoveComments(extensionNode))
             {
-                Utils.Fail($"XML patch document's root node was a comment.");
+                MessageUtils.Fail($"XML patch document's root node was a comment.");
                 return;
             }
 
@@ -123,25 +124,25 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             if (node.OwnerDocument is not { } ownerDocument)
             {
-                Utils.Fail($"XML original document for {movie} is null!");
+                MessageUtils.Fail($"XML original document for {movie} is null!");
                 return;
             }
 
             if (node.ParentNode is null)
             {
-                Utils.Fail($"XML original document parent node for {movie} is null!");
+                MessageUtils.Fail($"XML original document parent node for {movie} is null!");
                 return;
             }
 
             if (patch.GetPrefabExtension().DocumentElement is not { } extensionNode)
             {
-                Utils.Fail($"XML patch document for {movie} is null!");
+                MessageUtils.Fail($"XML patch document for {movie} is null!");
                 return;
             }
 
             if (!TryRemoveComments(extensionNode))
             {
-                Utils.Fail($"XML patch document's root node was a comment.");
+                MessageUtils.Fail($"XML patch document's root node was a comment.");
                 return;
             }
 

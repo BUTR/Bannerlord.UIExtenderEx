@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿using Bannerlord.UIExtenderEx.Utils;
+
+using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System.Collections.Generic;
 using System.IO;
@@ -17,12 +20,12 @@ namespace Bannerlord.UIExtenderEx.Patches
         public static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools.DeclaredMethod(typeof(WidgetPrefab), nameof(WidgetPrefab.LoadFrom)),
-                transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(WidgetPrefabPatch), nameof(WidgetPrefab_LoadFrom_Transpiler))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab:LoadFrom"),
+                transpiler: new HarmonyMethod(typeof(WidgetPrefabPatch), nameof(WidgetPrefab_LoadFrom_Transpiler)));
 
             harmony.CreateReversePatcher(
-                SymbolExtensions.GetMethodInfo(() => WidgetPrefab.LoadFrom(null!, null!, null!)),
-                new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => LoadFromDocument(null!, null!, null!, null!)))).Patch();
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab:LoadFrom"),
+                new HarmonyMethod(typeof(WidgetPrefabPatch), nameof(LoadFromDocument))).Patch();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -33,12 +36,12 @@ namespace Bannerlord.UIExtenderEx.Patches
             [MethodImpl(MethodImplOptions.NoInlining)]
             IEnumerable<CodeInstruction> ReturnDefault(string place)
             {
-                Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
+                MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
 
-            var constructor = AccessTools.DeclaredConstructor(typeof(WidgetPrefab));
-            var processMovieMethod = SymbolExtensions.GetMethodInfo(() => ProcessMovie(null!, null!));
+            var constructor = AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab");
+            var processMovieMethod = SymbolExtensions2.GetMethodInfo(() => ProcessMovie(null!, null!));
 
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(WidgetPrefab));
@@ -115,7 +118,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 }
 
                 var constructorIndex = -1;
-                var constructor = AccessTools.Constructor(typeof(WidgetPrefab));
+                var constructor = AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab");
                 for (var i = 0; i < instructionList.Count; i++)
                 {
                     if (instructionList[i].opcode == OpCodes.Newobj && Equals(instructionList[i].operand, constructor))

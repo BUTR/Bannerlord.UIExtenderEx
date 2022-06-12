@@ -8,8 +8,8 @@ namespace Bannerlord.UIExtenderEx.Patches
         public static void Patch(Harmony harmony)
         {
             harmony.TryPatch(
-                AccessTools2.PropertySetter("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs"),
-                prefix: AccessTools2.Method(typeof(UIConfigPatch), nameof(Prefix)));
+                AccessTools2.DeclaredPropertySetter("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs"),
+                prefix: AccessTools2.DeclaredMethod(typeof(UIConfigPatch), nameof(Prefix)));
         }
 
         // Disable setting a value to DoNotUseGeneratedPrefabs

@@ -21,12 +21,14 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
     {
         private delegate void ReloadDelegate();
         private static readonly ReloadDelegate? Reload =
-            AccessTools2.GetDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:ReLoad") ??
-            AccessTools2.GetDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:Reload");
+            AccessTools2.GetDeclaredDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:ReLoad") ??
+            AccessTools2.GetDeclaredDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:Reload");
 
-        private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? LiveCustomTypesFieldRef =
-            AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");
+        private static readonly AccessTools.FieldRef<object, IDictionary>? LiveCustomTypesFieldRef =
+            AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_liveCustomTypes");
 
+        private delegate Widget WidgetConstructor(UIContext uiContext);
+        private static readonly Dictionary<Type, WidgetConstructor> WidgetConstructors = new();
         private static readonly Dictionary<string, Func<WidgetPrefab?>> CustomTypes = new();
         private static readonly Dictionary<string, Type> BuiltinTypes = new();
         private static readonly Dictionary<string, WidgetPrefab> LiveCustomTypes = new();
@@ -44,7 +46,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         public static void Register(Type widgetType)
         {
             if (Reload is null) return;
-            
+
             BuiltinTypes[widgetType.Name] = widgetType;
             Reload();
         }
@@ -59,39 +61,39 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         internal static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.GetCustomType)),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(GetCustomTypePrefix))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetCustomType"),
+                prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetCustomTypePrefix)));
 
             harmony.Patch(
-                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.CreateBuiltinWidget)),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(CreateBuiltinWidgetPrefix))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:CreateBuiltinWidget"),
+                prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(CreateBuiltinWidgetPrefix)));
 
             harmony.Patch(
-                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.GetWidgetTypes)),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetWidgetTypes"),
+                prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix)));
 
             harmony.Patch(
-                AccessTools.Method(typeof(WidgetFactory), nameof(WidgetFactory.IsCustomType)),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(IsCustomTypePrefix))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:IsCustomType"),
+                prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(IsCustomTypePrefix)));
 
             harmony.TryPatch(
-                AccessTools.Method(typeof(WidgetFactory), "OnUnload"),
-                prefix: AccessTools.Method(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix)));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:OnUnload"),
+                prefix: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix)));
 
             // GetCustomType is too complex to be inlined
             // CreateBuiltinWidget is too complex to be inlined
             // GetWidgetTypes is not used?
             // Preventing inlining IsCustomType
             harmony.TryPatch(
-                AccessTools.Method(typeof(WidgetTemplate), "CreateWidgets"),
-                transpiler: AccessTools.Method(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:CreateWidgets"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
-                AccessTools.Method(typeof(WidgetTemplate), "OnRelease"),
-                transpiler: AccessTools.Method(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:OnRelease"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
             // Preventing inlining GetCustomType
-            //harmony.Patch(
-            //    AccessTools.Method(typeof(GauntletMovie), "LoadMovie"),
-            //    transpiler: new HarmonyMethod(AccessTools.Method(typeof(WidgetFactoryManager), nameof(BlankTranspiler))));
+            harmony.TryPatch(
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.Data.GauntletMovie:LoadMovie"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
         }
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
@@ -110,7 +112,15 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
             if (!BuiltinTypes.TryGetValue(typeName, out var type))
                 return true;
 
-            __result = type.GetConstructor(AccessTools.all, null, new[] { typeof(UIContext) }, null)?.Invoke(new object[] { context });
+            if (!WidgetConstructors.TryGetValue(type, out var ctor))
+            {
+                ctor = AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(type, new[] { typeof(UIContext) });
+                if (ctor is null)
+                    return true;
+                WidgetConstructors.Add(type, ctor);
+            }
+            
+            __result = ctor;
             return false;
         }
 
@@ -131,7 +141,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool GetCustomTypePrefix(WidgetFactory __instance, string typeName, ref WidgetPrefab __result)
+        private static bool GetCustomTypePrefix(object __instance, string typeName, ref WidgetPrefab __result)
         {
             // Post154
             if (LiveCustomTypesFieldRef is not null && LiveCustomTypesFieldRef(__instance).Contains(typeName))

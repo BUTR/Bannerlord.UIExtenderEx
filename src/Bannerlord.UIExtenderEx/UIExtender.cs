@@ -1,6 +1,7 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Patches;
 using Bannerlord.UIExtenderEx.ResourceManager;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 
@@ -89,7 +90,7 @@ namespace Bannerlord.UIExtenderEx
 
             if (RuntimeInstances.ContainsKey(_moduleName))
             {
-                Utils.DisplayUserError($"Failed to load extension module {_moduleName} - already loaded!");
+                MessageUtils.DisplayUserError($"Failed to load extension module {_moduleName} - already loaded!");
                 return;
             }
 
@@ -106,7 +107,7 @@ namespace Bannerlord.UIExtenderEx
 
             if (_runtime is null)
             {
-                Utils.Fail("Register() method was not called before Enable()!");
+                MessageUtils.Fail("Register() method was not called before Enable()!");
                 return;
             }
             _runtime.Enable();
@@ -118,7 +119,7 @@ namespace Bannerlord.UIExtenderEx
 
             if (_runtime is null)
             {
-                Utils.Fail("Register() method was not called before Disable()!");
+                MessageUtils.Fail("Register() method was not called before Disable()!");
                 return;
             }
             _runtime.Disable();

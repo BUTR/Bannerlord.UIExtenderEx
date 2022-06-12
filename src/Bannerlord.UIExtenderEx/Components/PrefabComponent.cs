@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Prefabs2;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -11,7 +12,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
-using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.Components
 {
@@ -20,8 +20,14 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal partial class PrefabComponent
     {
-        private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? GetCustomTypes = AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_customTypes");
+        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
+            AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_customTypes");
 
+        private delegate Dictionary<string, string> GetPrefabNamesAndPathsFromCurrentPathDelegate(object instance);
+        private static readonly GetPrefabNamesAndPathsFromCurrentPathDelegate? PrefabNamesMethod =
+            AccessTools2.GetDeclaredDelegate<GetPrefabNamesAndPathsFromCurrentPathDelegate>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath");
+
+        
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it for consistency>")]
@@ -66,7 +72,7 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             if (string.IsNullOrEmpty(movie))
             {
-                Utils.Fail("Invalid movie name!");
+                MessageUtils.Fail("Invalid movie name!");
                 return;
             }
 
@@ -83,7 +89,7 @@ namespace Bannerlord.UIExtenderEx.Components
             //RegisterPatch(movie, (XmlDocument node) => patcher(node));
             if (string.IsNullOrEmpty(movie))
             {
-                Utils.Fail("Invalid movie name!");
+                MessageUtils.Fail("Invalid movie name!");
                 return;
             }
 
@@ -101,7 +107,7 @@ namespace Bannerlord.UIExtenderEx.Components
             var node2 = node.SelectSingleNode(xpath ?? string.Empty);
             if (node2 is null)
             {
-                Utils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
+                MessageUtils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
                 return;
             }
 
@@ -126,7 +132,7 @@ namespace Bannerlord.UIExtenderEx.Components
                     if (GetCustomTypes is not null)
                     {
                         var dict = GetCustomTypes(UIResourceManager.WidgetFactory);
-                        Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypes!");
+                        MessageUtils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypes!");
                         // remove widget from previously loaded Widgets
                         dict.Remove(movie);
 
@@ -167,15 +173,13 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <param name="movie"></param>
         private static string? PathForMovie(string movie)
         {
-            // TODO: figure out a method more prone to game updates
-            var prefabNamesMethod = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
-            if (prefabNamesMethod?.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) is Dictionary<string, string> paths)
+            if (PrefabNamesMethod is not null && PrefabNamesMethod(UIResourceManager.WidgetFactory) is { } paths)
             {
                 return paths[movie];
             }
             else
             {
-                Utils.DisplayUserError("UIExtenderEx could not find WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath!");
+                MessageUtils.DisplayUserError("UIExtenderEx could not find WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath!");
                 return null;
             }
         }
@@ -188,7 +192,9 @@ namespace Bannerlord.UIExtenderEx.Components
         public void ProcessMovieIfNeeded(string movie, XmlDocument document)
         {
             if (!_moviePatches.TryGetValue(movie, out var patches))
+            {
                 return;
+            }
 
             foreach (var patch in patches)
             {

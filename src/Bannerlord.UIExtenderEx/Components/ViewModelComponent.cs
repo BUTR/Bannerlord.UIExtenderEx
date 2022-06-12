@@ -3,6 +3,7 @@
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Extensions;
 using Bannerlord.UIExtenderEx.Patches;
+using Bannerlord.UIExtenderEx.Utils;
 using Bannerlord.UIExtenderEx.ViewModels;
 
 using HarmonyLib;
@@ -80,7 +81,7 @@ namespace Bannerlord.UIExtenderEx.Components
             var viewModelType = GetViewModelType(mixinType);
             if (viewModelType is null)
             {
-                Utils.Fail($"Failed to find base type for mixin {mixinType}, should be specialized as T of ViewModelMixin<T>!");
+                MessageUtils.Fail($"Failed to find base type for mixin {mixinType}, should be specialized as T of ViewModelMixin<T>!");
                 return;
             }
 

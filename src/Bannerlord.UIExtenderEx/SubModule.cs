@@ -1,4 +1,5 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib.BUTR.Extensions;
 
@@ -26,9 +27,10 @@ namespace Bannerlord.UIExtenderEx
             }
             catch (Exception e)
             {
-                Utils.Fail($"Failed to load 'TaleWorlds.Engine.GauntletUI'! Exception: {e}");
+                MessageUtils.Fail($"Failed to load 'TaleWorlds.Engine.GauntletUI'! Exception: {e}");
             }
-            var setDoNotUseGeneratedPrefabs = AccessTools2.GetPropertySetterDelegate<SetDoNotUseGeneratedPrefabsDelegate>("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs");
+            var setDoNotUseGeneratedPrefabs =
+                AccessTools2.GetDeclaredPropertySetterDelegate<SetDoNotUseGeneratedPrefabsDelegate>("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs");
             if (setDoNotUseGeneratedPrefabs is not null)
                 setDoNotUseGeneratedPrefabs(true);
             else

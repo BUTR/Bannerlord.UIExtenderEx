@@ -4,14 +4,14 @@
   <!--Development Variables-->
   <PropertyGroup>
     <!--Module Version-->
-    <Version>2.1.15</Version>
+    <Version>2.2.0</Version>
     <!--Harmony Version-->
     <HarmonyVersion>2.0.2</HarmonyVersion>
-    <!--BuildResources Version-->
+    <HarmonyExtensionsVersion>3.0.0.59</HarmonyExtensionsVersion>
+    <HarmonyAnalyzerVersion>1.0.1.32</HarmonyAnalyzerVersion>
     <BuildResourcesVersion>1.0.1.68</BuildResourcesVersion>
     <BUTRSharedVersion>2.0.0.82</BUTRSharedVersion>
     <BUTRModuleManagerVersion>3.0.97</BUTRModuleManagerVersion>
-    <HarmonyExtensionsVersion>2.0.0.57</HarmonyExtensionsVersion>
     <!--Current Bannerlord Version-->
     <GameVersion>1.4.3</GameVersion>
     <!--Bannerlord's Root Folder. Leave empty if you want it to be tried to be autoresolved.-->
@@ -56,6 +56,13 @@
   <!--CI Builds-->
   <ItemGroup Condition="$(TargetFramework) == 'net472' AND $(OS) != 'Windows_NT'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(GITHUB_ACTIONS)' != 'true'">
+    <PackageReference Include="BUTR.Harmony.Analyzer" Version="$(HarmonyAnalyzerVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

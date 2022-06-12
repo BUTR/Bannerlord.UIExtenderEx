@@ -1,4 +1,6 @@
 ﻿using Bannerlord.BUTR.Shared.Extensions;
+using Bannerlord.BUTR.Shared.Helpers;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -13,6 +15,7 @@ using System.Runtime.CompilerServices;
 
 using TaleWorlds.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
+using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Patches
 {
@@ -21,24 +24,25 @@ namespace Bannerlord.UIExtenderEx.Patches
     /// </summary>
     public static class WidgetFactoryPatch
     {
-        private static readonly MethodInfo? _initializeMethod =
-            AccessTools2.Method("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize");
-        
         private static bool _transpilerSuccessful;
 
         public static void Patch(Harmony harmony)
         {
-            harmony.Patch(
-                _initializeMethod,
-                transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializeTranspiler(null!, null!))));
-
-            // Transpilers are very sensitive to code changes.
-            // We can fall back to the old implementation of Initialize() as a last effort.
-            if (!_transpilerSuccessful)
+            var e180 = ApplicationVersionHelper.TryParse("e1.8.0", out var e180Var) ? e180Var : ApplicationVersion.Empty;
+            if (ApplicationVersionHelper.GameVersion() is { } gameVersion && gameVersion < e180)
             {
                 harmony.Patch(
-                    _initializeMethod,
-                    prefix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializePrefix(null!))));
+                    AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize"),
+                    transpiler: new HarmonyMethod(typeof(WidgetFactoryPatch), nameof(InitializeTranspiler)));
+            
+                // Transpilers are very sensitive to code changes.
+                // We can fall back to the old implementation of Initialize() as a last effort.
+                if (!_transpilerSuccessful)
+                {
+                    harmony.Patch(
+                        AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize"),
+                        prefix: new HarmonyMethod(typeof(WidgetFactoryPatch), nameof(InitializePrefix)));
+                }
             }
         }
 
@@ -51,7 +55,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 
             IEnumerable<CodeInstruction> ReturnDefault(string place)
             {
-                Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
+                MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
 
@@ -68,19 +72,19 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (!instructionsList[i + 0].IsLdarg(0))
                     continue;
 
-                if (!instructionsList[i + 1].LoadsField(AccessTools.DeclaredField(typeof(WidgetFactory), "_builtinTypes")))
+                if (!instructionsList[i + 1].LoadsField(AccessTools2.DeclaredField("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes")))
                     continue;
 
                 if (!instructionsList[i + 2].IsLdloc())
                     continue;
 
-                if (!instructionsList[i + 3].Calls(AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))))
+                if (!instructionsList[i + 3].Calls(SymbolExtensions2.GetPropertyGetter((MemberInfo x) => x.Name)))
                     continue;
 
                 if (!instructionsList[i + 4].IsLdloc())
                     continue;
 
-                if (!instructionsList[i + 5].Calls(SymbolExtensions.GetMethodInfo((Dictionary<string, Type> d) => d.Add(null!, null!))))
+                if (!instructionsList[i + 5].Calls(SymbolExtensions2.GetMethodInfo((Dictionary<string, Type> d) => d.Add(null!, null!))))
                     continue;
 
                 startIndex = i;
@@ -100,18 +104,20 @@ namespace Bannerlord.UIExtenderEx.Patches
             instructionsList.InsertRange(startIndex, new List<CodeInstruction>
             {
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools.DeclaredField(typeof(WidgetFactory), "_builtinTypes")),
+                new(OpCodes.Ldfld, AccessTools2.DeclaredField("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes")),
                 new(OpCodes.Ldloc, typeLocal.LocalIndex),
-                new(OpCodes.Callvirt, AccessTools.DeclaredPropertyGetter(typeof(MemberInfo), nameof(MemberInfo.Name))),
-                new(OpCodes.Callvirt, SymbolExtensions.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
+                new(OpCodes.Callvirt, SymbolExtensions2.GetPropertyGetter((MemberInfo x) => x.Name)),
+                new(OpCodes.Callvirt, SymbolExtensions2.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
                 new(OpCodes.Brtrue_S, jmpEnumerator)
             });
             _transpilerSuccessful = true;
             return instructionsList.AsEnumerable();
         }
 
-        private static AccessTools.FieldRef<WidgetFactory, Dictionary<string, Type>>? BuiltinTypesField { get; } = AccessTools2.FieldRefAccess<WidgetFactory, Dictionary<string, Type>>("_builtinTypes");
-        private static MethodInfo GetPrefabNamesAndPathsFromCurrentPathMethod { get; } = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
+        private static readonly AccessTools.FieldRef<object, Dictionary<string, Type>>? BuiltinTypesField =
+            AccessTools2.FieldRefAccess<Dictionary<string, Type>>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes");
+        private static readonly MethodInfo? GetPrefabNamesAndPathsFromCurrentPathMethod =
+            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath");
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
@@ -120,12 +126,12 @@ namespace Bannerlord.UIExtenderEx.Patches
         private static bool InitializePrefix(WidgetFactory __instance)
         {
             var builtinTypes = BuiltinTypesField is not null ? BuiltinTypesField(__instance) : null;
-            if (builtinTypes is not null && GetPrefabNamesAndPathsFromCurrentPathMethod.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData)
+            if (builtinTypes is not null && GetPrefabNamesAndPathsFromCurrentPathMethod?.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData)
             {
                 foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)
                 {
-                    var method = AccessTools.Method(prefabExtension.GetType(), "RegisterAttributeTypes");
-                    method.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
+                    var method = AccessTools2.DeclaredMethod(prefabExtension.GetType(), "RegisterAttributeTypes");
+                    method?.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
                 }
 
                 foreach (var type in WidgetInfo.CollectWidgetTypes())
