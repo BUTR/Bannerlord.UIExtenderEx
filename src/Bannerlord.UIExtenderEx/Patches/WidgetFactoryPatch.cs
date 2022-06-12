@@ -131,7 +131,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)
                 {
                     var method = AccessTools2.DeclaredMethod(prefabExtension.GetType(), "RegisterAttributeTypes");
-                    method.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
+                    method?.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
                 }
 
                 foreach (var type in WidgetInfo.CollectWidgetTypes())

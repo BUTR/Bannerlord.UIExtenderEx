@@ -13,7 +13,6 @@ using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
-using TaleWorlds.GauntletUI.BaseTypes;
 using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.ResourceManager
@@ -116,6 +115,8 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
             if (!WidgetConstructors.TryGetValue(type, out var ctor))
             {
                 ctor = AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(type, new[] { typeof(UIContext) });
+                if (ctor is null)
+                    return true;
                 WidgetConstructors.Add(type, ctor);
             }
             
