@@ -34,7 +34,7 @@ namespace Bannerlord.UIExtenderEx
             if (setDoNotUseGeneratedPrefabs is not null)
                 setDoNotUseGeneratedPrefabs(true);
             else
-                Utils.Fail("Failed to find 'DoNotUseGeneratedPrefabs'!");
+                MessageUtils.Fail("Failed to find 'DoNotUseGeneratedPrefabs'!");
 
         }
 
