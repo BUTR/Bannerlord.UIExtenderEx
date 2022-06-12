@@ -33,8 +33,8 @@ namespace Bannerlord.UIExtenderEx
                 AccessTools2.GetDeclaredPropertySetterDelegate<SetDoNotUseGeneratedPrefabsDelegate>("TaleWorlds.Engine.GauntletUI.UIConfig:DoNotUseGeneratedPrefabs");
             if (setDoNotUseGeneratedPrefabs is not null)
                 setDoNotUseGeneratedPrefabs(true);
-            else
-                Utils.Fail("Failed to find 'DoNotUseGeneratedPrefabs'!");
+            //else
+            //    MessageUtils.Fail("Failed to find 'DoNotUseGeneratedPrefabs'!");
 
         }
 
