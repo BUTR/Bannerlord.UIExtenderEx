@@ -1,4 +1,6 @@
 ﻿using Bannerlord.BUTR.Shared.Extensions;
+using Bannerlord.BUTR.Shared.Helpers;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -13,6 +15,7 @@ using System.Runtime.CompilerServices;
 
 using TaleWorlds.GauntletUI;
 using TaleWorlds.GauntletUI.PrefabSystem;
+using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Patches
 {
@@ -28,17 +31,21 @@ namespace Bannerlord.UIExtenderEx.Patches
 
         public static void Patch(Harmony harmony)
         {
-            harmony.Patch(
-                _initializeMethod,
-                transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializeTranspiler(null!, null!))));
-
-            // Transpilers are very sensitive to code changes.
-            // We can fall back to the old implementation of Initialize() as a last effort.
-            if (!_transpilerSuccessful)
+            var e180 = ApplicationVersionHelper.TryParse("e1.8.0", out var e180Var) ? e180Var : ApplicationVersion.Empty;
+            if (ApplicationVersionHelper.GameVersion() is { } gameVersion && gameVersion < e180)
             {
                 harmony.Patch(
                     _initializeMethod,
-                    prefix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializePrefix(null!))));
+                    transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializeTranspiler(null!, null!))));
+            
+                // Transpilers are very sensitive to code changes.
+                // We can fall back to the old implementation of Initialize() as a last effort.
+                if (!_transpilerSuccessful)
+                {
+                    harmony.Patch(
+                        _initializeMethod,
+                        prefix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => InitializePrefix(null!))));
+                }
             }
         }
 
@@ -51,7 +58,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 
             IEnumerable<CodeInstruction> ReturnDefault(string place)
             {
-                Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
+                MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
 
