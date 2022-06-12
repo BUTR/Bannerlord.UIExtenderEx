@@ -17,8 +17,8 @@ namespace Bannerlord.UIExtenderEx.Patches
         public static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools.DeclaredMethod(typeof(ViewModel), nameof(ViewModel.ExecuteCommand)),
-                transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_ExecuteCommand_Transpiler(null!, null!))));
+                AccessTools2.DeclaredMethod("TaleWorlds.Library.ViewModel:ExecuteCommand"),
+                transpiler: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => ViewModel_ExecuteCommand_Transpiler(null!, null!))));
         }
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
@@ -36,7 +36,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldarg_2),
-                new(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ExecuteCommand(null!, null!, null!))),
+                new(OpCodes.Call, SymbolExtensions2.GetMethodInfo(() => ExecuteCommand(null!, null!, null!))),
                 new(OpCodes.Brtrue, jmpOriginalFlow),
                 new(OpCodes.Ret)
             });

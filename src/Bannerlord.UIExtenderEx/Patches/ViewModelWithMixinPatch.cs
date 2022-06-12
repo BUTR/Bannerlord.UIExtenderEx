@@ -2,6 +2,7 @@
 using Bannerlord.UIExtenderEx.Extensions;
 
 using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections.Concurrent;
@@ -30,20 +31,21 @@ namespace Bannerlord.UIExtenderEx.Patches
                 {
                     harmony.Patch(
                         constructor,
-                        transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_Constructor_Transpiler(null!))));
+                        transpiler: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => ViewModel_Constructor_Transpiler(null!))));
                 }
 
-                if (refreshMethodName is not null && AccessTools.Method(viewModelType, refreshMethodName) is { } method)
+                if (refreshMethodName is not null && AccessTools2.Method(viewModelType, refreshMethodName) is { } method)
                 {
                     harmony.Patch(
                         method,
-                        transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_Refresh_Transpiler(null!))));
+                        transpiler: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => ViewModel_Refresh_Transpiler(null!))));
                 }
 
                 // TODO: recursion
                 harmony.Patch(
-                    AccessTools.DeclaredMethod(viewModelType, nameof(ViewModel.OnFinalize)) ?? SymbolExtensions.GetMethodInfo((ViewModel vm) => vm.OnFinalize()),
-                    transpiler: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ViewModel_Finalize_Transpiler(null!))));
+                    AccessTools.DeclaredMethod(viewModelType, nameof(ViewModel.OnFinalize)) ??
+                    SymbolExtensions2.GetMethodInfo((ViewModel vm) => vm.OnFinalize()),
+                    transpiler: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => ViewModel_Finalize_Transpiler(null!))));
             }
         }
 

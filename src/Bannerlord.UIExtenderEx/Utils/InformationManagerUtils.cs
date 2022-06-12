@@ -12,7 +12,7 @@ namespace Bannerlord.UIExtenderEx.Utils
         static InformationManagerUtils()
         {
             var type = AccessTools2.TypeByName("TaleWorlds.Core.InformationManager") ??
-                       AccessTools2.TypeByName("TaleWorlds.Library.MBInformationManager");
+                       AccessTools2.TypeByName("TaleWorlds.Library.InformationManager");
             foreach (var methodInfo in HarmonyLib.AccessTools.GetDeclaredMethods(type))
             {
                 var @params = methodInfo.GetParameters();

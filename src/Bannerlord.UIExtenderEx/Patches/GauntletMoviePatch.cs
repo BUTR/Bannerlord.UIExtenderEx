@@ -1,10 +1,9 @@
 ﻿using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-
-using TaleWorlds.GauntletUI.Data;
 
 namespace Bannerlord.UIExtenderEx.Patches
 {
@@ -28,13 +27,13 @@ namespace Bannerlord.UIExtenderEx.Patches
 
         public static void Patch(Harmony harmony)
         {
-            if (AccessTools.Method(typeof(GauntletMovie), "Load") is { } methodInfo &&
+            if (AccessTools2.Method("TaleWorlds.GauntletUI.Data.GauntletMovie:Load") is { } methodInfo &&
                 methodInfo.GetParameters() is { } @params &&
                 @params.Any(p => p.Name == "doNotUseGeneratedPrefabs"))
             {
                 harmony.Patch(
                     methodInfo,
-                    prefix: new HarmonyMethod(AccessTools.Method(typeof(GauntletMoviePatch), nameof(LoadPrefix))));
+                    prefix: new HarmonyMethod(AccessTools2.Method(typeof(GauntletMoviePatch), nameof(LoadPrefix))));
             }
         }
 
