@@ -42,8 +42,8 @@ namespace Bannerlord.UIExtenderEx
                 if (gameVersion.Major is 1 && gameVersion.Minor is 7 && gameVersion.Revision is >= 0 and < 2)
                 {
                     Harmony.TryPatch(
-                        AccessTools2.Method("SandBox.SandBoxSubModule:OnSubModuleLoad"),
-                        postfix: AccessTools2.Method(typeof(UIPatchSubModule), nameof(SandBoxSubModuleOnSubModuleLoadPostfix)));
+                        AccessTools2.DeclaredMethod("SandBox.SandBoxSubModule:OnSubModuleLoad"),
+                        postfix: AccessTools2.DeclaredMethod(typeof(UIPatchSubModule), nameof(SandBoxSubModuleOnSubModuleLoadPostfix)));
                 }
             }
         }

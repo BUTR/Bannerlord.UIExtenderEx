@@ -12,7 +12,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
-using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.Components
 {
@@ -21,8 +20,14 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal partial class PrefabComponent
     {
-        private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? GetCustomTypes = AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_customTypes");
+        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
+            AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_customTypes");
 
+        private delegate Dictionary<string, string> GetPrefabNamesAndPathsFromCurrentPathDelegate(object instance);
+        private static readonly GetPrefabNamesAndPathsFromCurrentPathDelegate? PrefabNamesMethod =
+            AccessTools2.GetDeclaredDelegate<GetPrefabNamesAndPathsFromCurrentPathDelegate>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath");
+
+        
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it for consistency>")]
@@ -168,9 +173,7 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <param name="movie"></param>
         private static string? PathForMovie(string movie)
         {
-            // TODO: figure out a method more prone to game updates
-            var prefabNamesMethod = AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
-            if (prefabNamesMethod?.Invoke(UIResourceManager.WidgetFactory, Array.Empty<object>()) is Dictionary<string, string> paths)
+            if (PrefabNamesMethod is not null && PrefabNamesMethod(UIResourceManager.WidgetFactory) is { } paths)
             {
                 return paths[movie];
             }
@@ -189,7 +192,9 @@ namespace Bannerlord.UIExtenderEx.Components
         public void ProcessMovieIfNeeded(string movie, XmlDocument document)
         {
             if (!_moviePatches.TryGetValue(movie, out var patches))
+            {
                 return;
+            }
 
             foreach (var patch in patches)
             {

@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
+using System.Linq;
+using System.Reflection;
+
 using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Tests.Utils
@@ -15,7 +18,7 @@ namespace Bannerlord.UIExtenderEx.Tests.Utils
 
         static ResourceDepotUtils()
         {
-            foreach (var constructorInfo in AccessTools.GetDeclaredConstructors(typeof(ResourceDepot), false))
+            foreach (var constructorInfo in AccessTools.GetDeclaredConstructors(typeof(ResourceDepot), false) ?? Enumerable.Empty<ConstructorInfo>())
             {
                 var @params = constructorInfo.GetParameters();
                 if (@params.Length == 0)

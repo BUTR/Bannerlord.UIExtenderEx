@@ -24,9 +24,6 @@ namespace Bannerlord.UIExtenderEx.Patches
     /// </summary>
     public static class WidgetFactoryPatch
     {
-        private static readonly MethodInfo? _initializeMethod =
-            AccessTools2.Method("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize");
-
         private static bool _transpilerSuccessful;
 
         public static void Patch(Harmony harmony)
@@ -35,16 +32,16 @@ namespace Bannerlord.UIExtenderEx.Patches
             if (ApplicationVersionHelper.GameVersion() is { } gameVersion && gameVersion < e180)
             {
                 harmony.Patch(
-                    _initializeMethod,
-                    transpiler: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => InitializeTranspiler(null!, null!))));
+                    AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize"),
+                    transpiler: new HarmonyMethod(typeof(WidgetFactoryPatch), nameof(InitializeTranspiler)));
             
                 // Transpilers are very sensitive to code changes.
                 // We can fall back to the old implementation of Initialize() as a last effort.
                 if (!_transpilerSuccessful)
                 {
                     harmony.Patch(
-                        _initializeMethod,
-                        prefix: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => InitializePrefix(null!))));
+                        AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize"),
+                        prefix: new HarmonyMethod(typeof(WidgetFactoryPatch), nameof(InitializePrefix)));
                 }
             }
         }
@@ -133,7 +130,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             {
                 foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)
                 {
-                    var method = AccessTools2.Method(prefabExtension.GetType(), "RegisterAttributeTypes");
+                    var method = AccessTools2.DeclaredMethod(prefabExtension.GetType(), "RegisterAttributeTypes");
                     method.Invoke(prefabExtension, new object[] { __instance.WidgetAttributeContext });
                 }
 

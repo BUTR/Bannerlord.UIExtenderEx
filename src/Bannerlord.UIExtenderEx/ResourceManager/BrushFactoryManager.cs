@@ -9,7 +9,6 @@ using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
-using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.ResourceManager
 {
@@ -17,10 +16,10 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
     {
         private static readonly Dictionary<string, Brush> CustomBrushes = new();
 
-        private delegate Brush LoadBrushFromDelegate(BrushFactory instance, XmlNode brushNode);
+        private delegate Brush LoadBrushFromDelegate(object instance, XmlNode brushNode);
 
         private static readonly LoadBrushFromDelegate? LoadBrushFrom =
-            AccessTools2.GetDelegate<LoadBrushFromDelegate>(typeof(BrushFactory), "LoadBrushFrom");
+            AccessTools2.GetDeclaredDelegate<LoadBrushFromDelegate>("TaleWorlds.GauntletUI.BrushFactory:LoadBrushFrom");
 
         public static IEnumerable<Brush> Create(XmlDocument xmlDocument)
         {
@@ -47,29 +46,29 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         internal static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools.PropertyGetter(typeof(BrushFactory), nameof(BrushFactory.Brushes)),
-                postfix: new HarmonyMethod(AccessTools.Method(typeof(BrushFactoryManager), nameof(GetBrushesPostfix))));
+                AccessTools2.DeclaredPropertyGetter("TaleWorlds.GauntletUI.BrushFactory:Brushes"),
+                postfix: new HarmonyMethod(typeof(BrushFactoryManager), nameof(GetBrushesPostfix)));
 
             harmony.Patch(
-                AccessTools.Method(typeof(BrushFactory), nameof(BrushFactory.GetBrush)),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(BrushFactoryManager), nameof(GetBrushPrefix))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.BrushFactory:GetBrush"),
+                prefix: new HarmonyMethod(typeof(BrushFactoryManager), nameof(GetBrushPrefix)));
 
             // Preventing inlining GetBrush
             harmony.TryPatch(
-                AccessTools.Method(typeof(ConstantDefinition), "GetValue"),
-                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.ConstantDefinition:GetValue"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
-                AccessTools.Method(typeof(WidgetExtensions), "SetWidgetAttributeFromString"),
-                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:SetWidgetAttributeFromString"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
-                AccessTools.Method(typeof(UIContext), "GetBrush"),
-                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.UIContext:GetBrush"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
-                AccessTools.Method(typeof(WidgetExtensions), "ConvertObject"),
-                transpiler: AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
-            //harmony.Patch(
-            //    AccessTools.Method(typeof(BoolBrushChanger), "OnBooleanUpdated"),
-            //    transpiler: new HarmonyMethod(AccessTools.Method(typeof(BrushFactoryManager), nameof(BlankTranspiler))));
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:ConvertObject"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+            harmony.TryPatch(
+                AccessTools2.DeclaredMethod("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChanger:OnBooleanUpdated"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             // Preventing inlining GetBrush
         }
 

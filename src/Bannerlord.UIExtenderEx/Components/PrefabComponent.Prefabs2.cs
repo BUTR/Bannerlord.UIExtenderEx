@@ -21,7 +21,7 @@ namespace Bannerlord.UIExtenderEx.Components
     {
         private readonly Lazy<IReadOnlyList<Type>> _contentAttributeTypes = new(() =>
         {
-            Type contentAttributeType = typeof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute);
+            var contentAttributeType = typeof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute);
             return contentAttributeType.Assembly.GetTypes().Where(t => !t.IsAbstract && contentAttributeType.IsAssignableFrom(t)).ToList();
         });
 

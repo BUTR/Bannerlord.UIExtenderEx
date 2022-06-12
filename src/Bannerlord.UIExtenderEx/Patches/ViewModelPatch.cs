@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using Bannerlord.BUTR.Shared.Helpers;
+
+using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
 using System;
@@ -16,9 +18,13 @@ namespace Bannerlord.UIExtenderEx.Patches
     {
         public static void Patch(Harmony harmony)
         {
-            harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.Library.ViewModel:ExecuteCommand"),
-                transpiler: new HarmonyMethod(SymbolExtensions2.GetMethodInfo(() => ViewModel_ExecuteCommand_Transpiler(null!, null!))));
+            var e180 = ApplicationVersionHelper.TryParse("e1.8.0", out var e180Var) ? e180Var : ApplicationVersion.Empty;
+            if (ApplicationVersionHelper.GameVersion() is { } gameVersion && gameVersion < e180)
+            {
+                harmony.Patch(
+                    AccessTools2.DeclaredMethod("TaleWorlds.Library.ViewModel:ExecuteCommand"),
+                    transpiler: new HarmonyMethod(typeof(ViewModelPatch), nameof(ViewModel_ExecuteCommand_Transpiler)));
+            }
         }
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]

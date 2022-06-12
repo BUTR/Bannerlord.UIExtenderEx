@@ -27,13 +27,13 @@ namespace Bannerlord.UIExtenderEx.Patches
 
         public static void Patch(Harmony harmony)
         {
-            if (AccessTools2.Method("TaleWorlds.GauntletUI.Data.GauntletMovie:Load") is { } methodInfo &&
+            if (AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.Data.GauntletMovie:Load") is { } methodInfo &&
                 methodInfo.GetParameters() is { } @params &&
                 @params.Any(p => p.Name == "doNotUseGeneratedPrefabs"))
             {
                 harmony.Patch(
                     methodInfo,
-                    prefix: new HarmonyMethod(AccessTools2.Method(typeof(GauntletMoviePatch), nameof(LoadPrefix))));
+                    prefix: new HarmonyMethod(typeof(GauntletMoviePatch), nameof(LoadPrefix)));
             }
         }
 

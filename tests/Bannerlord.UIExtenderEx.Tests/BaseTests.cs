@@ -26,14 +26,12 @@ namespace Bannerlord.UIExtenderEx.Tests
             public MockWidgetFactory() : base(ResourceDepotUtils.Create(), string.Empty)
             {
                 var harmony = new Harmony($"{nameof(MockWidgetFactory)}.ctor");
-                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
-                    new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory),
-                        nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix))));
-                harmony.Patch(AccessTools.DeclaredMethod(typeof(WidgetFactory), nameof(GetCustomType)),
-                    new HarmonyMethod(
-                        AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix))));
-                harmony.Patch(SymbolExtensions.GetMethodInfo(() => XmlReader.Create("", null!)),
-                    new HarmonyMethod(AccessTools.DeclaredMethod(typeof(MockWidgetFactory), nameof(CreatePrefix))));
+                harmony.Patch(AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
+                    new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix)));
+                harmony.Patch(AccessTools2.DeclaredMethod(typeof(WidgetFactory), nameof(GetCustomType)),
+                    new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix)));
+                harmony.Patch(SymbolExtensions2.GetMethodInfo(() => XmlReader.Create("", null!)),
+                    new HarmonyMethod(typeof(MockWidgetFactory), nameof(CreatePrefix)));
 
                 if (GetCustomTypes?.Invoke(this) is { } dictionary)
                 {

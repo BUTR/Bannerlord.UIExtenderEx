@@ -183,7 +183,7 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
         {
             var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_FileName_InsertAsLastChild)}");
             harmony.Patch(SymbolExtensions.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath))));
+                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
 
             // Arrange
             const string MovieName = "TestMovieName";
@@ -376,7 +376,7 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
         {
             var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_Remove)}");
             harmony.Patch(SymbolExtensions.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
-                prefix: new HarmonyMethod(AccessTools.Method(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath))));
+                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
 
             // Arrange
             const string MovieName = "TestMovieName";
