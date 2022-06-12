@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using Bannerlord.UIExtenderEx.Utils;
+
+using HarmonyLib;
 
 using System.Collections.Generic;
 using System.IO;
@@ -33,7 +35,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             [MethodImpl(MethodImplOptions.NoInlining)]
             IEnumerable<CodeInstruction> ReturnDefault(string place)
             {
-                Utils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
+                MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
 

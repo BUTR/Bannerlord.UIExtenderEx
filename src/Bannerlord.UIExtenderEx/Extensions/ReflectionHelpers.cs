@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using Bannerlord.UIExtenderEx.Utils;
+
+using HarmonyLib;
 
 namespace Bannerlord.UIExtenderEx.Extensions
 {
@@ -11,7 +13,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
         {
             if (o is null) return default!;
             var field = AccessTools.Field(o.GetType(), fieldName);
-            Utils.Assert(field is not null, $"private value getter on {o}.{fieldName}");
+            MessageUtils.Assert(field is not null, $"private value getter on {o}.{fieldName}");
             return field?.GetValue(o) is T obj ? obj : default;
         }
 
@@ -19,7 +21,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
         {
             if (o is null) return;
             var field = AccessTools.Field(o.GetType(), fieldName);
-            Utils.Assert(field is not null, $"private value setter on {o}.{fieldName}");
+            MessageUtils.Assert(field is not null, $"private value setter on {o}.{fieldName}");
             field?.SetValue(o, value);
         }
     }

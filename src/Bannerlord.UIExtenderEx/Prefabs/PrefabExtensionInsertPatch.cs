@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Bannerlord.UIExtenderEx.Utils;
+
+using System;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -47,11 +49,11 @@ namespace Bannerlord.UIExtenderEx.Prefabs
             }
             else
             {
-                Utils.Fail($"Failed to get file {path} XML!");
+                MessageUtils.Fail($"Failed to get file {path} XML!");
             }
 
             if (!doc.HasChildNodes)
-                Utils.Fail($"Failed to parse extension ({Name}) XML!");
+                MessageUtils.Fail($"Failed to parse extension ({Name}) XML!");
 
             return doc;
         }
@@ -85,11 +87,11 @@ namespace Bannerlord.UIExtenderEx.Prefabs
             }
             else
             {
-                Utils.Fail($"Failed get stream from assembly resource ({Assembly.FullName} {Path})!");
+                MessageUtils.Fail($"Failed get stream from assembly resource ({Assembly.FullName} {Path})!");
             }
 
             if (!doc.HasChildNodes)
-                Utils.Fail($"Failed to parse extension ({Assembly.FullName} {Path}) XML!");
+                MessageUtils.Fail($"Failed to parse extension ({Assembly.FullName} {Path}) XML!");
 
             return doc;
         }

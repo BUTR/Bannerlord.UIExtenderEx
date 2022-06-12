@@ -1,6 +1,7 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Components;
 using Bannerlord.UIExtenderEx.Patches;
+using Bannerlord.UIExtenderEx.Utils;
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +61,7 @@ namespace Bannerlord.UIExtenderEx
                             var constructor = extensionType.GetConstructor(Type.EmptyTypes);
                             if (constructor is null)
                             {
-                                Utils.Fail("Failed to find appropriate constructor for patch!");
+                                MessageUtils.Fail("Failed to find appropriate constructor for patch!");
                                 continue;
                             }
 
@@ -96,7 +97,7 @@ namespace Bannerlord.UIExtenderEx
                                     break;
 
                                 default:
-                                    Utils.Fail($"Patch class is unsupported - {extensionType}!");
+                                    MessageUtils.Fail($"Patch class is unsupported - {extensionType}!");
                                     break;
                             }
 
@@ -113,7 +114,7 @@ namespace Bannerlord.UIExtenderEx
                             break;
 
                         default:
-                            Utils.Fail($"Failed to find appropriate clause for base type {extensionType} with attribute {baseAttribute}!");
+                            MessageUtils.Fail($"Failed to find appropriate clause for base type {extensionType} with attribute {baseAttribute}!");
                             break;
                     }
                 }

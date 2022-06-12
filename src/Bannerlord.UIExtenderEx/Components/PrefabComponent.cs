@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Prefabs2;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -66,7 +67,7 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             if (string.IsNullOrEmpty(movie))
             {
-                Utils.Fail("Invalid movie name!");
+                MessageUtils.Fail("Invalid movie name!");
                 return;
             }
 
@@ -83,7 +84,7 @@ namespace Bannerlord.UIExtenderEx.Components
             //RegisterPatch(movie, (XmlDocument node) => patcher(node));
             if (string.IsNullOrEmpty(movie))
             {
-                Utils.Fail("Invalid movie name!");
+                MessageUtils.Fail("Invalid movie name!");
                 return;
             }
 
@@ -101,7 +102,7 @@ namespace Bannerlord.UIExtenderEx.Components
             var node2 = node.SelectSingleNode(xpath ?? string.Empty);
             if (node2 is null)
             {
-                Utils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
+                MessageUtils.DisplayUserError($"Failed to apply extension to {movie}: node at {xpath} not found.");
                 return;
             }
 
@@ -126,7 +127,7 @@ namespace Bannerlord.UIExtenderEx.Components
                     if (GetCustomTypes is not null)
                     {
                         var dict = GetCustomTypes(UIResourceManager.WidgetFactory);
-                        Utils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypes!");
+                        MessageUtils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypes!");
                         // remove widget from previously loaded Widgets
                         dict.Remove(movie);
 
@@ -175,7 +176,7 @@ namespace Bannerlord.UIExtenderEx.Components
             }
             else
             {
-                Utils.DisplayUserError("UIExtenderEx could not find WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath!");
+                MessageUtils.DisplayUserError("UIExtenderEx could not find WidgetFactory.GetPrefabNamesAndPathsFromCurrentPath!");
                 return null;
             }
         }

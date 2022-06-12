@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Prefabs2;
+using Bannerlord.UIExtenderEx.Utils;
 
 using System;
 using System.Collections.Generic;
@@ -39,19 +40,19 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             if (node.OwnerDocument is not { } ownerDocument)
             {
-                Utils.Fail($"XML original document for {movie} is null!");
+                MessageUtils.Fail($"XML original document for {movie} is null!");
                 return;
             }
 
             if (!TryGetNodes(patch, out IEnumerable<XmlNode>? nodes, out string errorMessage))
             {
-                Utils.Fail(errorMessage);
+                MessageUtils.Fail(errorMessage);
                 return;
             }
 
             if (patch.Type != InsertType.Child && node.ParentNode is null)
             {
-                Utils.Fail($"Trying to place multiple root nodes into {movie}!");
+                MessageUtils.Fail($"Trying to place multiple root nodes into {movie}!");
                 return;
             }
 
