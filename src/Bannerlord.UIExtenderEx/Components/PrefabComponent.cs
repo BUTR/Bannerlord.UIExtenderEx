@@ -27,7 +27,7 @@ namespace Bannerlord.UIExtenderEx.Components
         private static readonly GetPrefabNamesAndPathsFromCurrentPathDelegate? PrefabNamesMethod =
             AccessTools2.GetDeclaredDelegate<GetPrefabNamesAndPathsFromCurrentPathDelegate>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath");
 
-        
+
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Keeping it for consistency>")]

@@ -24,10 +24,10 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         {
             _vm = new WeakReference<TViewModel>(vm);
         }
-        
+
         /// <inheritdoc cref="IViewModelMixin.OnRefresh"/>
         public virtual void OnRefresh() { }
-        
+
         /// <inheritdoc cref="IViewModelMixin.OnFinalize"/>
         public virtual void OnFinalize() { }
 

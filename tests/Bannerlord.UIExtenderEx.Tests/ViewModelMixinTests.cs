@@ -40,7 +40,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             Assert.True(TestVMMixin.MixinMethodCalled);
             Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
         }
-        
+
         [Test]
         public void MixinMethodIsCalledDerivedTest()
         {

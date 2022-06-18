@@ -122,7 +122,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
                     return true;
                 WidgetConstructors.Add(type, ctor);
             }
-            
+
             __result = ctor;
             return false;
         }
