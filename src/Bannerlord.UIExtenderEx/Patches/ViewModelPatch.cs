@@ -41,10 +41,10 @@ namespace Bannerlord.UIExtenderEx.Patches
                 MessageUtils.DisplayUserWarning("Failed to patch ViewModel.ExecuteCommand! {0}", place);
                 return instructionsList.AsEnumerable();
             }
-            
+
             if (AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelPatch:ExecuteCommand") is not { } executeCommand)
                 return ReturnDefault("ViewModelPatch:ExecuteCommand not found");
-            
+
             var jmpOriginalFlow = ilGenerator.DefineLabel();
             instructionsList[0].labels.Add(jmpOriginalFlow);
 

@@ -31,7 +31,7 @@ namespace Bannerlord.UIExtenderEx.Tests
                     new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix)));
                 harmony.Patch(AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetCustomType"),
                     new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix)));
-                harmony.Patch(AccessTools2.DeclaredMethod("System.Xml.XmlReader:Create", new [] { typeof(string), typeof(XmlReaderSettings) }),
+                harmony.Patch(AccessTools2.DeclaredMethod("System.Xml.XmlReader:Create", new[] { typeof(string), typeof(XmlReaderSettings) }),
                     new HarmonyMethod(typeof(MockWidgetFactory), nameof(CreatePrefix)));
 
                 if (GetCustomTypes?.Invoke(this) is { } dictionary)
@@ -119,9 +119,9 @@ namespace Bannerlord.UIExtenderEx.Tests
         public virtual void Setup()
         {
             _ = Assembly.Load("TaleWorlds.Engine.GauntletUI");
-            
+
             System.Diagnostics.Trace.Listeners.Clear();
-            
+
             var property = AccessTools2.DeclaredProperty("TaleWorlds.Engine.GauntletUI.UIResourceManager:WidgetFactory");
             property!.SetValue(null, new MockWidgetFactory());
         }

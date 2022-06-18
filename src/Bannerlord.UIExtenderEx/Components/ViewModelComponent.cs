@@ -62,7 +62,7 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             Enabled = false;
         }
-        
+
         /// <summary>
         /// Register mixin type.
         /// </summary>
