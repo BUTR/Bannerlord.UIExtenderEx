@@ -34,7 +34,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 harmony.Patch(
                     AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:Initialize"),
                     transpiler: new HarmonyMethod(typeof(WidgetFactoryPatch), nameof(InitializeTranspiler)));
-            
+
                 // Transpilers are very sensitive to code changes.
                 // We can fall back to the old implementation of Initialize() as a last effort.
                 if (!_transpilerSuccessful)
@@ -58,7 +58,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
-            
+
             if (AccessTools2.DeclaredField("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes") is not { } _builtinTypes)
                 return ReturnDefault("WidgetFactory:_builtinTypes not found");
 

@@ -39,10 +39,10 @@ namespace Bannerlord.UIExtenderEx.Patches
                 MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
-            
+
             if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
                 return ReturnDefault("WidgetPrefab constructor not found");
-            
+
             if (AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.WidgetPrefabPatch:ProcessMovie") is not { } processMovieMethod)
                 return ReturnDefault("WidgetPrefabPatch:ProcessMovie not found");
 
@@ -107,14 +107,14 @@ namespace Bannerlord.UIExtenderEx.Patches
                     new (OpCodes.Ldnull),
                     new (OpCodes.Ret)
                 }.AsEnumerable();
-                
+
                 [MethodImpl(MethodImplOptions.NoInlining)]
                 IEnumerable<CodeInstruction> ReturnDefault(string place)
                 {
                     MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab:LoadFrom.Transpiler! {0}", place);
                     return returnNull;
                 }
-                
+
                 if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
                     return ReturnDefault("WidgetPrefab constructor not found");
 
