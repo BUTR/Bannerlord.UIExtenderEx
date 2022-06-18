@@ -52,7 +52,8 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IEnumerable<CodeInstruction> ViewModel_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions2.GetMethodInfo(() => Constructor(null!)));
+        private static IEnumerable<CodeInstruction> ViewModel_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions)
+            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch:Constructor"));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Constructor(ViewModel viewModel)
         {
@@ -94,7 +95,8 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IEnumerable<CodeInstruction> ViewModel_Refresh_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions2.GetMethodInfo(() => Refresh(null!)));
+        private static IEnumerable<CodeInstruction> ViewModel_Refresh_Transpiler(IEnumerable<CodeInstruction> instructions)
+            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch:Refresh"));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Refresh(ViewModel viewModel)
         {
@@ -118,7 +120,8 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions) => InsertMethodAtEnd(instructions, SymbolExtensions2.GetMethodInfo(() => Finalize(null!)));
+        private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions)
+            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch:Finalize"));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Finalize(ViewModel viewModel)
         {
@@ -132,11 +135,11 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
         }
 
-        private static IEnumerable<CodeInstruction> InsertMethodAtEnd(IEnumerable<CodeInstruction> instructions, MethodInfo method)
+        private static IEnumerable<CodeInstruction> InsertMethodAtEnd(IEnumerable<CodeInstruction> instructions, MethodInfo? method)
         {
             foreach (var instruction in instructions)
             {
-                if (instruction.opcode == OpCodes.Ret)
+                if (method is not null && instruction.opcode == OpCodes.Ret)
                 {
                     var labels = instruction.labels;
                     instruction.labels = new List<Label>();

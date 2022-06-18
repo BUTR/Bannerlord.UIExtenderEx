@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
-using System;
 using System.Linq;
 using System.Reflection;
 
@@ -9,7 +8,7 @@ using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Utils
 {
-    public static class InformationMessageUtils
+    internal static class InformationMessageUtils
     {
         private delegate object CtorV1Delegate(string information, Color color);
         private static readonly CtorV1Delegate? V1;
@@ -21,7 +20,7 @@ namespace Bannerlord.UIExtenderEx.Utils
             foreach (var constructorInfo in AccessTools.GetDeclaredConstructors(type, false) ?? Enumerable.Empty<ConstructorInfo>())
             {
                 var @params = constructorInfo.GetParameters();
-                if (@params.Length == 9)
+                if (@params.Length == 2 && @params[0].ParameterType == typeof(string) && @params[1].ParameterType == typeof(Color))
                 {
                     V1 = AccessTools2.GetDelegate<CtorV1Delegate>(constructorInfo);
                 }
@@ -32,8 +31,7 @@ namespace Bannerlord.UIExtenderEx.Utils
         {
             if (V1 is not null)
             {
-                var obj = V1(information, color);
-                return InformationMessageWrapper.Create(obj);
+                return InformationMessageWrapper.Create(V1(information, color));
             }
 
             return null;

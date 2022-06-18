@@ -43,7 +43,7 @@ namespace Bannerlord.UIExtenderEx
                 {
                     Harmony.TryPatch(
                         AccessTools2.DeclaredMethod("SandBox.SandBoxSubModule:OnSubModuleLoad"),
-                        postfix: AccessTools2.DeclaredMethod(typeof(UIPatchSubModule), nameof(SandBoxSubModuleOnSubModuleLoadPostfix)));
+                        postfix: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.UIPatchSubModule:SandBoxSubModuleOnSubModuleLoadPostfix"));
                 }
             }
         }

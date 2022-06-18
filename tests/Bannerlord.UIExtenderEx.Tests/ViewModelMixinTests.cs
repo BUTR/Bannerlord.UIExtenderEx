@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
 
 using System;
-using System.Linq;
 
 namespace Bannerlord.UIExtenderEx.Tests
 {
@@ -15,7 +14,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             uiExtender.Enable();
 
             var viewModel = new TestVM();
-            Assert.True(viewModel.Properties.Contains(nameof(TestVMMixin.MixinProperty)));
+            Assert.True(viewModel.GetPropertyType(nameof(TestVMMixin.MixinProperty)) is not null);
         }
 
         [Test]
@@ -26,7 +25,7 @@ namespace Bannerlord.UIExtenderEx.Tests
             uiExtender.Enable();
 
             var viewModel = new DerivedTestVM();
-            Assert.True(viewModel.Properties.Contains(nameof(DerivedTestVMMixin.DerivedMixinProperty)));
+            Assert.True(viewModel.GetPropertyType(nameof(DerivedTestVMMixin.DerivedMixinProperty)) is not null);
         }
 
         [Test]
@@ -39,6 +38,20 @@ namespace Bannerlord.UIExtenderEx.Tests
             var viewModel = new TestVM();
             viewModel.ExecuteCommand(nameof(TestVMMixin.MixinMethod), Array.Empty<object>());
             Assert.True(TestVMMixin.MixinMethodCalled);
+            Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
+        }
+
+        [Test]
+        public void MixinMethodIsCalledDerivedTest()
+        {
+            var uiExtender = new UIExtender(nameof(MixinMethodIsCalledTest));
+            uiExtender.Register(typeof(PrefabsTests).Assembly);
+            uiExtender.Enable();
+
+            var viewModel = new TestVM();
+            viewModel.ExecuteCommand(nameof(DerivedTestVMMixin.DerivedMixinMethod), Array.Empty<object>());
+            Assert.False(TestVMMixin.MixinMethodCalled);
+            Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
         }
     }
 }

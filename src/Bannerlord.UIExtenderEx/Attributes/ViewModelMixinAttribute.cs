@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Bannerlord.UIExtenderEx.ViewModels;
+
+using System;
 
 namespace Bannerlord.UIExtenderEx.Attributes
 {
     /// <summary>
     /// Attribute to mark view model mixins.
-    /// Mixin classes should extend from `BaseViewModelMixin<T>` and should be marked with this attribute
+    /// Mixin classes should extend from <see cref="BaseViewModelMixin{TViewModel}"/> and should be marked with this attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class ViewModelMixinAttribute : BaseUIExtenderAttribute
