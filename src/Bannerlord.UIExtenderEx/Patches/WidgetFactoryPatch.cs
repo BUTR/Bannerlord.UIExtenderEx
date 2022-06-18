@@ -58,6 +58,9 @@ namespace Bannerlord.UIExtenderEx.Patches
                 MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
+            
+            if (AccessTools2.DeclaredField("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes") is not { } _builtinTypes)
+                return ReturnDefault("WidgetFactory:_builtinTypes not found");
 
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(Type));
@@ -72,19 +75,19 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (!instructionsList[i + 0].IsLdarg(0))
                     continue;
 
-                if (!instructionsList[i + 1].LoadsField(AccessTools2.DeclaredField("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes")))
+                if (!instructionsList[i + 1].LoadsField(_builtinTypes))
                     continue;
 
                 if (!instructionsList[i + 2].IsLdloc())
                     continue;
 
-                if (!instructionsList[i + 3].Calls(SymbolExtensions2.GetPropertyGetter((MemberInfo x) => x.Name)))
+                if (!instructionsList[i + 3].Calls(AccessTools2.DeclaredPropertyGetter("System.Reflection.MemberInfo:Name")))
                     continue;
 
                 if (!instructionsList[i + 4].IsLdloc())
                     continue;
 
-                if (!instructionsList[i + 5].Calls(SymbolExtensions2.GetMethodInfo((Dictionary<string, Type> d) => d.Add(null!, null!))))
+                if (!instructionsList[i + 5].Calls(AccessTools2.DeclaredMethod("System.Collections.Generic.Dictionary`2:Add")))
                     continue;
 
                 startIndex = i;
@@ -104,10 +107,10 @@ namespace Bannerlord.UIExtenderEx.Patches
             instructionsList.InsertRange(startIndex, new List<CodeInstruction>
             {
                 new(OpCodes.Ldarg_0),
-                new(OpCodes.Ldfld, AccessTools2.DeclaredField("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_builtinTypes")),
+                new(OpCodes.Ldfld, _builtinTypes),
                 new(OpCodes.Ldloc, typeLocal.LocalIndex),
-                new(OpCodes.Callvirt, SymbolExtensions2.GetPropertyGetter((MemberInfo x) => x.Name)),
-                new(OpCodes.Callvirt, SymbolExtensions2.GetMethodInfo((Dictionary<string, Type> d) => d.ContainsKey(null!))),
+                new(OpCodes.Callvirt, AccessTools2.DeclaredPropertyGetter("System.Reflection.MemberInfo:Name")),
+                new(OpCodes.Callvirt, AccessTools2.DeclaredMethod("System.Collections.Generic.Dictionary`2:ContainsKey")),
                 new(OpCodes.Brtrue_S, jmpEnumerator)
             });
             _transpilerSuccessful = true;

@@ -53,23 +53,25 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.BrushFactory:GetBrush"),
                 prefix: new HarmonyMethod(typeof(BrushFactoryManager), nameof(GetBrushPrefix)));
 
+#pragma warning disable BHA0001
             // Preventing inlining GetBrush
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.ConstantDefinition:GetValue"),
-                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:SetWidgetAttributeFromString"),
-                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.UIContext:GetBrush"),
-                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:ConvertObject"),
-                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChanger:OnBooleanUpdated"),
-                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
             // Preventing inlining GetBrush
+#pragma warning restore BHA0001
         }
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
@@ -83,7 +85,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool GetBrushPrefix(string name, Dictionary<string, Brush> ____brushes, ref Brush __result)
+        private static bool GetBrushPrefix(string name, IReadOnlyDictionary<string, Brush> ____brushes, ref Brush __result)
         {
             if (____brushes.ContainsKey(name) || !CustomBrushes.ContainsKey(name))
             {

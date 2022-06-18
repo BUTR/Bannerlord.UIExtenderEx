@@ -1,4 +1,5 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -32,21 +33,31 @@ namespace Bannerlord.UIExtenderEx.Patches
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_ExecuteCommand_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilGenerator)
         {
-            var instructionList = instructions.ToList();
+            var instructionsList = instructions.ToList();
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            IEnumerable<CodeInstruction> ReturnDefault(string place)
+            {
+                MessageUtils.DisplayUserWarning("Failed to patch ViewModel.ExecuteCommand! {0}", place);
+                return instructionsList.AsEnumerable();
+            }
+            
+            if (AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelPatch:ExecuteCommand") is not { } executeCommand)
+                return ReturnDefault("ViewModelPatch:ExecuteCommand not found");
+            
             var jmpOriginalFlow = ilGenerator.DefineLabel();
-            instructionList[0].labels.Add(jmpOriginalFlow);
+            instructionsList[0].labels.Add(jmpOriginalFlow);
 
-            instructionList.InsertRange(0, new List<CodeInstruction>
+            instructionsList.InsertRange(0, new List<CodeInstruction>
             {
                 new(OpCodes.Ldarg_0),
                 new(OpCodes.Ldarg_1),
                 new(OpCodes.Ldarg_2),
-                new(OpCodes.Call, SymbolExtensions2.GetMethodInfo(() => ExecuteCommand(null!, null!, null!))),
+                new(OpCodes.Call, executeCommand),
                 new(OpCodes.Brtrue, jmpOriginalFlow),
                 new(OpCodes.Ret)
             });
-            return instructionList;
+            return instructionsList;
         }
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]

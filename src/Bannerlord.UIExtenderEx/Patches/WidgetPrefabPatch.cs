@@ -39,17 +39,18 @@ namespace Bannerlord.UIExtenderEx.Patches
                 MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab.LoadFrom! {0}", place);
                 return instructionsList.AsEnumerable();
             }
-
-            var constructor = AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab");
-            var processMovieMethod = SymbolExtensions2.GetMethodInfo(() => ProcessMovie(null!, null!));
+            
+            if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
+                return ReturnDefault("WidgetPrefab constructor not found");
+            
+            if (AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.WidgetPrefabPatch:ProcessMovie") is not { } processMovieMethod)
+                return ReturnDefault("WidgetPrefabPatch:ProcessMovie not found");
 
             var locals = method.GetMethodBody()?.LocalVariables;
             var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(WidgetPrefab));
 
             if (typeLocal is null)
-            {
                 return ReturnDefault("Local not found");
-            }
 
             var startIndex = -1;
             for (var i = 0; i < instructionsList.Count - 2; i++)
@@ -106,6 +107,16 @@ namespace Bannerlord.UIExtenderEx.Patches
                     new (OpCodes.Ldnull),
                     new (OpCodes.Ret)
                 }.AsEnumerable();
+                
+                [MethodImpl(MethodImplOptions.NoInlining)]
+                IEnumerable<CodeInstruction> ReturnDefault(string place)
+                {
+                    MessageUtils.DisplayUserWarning("Failed to patch WidgetPrefab:LoadFrom.Transpiler! {0}", place);
+                    return returnNull;
+                }
+                
+                if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
+                    return ReturnDefault("WidgetPrefab constructor not found");
 
                 var instructionList = instructions.ToList();
 
@@ -118,7 +129,6 @@ namespace Bannerlord.UIExtenderEx.Patches
                 }
 
                 var constructorIndex = -1;
-                var constructor = AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab");
                 for (var i = 0; i < instructionList.Count; i++)
                 {
                     if (instructionList[i].opcode == OpCodes.Newobj && Equals(instructionList[i].operand, constructor))

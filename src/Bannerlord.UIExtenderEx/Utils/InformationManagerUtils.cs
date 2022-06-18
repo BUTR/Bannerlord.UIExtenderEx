@@ -6,11 +6,11 @@ using System.Reflection;
 
 namespace Bannerlord.UIExtenderEx.Utils
 {
-    public static class InformationManagerUtils
+    internal static class InformationManagerUtils
     {
         private delegate void DisplayMessageV1Delegate(object data);
         private static readonly DisplayMessageV1Delegate? DisplayMessageV1;
-        
+
         static InformationManagerUtils()
         {
             var type = AccessTools2.TypeByName("TaleWorlds.Core.InformationManager") ??
@@ -28,8 +28,10 @@ namespace Bannerlord.UIExtenderEx.Utils
         public static void DisplayMessage(InformationMessageWrapper? message)
         {
             if (message is null)
+            {
                 return;
-
+            }
+            
             if (DisplayMessageV1 is not null)
             {
                 DisplayMessageV1(message.Object);

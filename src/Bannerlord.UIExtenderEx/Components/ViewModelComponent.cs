@@ -62,11 +62,12 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             Enabled = false;
         }
-
+        
         /// <summary>
         /// Register mixin type.
         /// </summary>
-        /// <param name="mixinType">mixin type, should be a subclass of ViewModelExtender<T> where T specify view model to extend</param>
+        /// <param name="mixinType">mixin type, should be a subclass of <see cref="BaseViewModelMixin{TViewModel}"/> where
+        /// the type parameter specifies the view model to extend</param>
         /// <param name="refreshMethodName"></param>
         /// <param name="handleDerived"></param>
         public void RegisterViewModelMixin(Type mixinType, string? refreshMethodName = null, bool handleDerived = false)

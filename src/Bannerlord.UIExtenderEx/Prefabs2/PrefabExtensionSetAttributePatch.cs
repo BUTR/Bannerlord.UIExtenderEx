@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Xml;
+﻿using Bannerlord.UIExtenderEx.Attributes;
+
+using System.Collections.Generic;
 
 namespace Bannerlord.UIExtenderEx.Prefabs2
 {
     /// <summary>
-    /// Patch that adds or replaces node's attributes specified by XPath with node from prefab extension
+    /// Patch that adds or replaces node's attributes specified by <see cref="PrefabExtensionAttribute.XPath"/> with node from prefab extension
     /// </summary>
     public abstract class PrefabExtensionSetAttributePatch
     {

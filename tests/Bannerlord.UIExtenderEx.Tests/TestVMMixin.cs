@@ -63,7 +63,7 @@ namespace Bannerlord.UIExtenderEx.Tests
         }
 
         [DataSourceMethod]
-        public void MixinMethod()
+        public void DerivedMixinMethod()
         {
             DerivedMixinMethodCalled = true;
         }

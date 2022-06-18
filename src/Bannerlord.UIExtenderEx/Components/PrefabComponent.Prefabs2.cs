@@ -44,7 +44,7 @@ namespace Bannerlord.UIExtenderEx.Components
                 return;
             }
 
-            if (!TryGetNodes(patch, out IEnumerable<XmlNode>? nodes, out string errorMessage))
+            if (!TryGetNodes(patch, out var nodes, out var errorMessage))
             {
                 MessageUtils.Fail(errorMessage);
                 return;
@@ -56,19 +56,19 @@ namespace Bannerlord.UIExtenderEx.Components
                 return;
             }
 
-            XmlNode? lastPlacedNode = null;
-            XmlNodeList? oldChildNodes = null;
-            XmlNode[] nodesArray = nodes!.ToArray();
+            var lastPlacedNode = default(XmlNode);
+            var oldChildNodes = default(XmlNodeList);
+            var nodesArray = nodes!.ToArray();
             var firstNodeInserted = false;
             for (var i = 0; i < nodesArray.Length; ++i)
             {
-                XmlNode currentNode = nodesArray[i];
+                var currentNode = nodesArray[i];
                 if (!TryRemoveComments(currentNode))
                 {
                     continue;
                 }
 
-                XmlNode importedNode = ownerDocument!.ImportNode(currentNode, true);
+                var importedNode = ownerDocument.ImportNode(currentNode, true);
 
                 if (!firstNodeInserted)
                 {
@@ -76,12 +76,12 @@ namespace Bannerlord.UIExtenderEx.Components
                     // Insert initial node.
                     lastPlacedNode = patch.Type switch
                     {
-                        InsertType.Prepend => node!.ParentNode!.InsertBefore(importedNode, node),
+                        InsertType.Prepend => node.ParentNode!.InsertBefore(importedNode, node),
                         InsertType.ReplaceKeepChildren => ReplaceKeepChildren(node, importedNode, patch.Index == 0 || nodesArray.Length == 1, out oldChildNodes),
                         InsertType.Replace => ReplaceNode(node, importedNode),
                         InsertType.Child => InsertAsChild(node, importedNode, patch.Index),
-                        InsertType.Append => node!.ParentNode!.InsertAfter(importedNode, node),
-                        InsertType.Remove => node!.ParentNode!.RemoveChild(node),
+                        InsertType.Append => node.ParentNode!.InsertAfter(importedNode, node),
+                        InsertType.Remove => node.ParentNode!.RemoveChild(node),
                         _ => throw new ArgumentOutOfRangeException()
                     };
                 }
@@ -103,7 +103,7 @@ namespace Bannerlord.UIExtenderEx.Components
 
         private static XmlNode ReplaceNode(XmlNode targetNode, XmlNode importedNode)
         {
-            targetNode!.ParentNode!.ReplaceChild(importedNode, targetNode);
+            targetNode.ParentNode!.ReplaceChild(importedNode, targetNode);
             return importedNode;
         }
 
@@ -145,8 +145,8 @@ namespace Bannerlord.UIExtenderEx.Components
         {
             nodes = null;
 
-            Type patchType = patch.GetType();
-            MemberInfo[] contentMembers = patchType.GetMembers().Where(m => _contentAttributeTypes.Value.Any(t => Attribute.GetCustomAttribute(m, t) is not null)).ToArray();
+            var patchType = patch.GetType();
+            var contentMembers = patchType.GetMembers().Where(m => _contentAttributeTypes.Value.Any(t => Attribute.GetCustomAttribute(m, t) is not null)).ToArray();
 
             // Validate single members with Content attribute.
             if (contentMembers.Length != 1)
@@ -156,7 +156,7 @@ namespace Bannerlord.UIExtenderEx.Components
                 return false;
             }
 
-            Attribute[] contentAttributes = _contentAttributeTypes.Value.Select(t => Attribute.GetCustomAttribute(contentMembers[0], t)).Where(a => a != null).ToArray();
+            var contentAttributes = _contentAttributeTypes.Value.Select(t => Attribute.GetCustomAttribute(contentMembers[0], t)).Where(a => a != null).ToArray();
 
             // Validate member has single content attribute.
             if (contentAttributes.Length != 1)
@@ -236,7 +236,7 @@ namespace Bannerlord.UIExtenderEx.Components
             PrefabExtensionInsertPatch instance,
             ref string errorMessage)
         {
-            XmlNode[]? result = !TryGetContent(contentMemberInfo, instance, ref errorMessage, out IEnumerable<XmlNode>? xmlNodes) ? null : xmlNodes!.ToArray();
+            var result = !TryGetContent(contentMemberInfo, instance, ref errorMessage, out IEnumerable<XmlNode>? xmlNodes) ? null : xmlNodes!.ToArray();
 
             // Catches potential issue where XmlDocuments cannot be imported into other documents.
             if (result is not null)
@@ -342,7 +342,7 @@ namespace Bannerlord.UIExtenderEx.Components
 
             if (value is not T castContent)
             {
-                Type memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo) memberInfo).ReturnType;
+                var memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo) memberInfo).ReturnType;
                 errorMessage += $"is of type: {memberType.Name}, while its attribute type expects a {typeof(T).Name}. " +
                                 $"See {nameof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute)} for more information.";
                 return false;
@@ -373,7 +373,7 @@ namespace Bannerlord.UIExtenderEx.Components
             {
                 if (node.Attributes![attribute.Name] is null)
                 {
-                    var newAttribute = ownerDocument!.CreateAttribute(attribute.Name);
+                    var newAttribute = ownerDocument.CreateAttribute(attribute.Name);
                     node.Attributes.Append(newAttribute);
                 }
 

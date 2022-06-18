@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
-using System;
 using System.Linq;
 using System.Reflection;
 
@@ -9,7 +8,7 @@ using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Utils
 {
-    public static class InformationMessageUtils
+    internal static class InformationMessageUtils
     {
         private delegate object CtorV1Delegate(string information, Color color);
         private static readonly CtorV1Delegate? V1;
@@ -32,8 +31,7 @@ namespace Bannerlord.UIExtenderEx.Utils
         {
             if (V1 is not null)
             {
-                var obj = V1(information, color);
-                return InformationMessageWrapper.Create(obj);
+                return InformationMessageWrapper.Create(V1(information, color));
             }
 
             return null;

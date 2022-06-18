@@ -7,6 +7,7 @@ using NUnit.Framework;
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
@@ -21,16 +22,16 @@ namespace Bannerlord.UIExtenderEx.Tests
         protected class MockWidgetFactory : WidgetFactory
         {
             private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
-                AccessTools2.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_customTypes");
+                AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_customTypes");
 
             public MockWidgetFactory() : base(ResourceDepotUtils.Create(), string.Empty)
             {
                 var harmony = new Harmony($"{nameof(MockWidgetFactory)}.ctor");
-                harmony.Patch(AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath"),
+                harmony.Patch(AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath"),
                     new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix)));
-                harmony.Patch(AccessTools2.DeclaredMethod(typeof(WidgetFactory), nameof(GetCustomType)),
+                harmony.Patch(AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetCustomType"),
                     new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix)));
-                harmony.Patch(SymbolExtensions2.GetMethodInfo(() => XmlReader.Create("", null!)),
+                harmony.Patch(AccessTools2.DeclaredMethod("System.Xml.XmlReader:Create", new [] { typeof(string), typeof(XmlReaderSettings) }),
                     new HarmonyMethod(typeof(MockWidgetFactory), nameof(CreatePrefix)));
 
                 if (GetCustomTypes?.Invoke(this) is { } dictionary)
@@ -117,9 +118,12 @@ namespace Bannerlord.UIExtenderEx.Tests
         [OneTimeSetUp]
         public virtual void Setup()
         {
+            _ = Assembly.Load("TaleWorlds.Engine.GauntletUI");
+            
             System.Diagnostics.Trace.Listeners.Clear();
-            var property = AccessTools.DeclaredProperty(typeof(UIResourceManager), nameof(UIResourceManager.WidgetFactory));
-            property.SetValue(null, new MockWidgetFactory());
+            
+            var property = AccessTools2.DeclaredProperty("TaleWorlds.Engine.GauntletUI.UIResourceManager:WidgetFactory");
+            property!.SetValue(null, new MockWidgetFactory());
         }
     }
 }
