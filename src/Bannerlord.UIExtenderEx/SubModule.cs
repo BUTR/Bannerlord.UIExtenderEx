@@ -47,6 +47,14 @@ namespace Bannerlord.UIExtenderEx
         public SubModule()
         {
             CheckLoadOrder();
+            
+            if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
+            {
+                if (gameVersion.Major is 1 && gameVersion.Minor is 8 && gameVersion.Revision is >= 0)
+                {
+                    LocalizedTextManagerUtils.LoadLanguageData();
+                }
+            }
         }
 
         private static void CheckLoadOrder()
