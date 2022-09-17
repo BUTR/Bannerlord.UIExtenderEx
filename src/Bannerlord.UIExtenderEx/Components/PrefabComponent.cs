@@ -173,7 +173,7 @@ namespace Bannerlord.UIExtenderEx.Components
         /// <param name="movie"></param>
         private static string? PathForMovie(string movie)
         {
-            if (PrefabNamesMethod is not null && PrefabNamesMethod(UIResourceManager.WidgetFactory) is { } paths)
+            if (PrefabNamesMethod?.Invoke(UIResourceManager.WidgetFactory) is { } paths)
             {
                 return paths[movie];
             }

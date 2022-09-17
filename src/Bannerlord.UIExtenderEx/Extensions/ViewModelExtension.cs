@@ -27,14 +27,14 @@ namespace Bannerlord.UIExtenderEx.Extensions
 
         public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
         {
-            if (PropertyInfosField is not null && PropertyInfosField(viewModel) is { } dict && !dict.ContainsKey(name))
+            if (PropertyInfosField?.Invoke(viewModel) is { } dict && !dict.ContainsKey(name))
             {
                 dict.Add(name, propertyInfo);
             }
 
-            if (PropertiesAndMethods is not null && PropertiesAndMethods(viewModel) is { } storage)
+            if (PropertiesAndMethods?.Invoke(viewModel) is { } storage)
             {
-                if (GetProperties is not null && GetProperties(storage) is { } propDict)
+                if (GetProperties?.Invoke(storage) is { } propDict)
                 {
                     propDict[name] = propertyInfo;
                 }
@@ -43,9 +43,9 @@ namespace Bannerlord.UIExtenderEx.Extensions
 
         public static void AddMethod(this ViewModel viewModel, string name, MethodInfo methodInfo)
         {
-            if (PropertiesAndMethods is not null && PropertiesAndMethods(viewModel) is { } storage)
+            if (PropertiesAndMethods?.Invoke(viewModel) is { } storage)
             {
-                if (GetMethods is not null && GetMethods(storage) is { } methodDict)
+                if (GetMethods?.Invoke(storage) is { } methodDict)
                 {
                     methodDict[name] = methodInfo;
                 }
