@@ -128,7 +128,7 @@ namespace Bannerlord.UIExtenderEx.Patches
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool InitializePrefix(WidgetFactory __instance)
         {
-            var builtinTypes = BuiltinTypesField is not null ? BuiltinTypesField(__instance) : null;
+            var builtinTypes = BuiltinTypesField?.Invoke(__instance);
             if (builtinTypes is not null && GetPrefabNamesAndPathsFromCurrentPathMethod?.Invoke(__instance, Array.Empty<object>()) is Dictionary<string, string> prefabsData)
             {
                 foreach (var prefabExtension in __instance.PrefabExtensionContext.PrefabExtensions)

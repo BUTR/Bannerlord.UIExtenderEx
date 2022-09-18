@@ -50,7 +50,7 @@ namespace Bannerlord.UIExtenderEx
 
             if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
             {
-                if (gameVersion.Major is 1 && gameVersion.Minor is 8 && gameVersion.Revision is >= 0)
+                if (gameVersion.Major is 1 && gameVersion.Minor is 8 && gameVersion.Revision >= 0)
                 {
                     LocalizedTextManagerUtils.LoadLanguageData();
                 }
