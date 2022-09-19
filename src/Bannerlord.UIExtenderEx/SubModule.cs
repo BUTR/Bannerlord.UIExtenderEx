@@ -46,7 +46,7 @@ namespace Bannerlord.UIExtenderEx
 
         public SubModule()
         {
-            CheckLoadOrder();
+            ValidateLoadOrder();
 
             if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
             {
@@ -57,7 +57,7 @@ namespace Bannerlord.UIExtenderEx
             }
         }
 
-        private static void CheckLoadOrder()
+        private static void ValidateLoadOrder()
         {
             var loadedModules = ModuleInfoHelper.GetLoadedModules().ToList();
             if (loadedModules.Count == 0) return;
