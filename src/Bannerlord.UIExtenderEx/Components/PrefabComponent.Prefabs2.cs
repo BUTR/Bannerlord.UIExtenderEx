@@ -1,4 +1,5 @@
-﻿using Bannerlord.UIExtenderEx.Prefabs2;
+﻿using Bannerlord.BUTR.Shared.Helpers;
+using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Utils;
 
 using System;
@@ -300,8 +301,14 @@ namespace Bannerlord.UIExtenderEx.Components
 
                 fileName = Path.GetFileNameWithoutExtension(fileName);
 
-                string moduleDirectoryPath = Path.Combine(Utilities.GetBasePath(), "Modules", _moduleName, "GUI");
-                string[] files = Directory.GetFiles(moduleDirectoryPath, "*.xml", SearchOption.AllDirectories);
+                var moduleInfo = ModuleInfoHelper.LoadFromId(_moduleName);
+                if (moduleInfo is null)
+                {
+                    errorMessage += $"Module {_moduleName} is not found.";
+                    return null;
+                }
+                var moduleDirectoryPath = Path.Combine(ModuleInfoHelper.GetModulePath(moduleInfo), "GUI");
+                var files = Directory.GetFiles(moduleDirectoryPath, "*.xml", SearchOption.AllDirectories);
                 files = files.Where(x => string.Equals(Path.GetFileNameWithoutExtension(x), fileName, StringComparison.InvariantCultureIgnoreCase)).ToArray();
                 if (files.Length != 1)
                 {
