@@ -32,6 +32,10 @@ jobs:
         dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -p:GameFolder="$PWD/bannerlord";
       shell: pwsh
 
+    - name: Install Bannerlord.ChangelogParser
+      run: dotnet tool install -g Bannerlord.ChangelogParser;
+      shell: pwsh
+
     - name: Run ChangelogParser
       id: changelog
       run: |
