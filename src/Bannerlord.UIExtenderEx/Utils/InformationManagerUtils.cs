@@ -1,6 +1,7 @@
 ﻿using HarmonyLib.BUTR.Extensions;
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -15,12 +16,17 @@ namespace Bannerlord.UIExtenderEx.Utils
         {
             var type = AccessTools2.TypeByName("TaleWorlds.Core.InformationManager") ??
                        AccessTools2.TypeByName("TaleWorlds.Library.InformationManager");
-            foreach (var methodInfo in HarmonyLib.AccessTools.GetDeclaredMethods(type) ?? Enumerable.Empty<MethodInfo>())
+
+            foreach (var methodInfo in HarmonyLib.AccessTools.GetDeclaredMethods(type).Where(x => x.Name == "DisplayMessage"))
             {
                 var @params = methodInfo.GetParameters();
                 if (@params.Length == 1 && @params[0].ParameterType.Name.Equals("InformationMessage", StringComparison.Ordinal))
                 {
                     DisplayMessageV1 = AccessTools2.GetDelegate<DisplayMessageV1Delegate>(methodInfo);
+                }
+                else
+                {
+                    Debug.Fail("DisplayMessage not found!");
                 }
             }
         }
@@ -32,10 +38,7 @@ namespace Bannerlord.UIExtenderEx.Utils
                 return;
             }
 
-            if (DisplayMessageV1 is not null)
-            {
-                DisplayMessageV1(message.Object);
-            }
+            DisplayMessageV1?.Invoke(message.Object);
         }
     }
 }
