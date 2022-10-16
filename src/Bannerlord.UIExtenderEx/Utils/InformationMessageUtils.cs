@@ -6,6 +6,8 @@ using System.Reflection;
 
 using TaleWorlds.Library;
 
+using Debug = System.Diagnostics.Debug;
+
 namespace Bannerlord.UIExtenderEx.Utils
 {
     internal static class InformationMessageUtils
@@ -23,6 +25,10 @@ namespace Bannerlord.UIExtenderEx.Utils
                 if (@params.Length == 2 && @params[0].ParameterType == typeof(string) && @params[1].ParameterType == typeof(Color))
                 {
                     V1 = AccessTools2.GetDelegate<CtorV1Delegate>(constructorInfo);
+                }
+                else
+                {
+                    Debug.Fail("InformationMessage ctor not found!");
                 }
             }
         }
