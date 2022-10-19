@@ -4,13 +4,13 @@
   <!--Development Variables-->
   <PropertyGroup>
     <!--Module Version-->
-    <Version>2.2.10</Version>
+    <Version>2.2.11</Version>
     <!--Harmony Version-->
     <HarmonyVersion>2.2.2</HarmonyVersion>
-    <HarmonyExtensionsVersion>3.1.0.61</HarmonyExtensionsVersion>
+    <HarmonyExtensionsVersion>3.1.0.67</HarmonyExtensionsVersion>
     <HarmonyAnalyzerVersion>1.0.1.44</HarmonyAnalyzerVersion>
     <BuildResourcesVersion>1.0.1.68</BuildResourcesVersion>
-    <BUTRSharedVersion>2.0.0.103</BUTRSharedVersion>
+    <BUTRSharedVersion>2.0.0.114</BUTRSharedVersion>
     <BUTRModuleManagerVersion>4.0.147</BUTRModuleManagerVersion>
     <!--Current Bannerlord Version-->
     <GameVersion>1.4.3</GameVersion>

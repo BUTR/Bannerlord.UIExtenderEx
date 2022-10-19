@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Bannerlord.BUTR.Shared.Helpers;
+
+using System.Diagnostics;
 
 using TaleWorlds.Library;
 
@@ -36,7 +38,7 @@ namespace Bannerlord.UIExtenderEx.Utils
         public static void DisplayUserError(string text, params object[] args)
         {
             Trace.TraceError(text, args);
-            InformationManagerUtils.DisplayMessage(InformationMessageUtils.Create($"UIExtenderEx: {string.Format(text, args)}", Colors.Red));
+            InformationManagerHelper.DisplayMessage($"UIExtenderEx: {string.Format(text, args)}", Colors.Red);
         }
 
         /// <summary>
@@ -47,7 +49,7 @@ namespace Bannerlord.UIExtenderEx.Utils
         public static void DisplayUserWarning(string text, params object[] args)
         {
             Trace.TraceWarning(text, args);
-            InformationManagerUtils.DisplayMessage(InformationMessageUtils.Create($"UIExtender: {string.Format(text, args)}", Colors.Yellow));
+            InformationManagerHelper.DisplayMessage($"UIExtender: {string.Format(text, args)}", Colors.Yellow);
         }
     }
 }
