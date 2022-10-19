@@ -14,7 +14,7 @@ namespace Bannerlord.UIExtenderEx
     public class UIPatchSubModule : MBSubModuleBase
     {
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget[2]/Children/ListPanel[1]/Children/ListPanel[3]")]
-        private sealed class ClanPartiesPrefabExtension1 : PrefabExtensionSetAttributePatch
+        private sealed class ClanPartiesPrefabExtensionPre190_1 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
             {
@@ -22,7 +22,24 @@ namespace Bannerlord.UIExtenderEx
             };
         }
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget[2]/Children/ListPanel[1]/Children/ListPanel[3]/Children/Standard.DropdownWithHorizontalControl")]
-        private sealed class ClanPartiesPrefabExtension2 : PrefabExtensionSetAttributePatch
+        private sealed class ClanPartiesPrefabExtensionPre190_2 : PrefabExtensionSetAttributePatch
+        {
+            public override List<Attribute> Attributes => new()
+            {
+                new Attribute("Parameter.IsEnabled", "true")
+            };
+        }
+
+        [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel")]
+        private sealed class ClanPartiesPrefabExtensionPost190_1 : PrefabExtensionSetAttributePatch
+        {
+            public override List<Attribute> Attributes => new()
+            {
+                new Attribute("IsEnabled", "@CanUseActions")
+            };
+        }
+        [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel/Children/Standard.DropdownWithHorizontalControl")]
+        private sealed class ClanPartiesPrefabExtensionPost190_2 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
             {
@@ -39,7 +56,7 @@ namespace Bannerlord.UIExtenderEx
 
             if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
             {
-                if (gameVersion.Major is 1 && gameVersion.Minor is 7 && gameVersion.Revision is >= 0 and < 2)
+                if (gameVersion.Major >= 1 && gameVersion.Minor >= 7 && gameVersion.Revision is >= 0 and < 2)
                 {
                     Harmony.TryPatch(
                         AccessTools2.DeclaredMethod("SandBox.SandBoxSubModule:OnSubModuleLoad"),
@@ -50,11 +67,26 @@ namespace Bannerlord.UIExtenderEx
 
         private static void SandBoxSubModuleOnSubModuleLoadPostfix()
         {
-            Extender.Register(new[]
+            if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
             {
-                typeof(ClanPartiesPrefabExtension1),
-                typeof(ClanPartiesPrefabExtension2),
-            });
+                if (gameVersion.Major >= 1 && gameVersion.Minor >= 9)
+                {
+                    Extender.Register(new[]
+                    {
+                        typeof(ClanPartiesPrefabExtensionPost190_1),
+                        typeof(ClanPartiesPrefabExtensionPost190_2),
+                    });
+                }
+                else
+                {
+                    Extender.Register(new[]
+                    {
+                        typeof(ClanPartiesPrefabExtensionPre190_1),
+                        typeof(ClanPartiesPrefabExtensionPre190_2),
+                    });
+                }
+            }
+
             Extender.Enable();
         }
     }
