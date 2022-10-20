@@ -14,7 +14,7 @@ namespace Bannerlord.UIExtenderEx
     public class UIPatchSubModule : MBSubModuleBase
     {
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget[2]/Children/ListPanel[1]/Children/ListPanel[3]")]
-        private sealed class ClanPartiesPrefabExtensionPre190_1 : PrefabExtensionSetAttributePatch
+        private sealed class ClanPartiesPrefabExtensionPre180_1 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
             {
@@ -22,7 +22,7 @@ namespace Bannerlord.UIExtenderEx
             };
         }
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget[2]/Children/ListPanel[1]/Children/ListPanel[3]/Children/Standard.DropdownWithHorizontalControl")]
-        private sealed class ClanPartiesPrefabExtensionPre190_2 : PrefabExtensionSetAttributePatch
+        private sealed class ClanPartiesPrefabExtensionPre180_2 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
             {
@@ -31,7 +31,7 @@ namespace Bannerlord.UIExtenderEx
         }
 
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel")]
-        private sealed class ClanPartiesPrefabExtensionPost190_1 : PrefabExtensionSetAttributePatch
+        private sealed class ClanPartiesPrefabExtensionPost180_1 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
             {
@@ -39,7 +39,7 @@ namespace Bannerlord.UIExtenderEx
             };
         }
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel/Children/Standard.DropdownWithHorizontalControl")]
-        private sealed class ClanPartiesPrefabExtensionPost190_2 : PrefabExtensionSetAttributePatch
+        private sealed class ClanPartiesPrefabExtensionPost180_2 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
             {
@@ -56,7 +56,7 @@ namespace Bannerlord.UIExtenderEx
 
             if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
             {
-                if (gameVersion.Major >= 1 && gameVersion.Minor >= 7 && gameVersion.Revision is >= 0 and < 2)
+                if (gameVersion.Major >= 1 && gameVersion.Minor >= 7)
                 {
                     Harmony.TryPatch(
                         AccessTools2.DeclaredMethod("SandBox.SandBoxSubModule:OnSubModuleLoad"),
@@ -69,20 +69,20 @@ namespace Bannerlord.UIExtenderEx
         {
             if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
             {
-                if (gameVersion.Major >= 1 && gameVersion.Minor >= 9)
+                if (gameVersion.Major >= 1 && gameVersion.Minor >= 8)
                 {
                     Extender.Register(new[]
                     {
-                        typeof(ClanPartiesPrefabExtensionPost190_1),
-                        typeof(ClanPartiesPrefabExtensionPost190_2),
+                        typeof(ClanPartiesPrefabExtensionPost180_1),
+                        typeof(ClanPartiesPrefabExtensionPost180_2),
                     });
                 }
                 else
                 {
                     Extender.Register(new[]
                     {
-                        typeof(ClanPartiesPrefabExtensionPre190_1),
-                        typeof(ClanPartiesPrefabExtensionPre190_2),
+                        typeof(ClanPartiesPrefabExtensionPre180_1),
+                        typeof(ClanPartiesPrefabExtensionPre180_2),
                     });
                 }
             }
