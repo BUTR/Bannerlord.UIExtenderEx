@@ -39,7 +39,6 @@ namespace Bannerlord.UIExtenderEx
             };
         }
         [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel/Children/Standard.DropdownWithHorizontalControl")]
-        [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel/Children/Standard.DropdownWithHorizontalControl")]
         private sealed class ClanPartiesPrefabExtensionPost180_2 : PrefabExtensionSetAttributePatch
         {
             public override List<Attribute> Attributes => new()
