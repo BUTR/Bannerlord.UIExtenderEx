@@ -25,9 +25,7 @@ namespace Bannerlord.UIExtenderEx
             // AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.
             //GauntletMoviePatch.Patch(Harmony);
             UIConfigPatch.Patch(Harmony);
-            ViewModelPatch.Patch(Harmony);
             WidgetPrefabPatch.Patch(Harmony);
-            WidgetFactoryPatch.Patch(Harmony);
             BrushFactoryManager.Patch(Harmony);
             WidgetFactoryManager.Patch(Harmony);
         }

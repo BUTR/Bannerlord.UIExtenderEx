@@ -57,19 +57,19 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
             // Preventing inlining GetBrush
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.ConstantDefinition:GetValue"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:SetWidgetAttributeFromString"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.UIContext:GetBrush"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:ConvertObject"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChanger:OnBooleanUpdated"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             // Preventing inlining GetBrush
 #pragma warning restore BHA0001
         }

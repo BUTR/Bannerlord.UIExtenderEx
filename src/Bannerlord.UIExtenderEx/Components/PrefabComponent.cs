@@ -1,11 +1,9 @@
 ﻿using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Utils;
 
-using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -20,9 +18,6 @@ namespace Bannerlord.UIExtenderEx.Components
     /// </summary>
     internal partial class PrefabComponent
     {
-        private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
-            AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_customTypes");
-
         private delegate Dictionary<string, string> GetPrefabNamesAndPathsFromCurrentPathDelegate(object instance);
         private static readonly GetPrefabNamesAndPathsFromCurrentPathDelegate? PrefabNamesMethod =
             AccessTools2.GetDeclaredDelegate<GetPrefabNamesAndPathsFromCurrentPathDelegate>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath");
@@ -55,12 +50,10 @@ namespace Bannerlord.UIExtenderEx.Components
         public void Enable()
         {
             Enabled = true;
-            ForceReloadMovies();
         }
         public void Disable()
         {
             Enabled = false;
-            ForceReloadMovies();
         }
 
         /// <summary>
@@ -114,34 +107,6 @@ namespace Bannerlord.UIExtenderEx.Components
             patcher(node2);
         });
 
-        /// <summary>
-        /// Make WidgetFactory reload Movies that were extended by _moviePatches.
-        /// WidgetFactory loads Movies during SandBox module loading phase, which occurs even before
-        /// our module gets loaded, hence once we get control we need to force it to reload XMLs that
-        /// are getting patched by extensions.
-        /// </summary>
-        private void ForceReloadMovies()
-        {
-            foreach (var movie in _moviePatches.Keys)
-            {
-                var moviePath = PathForMovie(movie);
-                if (moviePath is not null)
-                {
-                    // pre e1.5.4
-                    // get internal dict of loaded Widgets
-                    if (GetCustomTypes is not null)
-                    {
-                        var dict = GetCustomTypes(UIResourceManager.WidgetFactory);
-                        MessageUtils.Assert(dict.Contains(movie), $"Movie {movie} to be patched was not found in the WidgetFactory._customTypes!");
-                        // remove widget from previously loaded Widgets
-                        dict.Remove(movie);
-
-                        // re-add it, forcing Factory to call now-patched `LoadFrom` method
-                        UIResourceManager.WidgetFactory.AddCustomType(movie, moviePath);
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Fixes issue where game will crash if injected patch contains comments.<br/>

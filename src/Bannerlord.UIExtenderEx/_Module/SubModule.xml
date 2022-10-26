@@ -4,11 +4,9 @@
   <Id value="$moduleid$" />
   <Name value="$modulename$" />
   <Version value="v$version$" />
-  <Official value="false" />
   <DefaultModule value="false" />
-  <SingleplayerModule value="true" />
-  <MultiplayerModule value="false" />
   <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
   <Url value="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" />
   <DependedModules>
     <DependedModule Id="Bannerlord.Harmony" DependentVersion="v$harmonyversion$" />
@@ -25,11 +23,11 @@
   <DependedModuleMetadatas>
     <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" version="v$harmonyversion$" />
 
-    <DependedModuleMetadata id="Native" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
-    <DependedModuleMetadata id="SandBoxCore" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
-    <DependedModuleMetadata id="Sandbox" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
-    <DependedModuleMetadata id="StoryMode" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
-    <DependedModuleMetadata id="CustomBattle" order="LoadAfterThis" version="e$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="Native" order="LoadAfterThis" version="v$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadAfterThis" version="v$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="Sandbox" order="LoadAfterThis" version="v$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="StoryMode" order="LoadAfterThis" version="v$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="CustomBattle" order="LoadAfterThis" version="v$gameversion$.*" optional="true" />
   </DependedModuleMetadatas>
   <!-- Community Metadata -->
   <SubModules>

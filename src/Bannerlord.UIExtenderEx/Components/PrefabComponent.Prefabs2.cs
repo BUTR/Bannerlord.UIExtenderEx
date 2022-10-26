@@ -9,10 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 
-using TaleWorlds.Engine;
-
-using Path = System.IO.Path;
-
 namespace Bannerlord.UIExtenderEx.Components
 {
     /// <summary>
