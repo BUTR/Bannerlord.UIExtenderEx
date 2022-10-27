@@ -13,6 +13,7 @@ using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.GauntletUI;
+using TaleWorlds.GauntletUI.BaseTypes;
 using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.ResourceManager
@@ -22,7 +23,6 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private delegate void ReloadDelegate();
 
         private static readonly ReloadDelegate? Reload =
-            AccessTools2.GetDeclaredDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:ReLoad") ??
             AccessTools2.GetDeclaredDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:Reload");
 
         private static readonly AccessTools.FieldRef<object, IDictionary>? LiveCustomTypesFieldRef =
@@ -80,7 +80,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
 #pragma warning disable BHA0001
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:OnUnload"),
-                prefix: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager:OnUnloadPrefix"));
+                prefix: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix)));
 
             // GetCustomType is too complex to be inlined
             // CreateBuiltinWidget is too complex to be inlined
@@ -88,14 +88,14 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
             // Preventing inlining IsCustomType
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:CreateWidgets"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:OnRelease"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
             // Preventing inlining GetCustomType
             harmony.TryPatch(
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.Data.GauntletMovie:LoadMovie"),
-                transpiler: AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager:BlankTranspiler"));
+                transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
 #pragma warning restore BHA0001
         }
 

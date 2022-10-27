@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 
+using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 
 namespace Bannerlord.UIExtenderEx
@@ -47,14 +48,6 @@ namespace Bannerlord.UIExtenderEx
         public SubModule()
         {
             ValidateLoadOrder();
-
-            if (ApplicationVersionHelper.GameVersion() is { } gameVersion)
-            {
-                if (gameVersion.Major is 1 && gameVersion.Minor is 8 && gameVersion.Revision >= 0)
-                {
-                    LocalizedTextManagerHelper.LoadLanguageData(ModuleInfoHelper.GetModuleByType(typeof(SubModule)));
-                }
-            }
         }
 
         private static void ValidateLoadOrder()
@@ -67,8 +60,8 @@ namespace Bannerlord.UIExtenderEx
             {
                 sb.AppendLine(report);
                 sb.AppendLine();
-                sb.AppendLine(TextObjectHelper.Create(SMessageContinue)?.ToString() ?? "ERROR");
-                switch (MessageBox.Show(sb.ToString(), TextObjectHelper.Create(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
+                sb.AppendLine(new TextObject(SMessageContinue)?.ToString() ?? "ERROR");
+                switch (MessageBox.Show(sb.ToString(), new TextObject(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
                 {
                     case DialogResult.Yes:
                         Environment.Exit(1);

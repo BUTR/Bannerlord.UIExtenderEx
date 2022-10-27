@@ -53,7 +53,7 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions)
-            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch:Constructor"));
+            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod(typeof(ViewModelWithMixinPatch), nameof(Constructor)));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Constructor(ViewModel viewModel)
         {
@@ -96,7 +96,7 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Refresh_Transpiler(IEnumerable<CodeInstruction> instructions)
-            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch:Refresh"));
+            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod(typeof(ViewModelWithMixinPatch), nameof(Refresh)));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Refresh(ViewModel viewModel)
         {
@@ -121,7 +121,7 @@ namespace Bannerlord.UIExtenderEx.Patches
         [SuppressMessage("ReSharper", "UnusedMethodReturnValue.Local")]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions)
-            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.ViewModelWithMixinPatch:Finalize"));
+            => InsertMethodAtEnd(instructions, AccessTools2.DeclaredMethod(typeof(ViewModelWithMixinPatch), nameof(Finalize)));
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Finalize(ViewModel viewModel)
         {

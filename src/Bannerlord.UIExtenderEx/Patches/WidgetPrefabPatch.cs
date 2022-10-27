@@ -43,7 +43,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
                 return ReturnDefault("WidgetPrefab constructor not found");
 
-            if (AccessTools2.DeclaredMethod("Bannerlord.UIExtenderEx.Patches.WidgetPrefabPatch:ProcessMovie") is not { } processMovieMethod)
+            if (AccessTools2.DeclaredMethod(typeof(WidgetPrefabPatch), nameof(ProcessMovie)) is not { } processMovieMethod)
                 return ReturnDefault("WidgetPrefabPatch:ProcessMovie not found");
 
             var locals = method.GetMethodBody()?.LocalVariables;
@@ -79,6 +79,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             });
             return instructionsList.AsEnumerable();
         }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ProcessMovie(string path, XmlDocument document)
         {
