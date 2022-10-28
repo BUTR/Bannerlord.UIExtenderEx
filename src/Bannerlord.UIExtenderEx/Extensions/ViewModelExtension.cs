@@ -27,7 +27,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
 
         private static readonly AccessTools.FieldRef<IDictionary>? CachedViewModelProperties =
             AccessTools2.StaticFieldRefAccess<IDictionary>("TaleWorlds.Library.ViewModel:_cachedViewModelProperties");
-        
+
         public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
         {
             if (PropertyInfosField?.Invoke(viewModel) is { } dict && !dict.ContainsKey(name))
@@ -44,7 +44,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
                     //var staticPropsDict = staticStorage is not null ? GetProperties(staticStorage) : null;
                     //if (propDict == staticPropsDict)
                     //    propDict = new(propDict);
-                    
+
                     propDict[name] = propertyInfo;
                 }
             }
@@ -62,7 +62,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
                     //var staticMethodDict = staticStorage is not null ? GetMethods(staticStorage) : null;
                     //if (methodDict == staticMethodDict)
                     //    methodDict = new(methodDict);
-                    
+
                     methodDict[name] = methodInfo;
                 }
             }
