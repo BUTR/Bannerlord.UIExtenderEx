@@ -42,7 +42,7 @@
 
   <ItemGroup>
     <PackageReference Include="Bannerlord.BuildResources" Version="$(BuildResourcesVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
-    <PackageReference Include="Bannerlord.BUTR.Shared" Version="3.0.0.116" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Bannerlord.BUTR.Shared" Version="3.0.0.118" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Bannerlord.ModuleManager.Source" Version="4.0.149" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Sandbox" Version="$(GameVersion).*" PrivateAssets="all" />
