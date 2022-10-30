@@ -13,7 +13,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
     {
         private delegate void SetMemberValue<in T>(object instance, T? value);
         private delegate T? GetMemberValue<out T>(object instance);
-        
+
         private static readonly ConcurrentDictionary<Type, Dictionary<string, MemberInfo>> _fieldPropertyCache = new();
         private static readonly ConcurrentDictionary<MemberInfo, Delegate?> _getDelegateCache = new();
         private static readonly ConcurrentDictionary<MemberInfo, Delegate?> _setDelegateCache = new();
@@ -47,7 +47,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
         public static void PrivateValueSet<T>(this object? o, string fieldPropertyName, T? value)
         {
             if (o is null) return;
-            
+
             var membersCache = _fieldPropertyCache.GetOrAdd(o.GetType(), static x => x.GetProperties().OfType<MemberInfo>().Concat(x.GetFields()).ToDictionary(x => x.Name, x => x));
             if (!membersCache.TryGetValue(fieldPropertyName, out var member)) return;
             var @delegate = _setDelegateCache.GetOrAdd(member, static x => x switch
