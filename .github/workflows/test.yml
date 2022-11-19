@@ -34,7 +34,7 @@ jobs:
   test:
     name: Test
     runs-on: windows-latest
-    steps:    
+    steps:
     - name: Tests Setup
       uses: butr/actions-tests-setup@v1.5.4
       with:
