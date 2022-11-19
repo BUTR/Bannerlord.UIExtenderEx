@@ -20,6 +20,7 @@ on:
       - '.github/workflows/test.yml'
       - 'src/**'
       - 'build/**'
+  workflow_dispatch:
 
 env:
   # Disable the .NET logo in the console output.
