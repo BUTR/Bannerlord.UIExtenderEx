@@ -1,3 +1,4 @@
+bin/Win64_Shipping_Client/Newtonsoft.Json.dll
 regex:bin\/Win64_Shipping_Client\/[^\/]*TaleWorlds[^\/]+dll
 regex:bin\/Win64_Shipping_Client\/[^\/]*System[^\/]+dll
 regex:bin\/Win64_Shipping_Client\/[^\/]*Microsoft[^\/]+dll
