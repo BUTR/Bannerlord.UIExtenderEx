@@ -3,6 +3,7 @@ using HarmonyLib.BUTR.Extensions;
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 using TaleWorlds.Library;
@@ -11,9 +12,6 @@ namespace Bannerlord.UIExtenderEx.Extensions
 {
     internal static class ViewModelExtension
     {
-        private static readonly AccessTools.FieldRef<object, Dictionary<string, PropertyInfo>>? PropertyInfosField =
-            AccessTools2.FieldRefAccess<Dictionary<string, PropertyInfo>>("TaleWorlds.Library.ViewModel:_propertyInfos");
-
         private static readonly AccessTools.FieldRef<object, object>? PropertiesAndMethods =
             AccessTools2.FieldRefAccess<object>("TaleWorlds.Library.ViewModel:_propertiesAndMethods");
 
@@ -28,44 +26,50 @@ namespace Bannerlord.UIExtenderEx.Extensions
         private static readonly AccessTools.FieldRef<IDictionary>? CachedViewModelProperties =
             AccessTools2.StaticFieldRefAccess<IDictionary>("TaleWorlds.Library.ViewModel:_cachedViewModelProperties");
 
+        private delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
+        private static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
+            AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(
+                "TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection", new []{ typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
+
         public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
         {
-            if (PropertyInfosField?.Invoke(viewModel) is { } dict && !dict.ContainsKey(name))
-            {
-                dict.Add(name, propertyInfo);
-            }
+            if (!GetOrCreateIndividualStorage(viewModel, out var propDict, out var _))
+                return;
 
-            if (PropertiesAndMethods?.Invoke(viewModel) is { } storage)
-            {
-                if (GetProperties?.Invoke(storage) is { } propDict/* && CachedViewModelProperties is not null*/)
-                {
-                    // TW caches the properties, since we modify each VM individually, we need to copy them
-                    //var staticStorage = CachedViewModelProperties() is { } dict2 && dict2.Contains(type) ? dict2[type] : null;
-                    //var staticPropsDict = staticStorage is not null ? GetProperties(staticStorage) : null;
-                    //if (propDict == staticPropsDict)
-                    //    propDict = new(propDict);
-
-                    propDict[name] = propertyInfo;
-                }
-            }
+            propDict[name] = propertyInfo;
         }
 
         public static void AddMethod(this ViewModel viewModel, string name, MethodInfo methodInfo)
         {
-            if (PropertiesAndMethods?.Invoke(viewModel) is { } storage)
-            {
-                if (GetMethods?.Invoke(storage) is { } methodDict/* && CachedViewModelProperties is not null*/)
-                {
-                    // TW caches the methods, since we modify each VM individually, we need to copy them
-                    //var type = viewModel.GetType();
-                    //var staticStorage = CachedViewModelProperties() is { } dict2 && dict2.Contains(type) ? dict2[type] : null;
-                    //var staticMethodDict = staticStorage is not null ? GetMethods(staticStorage) : null;
-                    //if (methodDict == staticMethodDict)
-                    //    methodDict = new(methodDict);
+            if (!GetOrCreateIndividualStorage(viewModel, out var _, out var methodDict))
+                return;
 
-                    methodDict[name] = methodInfo;
-                }
-            }
+            methodDict[name] = methodInfo;
+        }
+
+        private static bool GetOrCreateIndividualStorage(ViewModel viewModel, [NotNullWhen(true)] out Dictionary<string, PropertyInfo>? propDict,  [NotNullWhen(true)] out Dictionary<string, MethodInfo>? methodDict)
+        {
+            propDict = null;
+            methodDict = null;
+
+            if (PropertiesAndMethods is null || CachedViewModelProperties is null || DataSourceTypeBindingPropertiesCollectionCtor is null || GetProperties is null || GetMethods is null)
+                return false;
+
+            if (PropertiesAndMethods(viewModel) is not { } storage || CachedViewModelProperties() is not { } staticStorageDict)
+                return false;
+
+            var type = viewModel.GetType();
+            if (!staticStorageDict.Contains(type) || staticStorageDict[type] is not { } staticStorage)
+                return false;
+
+            if ((propDict = GetProperties(storage)) is null || (methodDict = GetMethods(storage)) is null)
+                return false;
+
+            // TW caches the properties, since we modify each VM individually, we need to copy them
+            if (ReferenceEquals(storage, staticStorage))
+                PropertiesAndMethods(viewModel) = DataSourceTypeBindingPropertiesCollectionCtor(propDict = new(propDict), methodDict = new(methodDict));
+
+            return true;
         }
     }
 }

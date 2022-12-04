@@ -42,9 +42,8 @@ namespace Bannerlord.UIExtenderEx.Components
         internal readonly ConditionalWeakTable<ViewModel, List<IViewModelMixin>> MixinInstanceCache = new();
         internal readonly ConditionalWeakTable<ViewModel, object> MixinInstanceRefreshFromConstructorCache = new();
 
-        internal readonly ConditionalWeakTable<IViewModelMixin, Dictionary<string, PropertyInfo>> MixinInstancePropertyCache = new();
-
-        internal readonly ConditionalWeakTable<IViewModelMixin, Dictionary<string, MethodInfo>> MixinInstanceMethodCache = new();
+        private readonly ConcurrentDictionary<Type, List<PropertyInfo>> MixinTypePropertyCache = new();
+        private readonly ConcurrentDictionary<Type, List<MethodInfo>> MixinTypeMethodCache = new();
 
         public bool Enabled { get; private set; }
 
@@ -122,16 +121,16 @@ namespace Bannerlord.UIExtenderEx.Components
 
             foreach (var viewModelMixin in newMixins)
             {
-                var propertyCache = MixinInstancePropertyCache.GetOrAdd(viewModelMixin, _ => new Dictionary<string, PropertyInfo>());
-                var methodCache = MixinInstanceMethodCache.GetOrAdd(viewModelMixin, _ => new Dictionary<string, MethodInfo>());
-
-                foreach (var property in viewModelMixin.GetType().GetProperties().Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceProperty))))
+                var properties = MixinTypePropertyCache.GetOrAdd(viewModelMixin.GetType(), static x => x.GetProperties().Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceProperty))).ToList());
+                foreach (var property in properties)
                 {
-                    propertyCache.Add(property.Name, new WrappedPropertyInfo(property, viewModelMixin));
+                    instance.AddProperty(property.Name, new WrappedPropertyInfo(property, viewModelMixin));
                 }
-                foreach (var method in viewModelMixin.GetType().GetMethods().Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceMethodAttribute))))
+
+                var methods = MixinTypeMethodCache.GetOrAdd(viewModelMixin.GetType(), static x => x.GetMethods().Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(DataSourceMethodAttribute))).ToList());
+                foreach (var method in methods)
                 {
-                    methodCache.Add(method.Name, new WrappedMethodInfo(method, viewModelMixin));
+                    instance.AddMethod(method.Name, new WrappedMethodInfo(method, viewModelMixin));
                 }
             }
         }
