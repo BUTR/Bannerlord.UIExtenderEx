@@ -3,6 +3,7 @@ using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities;
 
 using HarmonyLib;
+using HarmonyLib.BUTR.Extensions;
 
 using NUnit.Framework;
 
@@ -182,7 +183,9 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
         public void RegisterPatch_FileName_InsertAsLastChild()
         {
             var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_FileName_InsertAsLastChild)}");
-            harmony.Patch(SymbolExtensions.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
+            harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
+                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
+            harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
                 prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
 
             // Arrange
@@ -375,7 +378,9 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
         public void RegisterPatch_Remove()
         {
             var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_Remove)}");
-            harmony.Patch(SymbolExtensions.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
+            harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
+                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
+            harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
                 prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
 
             // Arrange

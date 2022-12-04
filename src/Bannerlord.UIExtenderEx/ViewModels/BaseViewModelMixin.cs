@@ -1,6 +1,7 @@
 ﻿using Bannerlord.UIExtenderEx.Extensions;
 
 using System;
+using System.Collections.Generic;
 
 namespace Bannerlord.UIExtenderEx.ViewModels
 {
@@ -46,5 +47,16 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         /// <param name="value">new value</param>
         /// <typeparam name="TValue">member type</typeparam>
         protected void SetPrivate<TValue>(string name, TValue? value) => _vm.PrivateValueSet(name, value);
+
+        protected bool SetField<T>(ref T field, T value, string propertyName)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+            {
+                return false;
+            }
+            field = value;
+            ViewModel?.OnPropertyChanged(propertyName);
+            return true;
+        }
     }
 }
