@@ -1,5 +1,4 @@
-﻿using Bannerlord.BUTR.Shared.Extensions;
-using Bannerlord.UIExtenderEx.Extensions;
+﻿using Bannerlord.UIExtenderEx.Extensions;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -66,21 +65,6 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
                     continue;
-
-                foreach (var mixin in list)
-                {
-                    if (runtime.ViewModelComponent.MixinInstancePropertyCache.TryGetValue(mixin, out var propertyExtensions))
-                    {
-                        foreach (var (key, value) in propertyExtensions)
-                            viewModel.AddProperty(key, value);
-                    }
-                    // They finally did it
-                    if (runtime.ViewModelComponent.MixinInstanceMethodCache.TryGetValue(mixin, out var methodExtensions))
-                    {
-                        foreach (var (key, value) in methodExtensions)
-                            viewModel.AddMethod(key, value);
-                    }
-                }
 
                 // Call Refresh on Constructor end if it was called within it
                 if (runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.TryGetValue(viewModel, out _))

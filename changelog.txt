@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.0
+Game Versions: v1.0.0,v1.0.1,v1.0.2
+* Multiple instances of the same ViewModel were using the same Mixin instead of each using their own
+---------------------------------------------------------------------------------------------------
 Version: 2.3.2
 Game Versions: v1.0.0,v1.0.1,v1.0.2
 * Added SetField in Mixins
