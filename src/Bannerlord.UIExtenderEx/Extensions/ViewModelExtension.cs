@@ -29,7 +29,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
         private delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
         private static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
             AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(
-                "TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection", new []{ typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
+                "TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection", new[] { typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
 
         public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
         {
@@ -47,7 +47,7 @@ namespace Bannerlord.UIExtenderEx.Extensions
             methodDict[name] = methodInfo;
         }
 
-        private static bool GetOrCreateIndividualStorage(ViewModel viewModel, [NotNullWhen(true)] out Dictionary<string, PropertyInfo>? propDict,  [NotNullWhen(true)] out Dictionary<string, MethodInfo>? methodDict)
+        private static bool GetOrCreateIndividualStorage(ViewModel viewModel, [NotNullWhen(true)] out Dictionary<string, PropertyInfo>? propDict, [NotNullWhen(true)] out Dictionary<string, MethodInfo>? methodDict)
         {
             propDict = null;
             methodDict = null;
