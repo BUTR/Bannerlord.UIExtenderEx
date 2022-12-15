@@ -20,11 +20,11 @@ namespace Bannerlord.UIExtenderEx.Patches
         public static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab:LoadFrom"),
+                AccessTools2.DeclaredMethod(typeof(WidgetPrefab), "LoadFrom"),
                 transpiler: new HarmonyMethod(typeof(WidgetPrefabPatch), nameof(WidgetPrefab_LoadFrom_Transpiler)));
 
             harmony.CreateReversePatcher(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab:LoadFrom"),
+                AccessTools2.DeclaredMethod(typeof(WidgetPrefab), "LoadFrom"),
                 new HarmonyMethod(typeof(WidgetPrefabPatch), nameof(LoadFromDocument))).Patch();
         }
 
@@ -40,7 +40,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                 return instructionsList.AsEnumerable();
             }
 
-            if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
+            if (AccessTools2.DeclaredConstructor(typeof(WidgetPrefab)) is not { } constructor)
                 return ReturnDefault("WidgetPrefab constructor not found");
 
             if (AccessTools2.DeclaredMethod(typeof(WidgetPrefabPatch), nameof(ProcessMovie)) is not { } processMovieMethod)
@@ -116,7 +116,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                     return returnNull;
                 }
 
-                if (AccessTools2.DeclaredConstructor("TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab") is not { } constructor)
+                if (AccessTools2.DeclaredConstructor(typeof(WidgetPrefab)) is not { } constructor)
                     return ReturnDefault("WidgetPrefab constructor not found");
 
                 var instructionList = instructions.ToList();

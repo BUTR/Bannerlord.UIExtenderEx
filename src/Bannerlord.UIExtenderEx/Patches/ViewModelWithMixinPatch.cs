@@ -42,7 +42,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 // TODO: recursion
                 harmony.Patch(
-                    AccessTools2.DeclaredMethod(viewModelType, nameof(ViewModel.OnFinalize)) ??
+                    AccessTools2.DeclaredMethod(viewModelType, nameof(ViewModel.OnFinalize), false) ??
                     AccessTools2.DeclaredMethod("TaleWorlds.Library.ViewModel:OnFinalize"),
                     transpiler: new HarmonyMethod(typeof(ViewModelWithMixinPatch), nameof(ViewModel_Finalize_Transpiler)));
             }

@@ -23,10 +23,10 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private delegate void ReloadDelegate();
 
         private static readonly ReloadDelegate? Reload =
-            AccessTools2.GetDeclaredDelegate<ReloadDelegate>("TaleWorlds.GauntletUI.WidgetInfo:Reload");
+            AccessTools2.GetDeclaredDelegate<ReloadDelegate>(typeof(WidgetInfo), "Reload");
 
         private static readonly AccessTools.FieldRef<object, IDictionary>? LiveCustomTypesFieldRef =
-            AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_liveCustomTypes");
+            AccessTools2.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_liveCustomTypes");
 
         private delegate Widget WidgetConstructor(UIContext uiContext);
         private static readonly Dictionary<Type, WidgetConstructor> WidgetConstructors = new();
@@ -62,24 +62,24 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         internal static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetCustomType"),
+                AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetCustomType"),
                 prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetCustomTypePrefix)));
 
             harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:CreateBuiltinWidget"),
+                AccessTools2.DeclaredMethod(typeof(WidgetFactory), "CreateBuiltinWidget"),
                 prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(CreateBuiltinWidgetPrefix)));
 
             harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetWidgetTypes"),
+                AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetWidgetTypes"),
                 prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix)));
 
             harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:IsCustomType"),
+                AccessTools2.DeclaredMethod(typeof(WidgetFactory), "IsCustomType"),
                 prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(IsCustomTypePrefix)));
 
 #pragma warning disable BHA0001
             harmony.TryPatch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:OnUnload"),
+                AccessTools2.DeclaredMethod(typeof(WidgetFactory), "OnUnload"),
                 prefix: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix)));
 
             // GetCustomType is too complex to be inlined
