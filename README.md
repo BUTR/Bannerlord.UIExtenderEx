@@ -5,7 +5,7 @@
   </a>
   </br>
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Lines Of Code">
-    <img src="https://tokei.rs/b1/github/BUTR/Bannerlord.UIExtenderEx?category=code" />
+    <img src="https://aschey.tech/tokei/github/BUTR/Bannerlord.UIExtenderEx?category=code" />
   </a>
   <a href="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex">
     <img src="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex/badge" alt="CodeFactor" />
