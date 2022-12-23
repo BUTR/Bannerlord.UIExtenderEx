@@ -1,4 +1,4 @@
-﻿using Bannerlord.UIExtenderEx.Prefabs2;
+﻿using Bannerlord.BUTR.Shared.Helpers;
 using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib.BUTR.Extensions;
@@ -7,9 +7,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Xml;
 
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.GauntletUI.PrefabSystem;
 
 namespace Bannerlord.UIExtenderEx.Components
 {
@@ -20,7 +22,7 @@ namespace Bannerlord.UIExtenderEx.Components
     {
         private delegate Dictionary<string, string> GetPrefabNamesAndPathsFromCurrentPathDelegate(object instance);
         private static readonly GetPrefabNamesAndPathsFromCurrentPathDelegate? PrefabNamesMethod =
-            AccessTools2.GetDeclaredDelegate<GetPrefabNamesAndPathsFromCurrentPathDelegate>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetPrefabNamesAndPathsFromCurrentPath");
+            AccessTools2.GetDeclaredDelegate<GetPrefabNamesAndPathsFromCurrentPathDelegate>(typeof(WidgetFactory), "GetPrefabNamesAndPathsFromCurrentPath");
 
 
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
@@ -34,13 +36,6 @@ namespace Bannerlord.UIExtenderEx.Components
         private readonly ConcurrentDictionary<string, List<Action<XmlDocument>>> _moviePatches = new();
 
         public bool Enabled { get; private set; }
-
-        /// <summary>
-        /// When set to true, patches that are loaded from file (<see cref="PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute"/>)
-        /// will be reloaded every time their target view is reloaded.<br/>
-        /// This is slower, so should only be enabled while in a development environment.
-        /// </summary>
-        public bool LiveUIDebuggingEnabled { get; set; }
 
         public PrefabComponent(string moduleName)
         {
@@ -164,6 +159,32 @@ namespace Bannerlord.UIExtenderEx.Components
             foreach (var patch in patches)
             {
                 patch(document);
+            }
+
+            if (Settings.Instance?.DumpXML == true)
+            {
+                DumpXml(_moduleName, movie, document);
+            }
+        }
+
+        private static void DumpXml(string moduleName, string movie, XmlDocument document)
+        {
+            if (ModuleInfoHelper.GetModuleByType(typeof(SubModule)) is { } module)
+            {
+                var dumpPath = Path.Combine(module.Path, "Dumps", $"{movie}_{moduleName}.xml");
+                var file = new FileInfo(dumpPath);
+                file.Directory?.Create();
+                using var fs = file.Open(FileMode.OpenOrCreate, FileAccess.Write);
+                fs.SetLength(0);
+                using var writer = new StreamWriter(fs);
+                using var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings
+                {
+                    Indent = true,
+                    IndentChars = "  ",
+                    NewLineChars = Environment.NewLine,
+                    NewLineHandling = NewLineHandling.Replace
+                });
+                document.Save(xmlWriter);
             }
         }
     }

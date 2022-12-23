@@ -5,6 +5,7 @@ using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -21,26 +22,33 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
     public static class WidgetFactoryManager
     {
         private delegate void ReloadDelegate();
-
         private static readonly ReloadDelegate? Reload =
             AccessTools2.GetDeclaredDelegate<ReloadDelegate>(typeof(WidgetInfo), "Reload");
 
-        private static readonly AccessTools.FieldRef<object, IDictionary>? LiveCustomTypesFieldRef =
-            AccessTools2.FieldRefAccess<IDictionary>(typeof(WidgetFactory), "_liveCustomTypes");
+        private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? _liveCustomTypes =
+            AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");
 
         private delegate Widget WidgetConstructor(UIContext uiContext);
-        private static readonly Dictionary<Type, WidgetConstructor> WidgetConstructors = new();
+        private static readonly ConcurrentDictionary<Type, WidgetConstructor?> WidgetConstructors = new();
         private static readonly Dictionary<string, Func<WidgetPrefab?>> CustomTypes = new();
         private static readonly Dictionary<string, Type> BuiltinTypes = new();
         private static readonly Dictionary<string, WidgetPrefab> LiveCustomTypes = new();
         private static readonly Dictionary<string, int> LiveInstanceTracker = new();
 
-        public static WidgetPrefab Create(XmlDocument doc)
+        public static WidgetPrefab? Create(XmlDocument doc)
         {
             return WidgetPrefabPatch.LoadFromDocument(
                 UIResourceManager.WidgetFactory.PrefabExtensionContext,
                 UIResourceManager.WidgetFactory.WidgetAttributeContext,
                 string.Empty,
+                doc);
+        }
+        public static WidgetPrefab? Create(string name, XmlDocument doc)
+        {
+            return WidgetPrefabPatch.LoadFromDocument(
+                UIResourceManager.WidgetFactory.PrefabExtensionContext,
+                UIResourceManager.WidgetFactory.WidgetAttributeContext,
+                name,
                 doc);
         }
 
@@ -51,15 +59,10 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
             BuiltinTypes[widgetType.Name] = widgetType;
             Reload();
         }
+        public static void Register(string name, Func<WidgetPrefab?> create) => CustomTypes.Add(name, create);
+        public static void CreateAndRegister(string name, XmlDocument xmlDocument) => Register(name, () => Create($"{name}.xml", xmlDocument));
 
-        public static void Register(string name, Func<WidgetPrefab?> create)
-        {
-            CustomTypes[name] = create;
-        }
-
-        public static void CreateAndRegister(string name, XmlDocument xmlDocument) => Register(name, () => Create(xmlDocument));
-
-        internal static void Patch(Harmony harmony)
+        public static void Patch(Harmony harmony)
         {
             harmony.Patch(
                 AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetCustomType"),
@@ -115,15 +118,11 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
             if (!BuiltinTypes.TryGetValue(typeName, out var type))
                 return true;
 
-            if (!WidgetConstructors.TryGetValue(type, out var ctor))
-            {
-                ctor = AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(type, new[] { typeof(UIContext) });
-                if (ctor is null)
-                    return true;
-                WidgetConstructors.Add(type, ctor);
-            }
+            var ctor = WidgetConstructors.GetOrAdd(type, static x => AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(x, new[] { typeof(UIContext) }));
+            if (ctor is null)
+                return true;
 
-            __result = ctor;
+            __result = ctor(context);
             return false;
         }
 
@@ -133,9 +132,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private static bool IsCustomTypePrefix(string typeName, ref bool __result)
         {
             if (!CustomTypes.ContainsKey(typeName))
-            {
                 return true;
-            }
 
             __result = true;
             return false;
@@ -144,19 +141,11 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool GetCustomTypePrefix(object __instance, string typeName, ref WidgetPrefab __result)
+        private static bool GetCustomTypePrefix(WidgetFactory __instance, string typeName, ref WidgetPrefab __result)
         {
-            // Post154
-            if (LiveCustomTypesFieldRef is not null && LiveCustomTypesFieldRef(__instance).Contains(typeName))
-            {
+            if (_liveCustomTypes?.Invoke(__instance) is { } ____liveCustomTypes &&
+                ____liveCustomTypes.Contains(typeName) || !CustomTypes.ContainsKey(typeName))
                 return true;
-            }
-            // Post154
-
-            if (!CustomTypes.ContainsKey(typeName))
-            {
-                return true;
-            }
 
             if (LiveCustomTypes.TryGetValue(typeName, out var liveWidgetPrefab))
             {

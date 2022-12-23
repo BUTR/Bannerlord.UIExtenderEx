@@ -1,7 +1,6 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs;
 
-using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs

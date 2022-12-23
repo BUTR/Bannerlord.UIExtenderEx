@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.0
+Game Versions: v1.0.0,v1.0.1,v1.0.2
+* Improved code responsible for mixn creation, should have fixed some bugs
+* Fixed custom Wigdet type registering
+* Added integrated MCM settings
+* Added a setting for dumping patched XML, available in %MODULE%/Dumps folder
+---------------------------------------------------------------------------------------------------
 Version: 2.4.0
 Game Versions: v1.0.0,v1.0.1,v1.0.2
 * Multiple instances of the same ViewModel were using the same Mixin instead of each using their own

@@ -10,10 +10,10 @@ using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Extensions
 {
-    internal static class ViewModelExtension
+    internal static class ViewModelExtensions
     {
-        private static readonly AccessTools.FieldRef<object, object>? PropertiesAndMethods =
-            AccessTools2.FieldRefAccess<object>("TaleWorlds.Library.ViewModel:_propertiesAndMethods");
+        private static readonly AccessTools.FieldRef<ViewModel, object>? PropertiesAndMethods =
+            AccessTools2.FieldRefAccess<ViewModel, object>("_propertiesAndMethods");
 
         private delegate Dictionary<string, PropertyInfo> GetPropertiesDelegate(object instance);
         private static readonly GetPropertiesDelegate? GetProperties =
@@ -24,10 +24,10 @@ namespace Bannerlord.UIExtenderEx.Extensions
             AccessTools2.GetDeclaredPropertyGetterDelegate<GetMethodsDelegate>("TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection:Methods");
 
         private static readonly AccessTools.FieldRef<IDictionary>? CachedViewModelProperties =
-            AccessTools2.StaticFieldRefAccess<IDictionary>("TaleWorlds.Library.ViewModel:_cachedViewModelProperties");
+            AccessTools2.StaticFieldRefAccess<IDictionary>(typeof(ViewModel), "_cachedViewModelProperties");
 
-        private delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
-        private static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
+        public delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
+        public static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
             AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(
                 "TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection", new[] { typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
 

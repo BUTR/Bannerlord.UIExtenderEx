@@ -34,8 +34,20 @@
     <SubModule>
       <Name value="$modulename$" />
       <DLLName value="$moduleid$.dll" />
-      <SubModuleClassType value="$moduleid$.SubModule" />
+      <SubModuleClassType value="$moduleid$.MCMSubModuleWrapper" />
       <Tags />
+    </SubModule>
+    <SubModule>
+      <Name value="$modulename$" />
+      <DLLName value="$moduleid$.dll" />
+      <SubModuleClassType value="$moduleid$.MCMImplementationSubModuleWrapper" />
+      <Tags />
+    </SubModule>
+    <SubModule>
+      <Name value="$modulename$" />
+      <DLLName value="$moduleid$.dll" />
+      <SubModuleClassType value="$moduleid$.SubModule" />
+      <Tags/>
     </SubModule>
     <SubModule>
       <Name value="$modulename$" />
