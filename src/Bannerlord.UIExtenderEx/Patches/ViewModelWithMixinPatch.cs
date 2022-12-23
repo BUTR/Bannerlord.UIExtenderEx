@@ -97,7 +97,7 @@ namespace Bannerlord.UIExtenderEx.Patches
                     continue;
 
                 // Refresh was called from VM Constructor, delay the call to Refresh()
-                if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
+                if (runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
                 {
                     var mixinsWithRefresh = runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => new List<IViewModelMixin>());
                     foreach (var mixin in list)
