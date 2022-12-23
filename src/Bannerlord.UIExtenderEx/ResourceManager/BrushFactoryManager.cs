@@ -19,7 +19,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         private delegate Brush LoadBrushFromDelegate(object instance, XmlNode brushNode);
 
         private static readonly LoadBrushFromDelegate? LoadBrushFrom =
-            AccessTools2.GetDeclaredDelegate<LoadBrushFromDelegate>("TaleWorlds.GauntletUI.BrushFactory:LoadBrushFrom");
+            AccessTools2.GetDeclaredDelegate<LoadBrushFromDelegate>(typeof(BrushFactory), "LoadBrushFrom");
 
         public static IEnumerable<Brush> Create(XmlDocument xmlDocument)
         {
@@ -46,11 +46,11 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
         internal static void Patch(Harmony harmony)
         {
             harmony.Patch(
-                AccessTools2.DeclaredPropertyGetter("TaleWorlds.GauntletUI.BrushFactory:Brushes"),
+                AccessTools2.DeclaredPropertyGetter(typeof(BrushFactory), "Brushes"),
                 postfix: new HarmonyMethod(typeof(BrushFactoryManager), nameof(GetBrushesPostfix)));
 
             harmony.Patch(
-                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.BrushFactory:GetBrush"),
+                AccessTools2.DeclaredMethod(typeof(BrushFactory), "GetBrush"),
                 prefix: new HarmonyMethod(typeof(BrushFactoryManager), nameof(GetBrushPrefix)));
 
 #pragma warning disable BHA0001
@@ -68,7 +68,7 @@ namespace Bannerlord.UIExtenderEx.ResourceManager
                 AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:ConvertObject"),
                 transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             harmony.TryPatch(
-                AccessTools2.DeclaredMethod("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChanger:OnBooleanUpdated"),
+                AccessTools2.DeclaredMethod("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChangerBrushWidget:OnBooleanUpdated"),
                 transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
             // Preventing inlining GetBrush
 #pragma warning restore BHA0001

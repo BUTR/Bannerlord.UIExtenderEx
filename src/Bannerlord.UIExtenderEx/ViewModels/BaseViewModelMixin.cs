@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Bannerlord.UIExtenderEx.ViewModels
 {
@@ -24,6 +25,16 @@ namespace Bannerlord.UIExtenderEx.ViewModels
         protected BaseViewModelMixin(TViewModel vm)
         {
             _vm = new WeakReference<TViewModel>(vm);
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            ViewModel?.OnPropertyChanged(propertyName);
+        }
+
+        protected void OnPropertyChangedWithValue(object value, [CallerMemberName] string? propertyName = null)
+        {
+            ViewModel?.OnPropertyChangedWithValue(value, propertyName);
         }
 
         /// <inheritdoc cref="IViewModelMixin.OnRefresh"/>
@@ -55,7 +66,7 @@ namespace Bannerlord.UIExtenderEx.ViewModels
                 return false;
             }
             field = value;
-            ViewModel?.OnPropertyChanged(propertyName);
+            OnPropertyChanged(propertyName);
             return true;
         }
     }
