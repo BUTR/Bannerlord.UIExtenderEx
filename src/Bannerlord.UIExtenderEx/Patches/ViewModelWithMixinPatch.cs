@@ -1,6 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Extensions;
-using Bannerlord.UIExtenderEx.ViewModels;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -59,24 +58,35 @@ namespace Bannerlord.UIExtenderEx.Patches
         private static IEnumerable<CodeInstruction> ViewModel_Constructor_Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase method) =>
             InsertMethodAtEnd(instructions, method, AccessTools2.DeclaredMethod(typeof(ViewModelWithMixinPatch), nameof(Constructor)));
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void Constructor(ViewModel viewModel, string methodName)
+        private static void Constructor(ViewModel viewModel, string _)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
                 if (!runtime.ViewModelComponent.Enabled)
+                {
                     continue;
+                }
 
                 runtime.ViewModelComponent.InitializeMixinsForVMInstance(viewModel);
 
                 if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
+                {
                     continue;
+                }
 
                 // Call Refresh on Constructor end if it was called within it
-                if (runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.TryGetValue(viewModel, out var mixinsWithRefresh))
+                if (runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.TryGetValue(viewModel, out var calledRefresMethods))
                 {
-                    foreach (var mixin in mixinsWithRefresh)
+                    foreach (var mixin in list)
                     {
-                        mixin.OnRefresh();
+                        var attribute = mixin.GetType().GetCustomAttribute<ViewModelMixinAttribute>();
+                        foreach (var methodName in calledRefresMethods)
+                        {
+                            if (methodName == attribute?.RefreshMethodName)
+                            {
+                                mixin.OnRefresh();
+                            }
+                        }
                     }
                     runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.Remove(viewModel);
                 }
@@ -94,26 +104,24 @@ namespace Bannerlord.UIExtenderEx.Patches
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
                 if (!runtime.ViewModelComponent.Enabled)
+                {
                     continue;
+                }
 
                 // Refresh was called from VM Constructor, delay the call to Refresh()
-                if (runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
+                if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
                 {
-                    var mixinsWithRefresh = runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => new List<IViewModelMixin>());
-                    foreach (var mixin in list)
-                    {
-                        var attribute = mixin.GetType().GetCustomAttribute<ViewModelMixinAttribute>();
-                        if (methodName == attribute.RefreshMethodName)
-                            mixinsWithRefresh.Add(mixin);
-                    }
+                    runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => new List<string>()).Add(methodName);
                     continue;
                 }
 
                 foreach (var mixin in list)
                 {
                     var attribute = mixin.GetType().GetCustomAttribute<ViewModelMixinAttribute>();
-                    if (methodName == attribute.RefreshMethodName)
+                    if (methodName == attribute?.RefreshMethodName)
+                    {
                         mixin.OnRefresh();
+                    }
                 }
             }
         }
@@ -124,15 +132,19 @@ namespace Bannerlord.UIExtenderEx.Patches
         private static IEnumerable<CodeInstruction> ViewModel_Finalize_Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase method) =>
             InsertMethodAtEnd(instructions, method, AccessTools2.DeclaredMethod(typeof(ViewModelWithMixinPatch), nameof(Finalize)));
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void Finalize(ViewModel viewModel, string methodName)
+        private static void Finalize(ViewModel viewModel, string _)
         {
             foreach (var runtime in UIExtender.GetAllRuntimes())
             {
                 if (!runtime.ViewModelComponent.Enabled || !runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
+                {
                     continue;
+                }
 
                 foreach (var mixin in list)
+                {
                     mixin.OnFinalize();
+                }
             }
         }
 
