@@ -41,7 +41,7 @@ namespace Bannerlord.UIExtenderEx.Components
         /// </summary>
         internal readonly ConditionalWeakTable<ViewModel, List<IViewModelMixin>> MixinInstanceCache = new();
 
-        internal readonly ConditionalWeakTable<ViewModel, List<IViewModelMixin>> MixinInstanceRefreshFromConstructorCache = new();
+        internal readonly ConditionalWeakTable<ViewModel, List<string>> MixinInstanceRefreshFromConstructorCache = new();
 
         private readonly ConcurrentDictionary<Type, List<PropertyInfo>> MixinTypePropertyCache = new();
         private readonly ConcurrentDictionary<Type, List<MethodInfo>> MixinTypeMethodCache = new();
