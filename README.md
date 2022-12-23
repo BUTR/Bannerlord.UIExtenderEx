@@ -5,7 +5,7 @@
   </a>
   </br>
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Lines Of Code">
-    <img src="https://tokei.rs/b1/github/BUTR/Bannerlord.UIExtenderEx?category=code" />
+    <img src="https://aschey.tech/tokei/github/BUTR/Bannerlord.UIExtenderEx?category=code" />
   </a>
   <a href="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex">
     <img src="https://www.codefactor.io/repository/github/butr/bannerlord.uiextenderex/badge" alt="CodeFactor" />
@@ -18,7 +18,7 @@
   </a>
   </br>
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions/workflows/test.yml?query=branch%3Adev">
-    <img alt="GitHub Workflow Status (event)" src="https://img.shields.io/github/workflow/status/BUTR/Bannerlord.UIExtenderEx/Test?branch=dev&label=Game%20Stable%20and%20Beta">
+    <img alt="GitHub Workflow Status (event)" src="https://img.shields.io/github/actions/workflow/status/BUTR/Bannerlord.UIExtenderEx/test.yml?branch=dev&label=Game%20Stable%20and%20Beta">
   </a>
   <a href="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx">
     <img src="https://codecov.io/gh/BUTR/Bannerlord.UIExtenderEx/branch/dev/graph/badge.svg" />
