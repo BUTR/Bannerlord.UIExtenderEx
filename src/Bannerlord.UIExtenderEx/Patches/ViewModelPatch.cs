@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Extensions;
+using Bannerlord.UIExtenderEx.ViewModels;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -18,6 +19,10 @@ namespace Bannerlord.UIExtenderEx.Patches
             harmony.TryPatch(
                 AccessTools2.DeclaredConstructor(typeof(ViewModel)),
                 prefix: AccessTools2.DeclaredMethod(typeof(ViewModelPatch), nameof(ViewModelCtorPrefix)));
+
+            harmony.Patch(
+                AccessTools2.Method(typeof(ViewModel), "ExecuteCommand"),
+                prefix: new HarmonyMethod(typeof(ViewModelPatch), nameof(ExecuteCommandPatch)));
         }
 
         private static bool ViewModelCtorPrefix(ViewModel __instance, ref Type ____type, ref object ____propertiesAndMethods)
@@ -29,6 +34,21 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 return false;
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Trigger ExecuteCommand in the wrapped VM
+        /// We can't extend\copy methods like we do with properties
+        /// </summary>
+        private static bool ExecuteCommandPatch(object __instance, string commandName, object[] parameters)
+        {
+            if (__instance is ViewModelWrapper { Object: { } viewModel })
+            {
+                viewModel.ExecuteCommand(commandName, parameters);
+                return false;
+            }
+
             return true;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -12,24 +13,25 @@ namespace Bannerlord.UIExtenderEx.Extensions
 {
     internal static class ViewModelExtensions
     {
+        private static readonly string NestedType = "TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection";
+
         private static readonly AccessTools.FieldRef<ViewModel, object>? PropertiesAndMethods =
             AccessTools2.FieldRefAccess<ViewModel, object>("_propertiesAndMethods");
 
         private delegate Dictionary<string, PropertyInfo> GetPropertiesDelegate(object instance);
         private static readonly GetPropertiesDelegate? GetProperties =
-            AccessTools2.GetDeclaredPropertyGetterDelegate<GetPropertiesDelegate>("TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection:Properties");
+            AccessTools2.GetDeclaredPropertyGetterDelegate<GetPropertiesDelegate>($"{NestedType}:Properties");
 
         private delegate Dictionary<string, MethodInfo> GetMethodsDelegate(object instance);
         private static readonly GetMethodsDelegate? GetMethods =
-            AccessTools2.GetDeclaredPropertyGetterDelegate<GetMethodsDelegate>("TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection:Methods");
+            AccessTools2.GetDeclaredPropertyGetterDelegate<GetMethodsDelegate>($"{NestedType}:Methods");
 
         private static readonly AccessTools.FieldRef<IDictionary>? CachedViewModelProperties =
             AccessTools2.StaticFieldRefAccess<IDictionary>(typeof(ViewModel), "_cachedViewModelProperties");
 
         public delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
         public static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
-            AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(
-                "TaleWorlds.Library.ViewModel+DataSourceTypeBindingPropertiesCollection", new[] { typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
+            AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(NestedType, new[] { typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
 
         public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
         {
@@ -45,6 +47,30 @@ namespace Bannerlord.UIExtenderEx.Extensions
                 return;
 
             methodDict[name] = methodInfo;
+        }
+
+        public static IReadOnlyCollection<PropertyInfo> GetViewModelProperties(this ViewModel viewModel)
+        {
+            if (PropertiesAndMethods is null || CachedViewModelProperties is null || DataSourceTypeBindingPropertiesCollectionCtor is null || GetProperties is null || GetMethods is null)
+                return Array.Empty<PropertyInfo>();
+
+            if (PropertiesAndMethods(viewModel) is not { } storage)
+                return Array.Empty<PropertyInfo>();
+
+            var properties = GetProperties(storage);
+            return properties.Values;
+        }
+
+        public static IReadOnlyCollection<MethodInfo> GetViewModelMethods(this ViewModel viewModel)
+        {
+            if (PropertiesAndMethods is null || CachedViewModelProperties is null || DataSourceTypeBindingPropertiesCollectionCtor is null || GetProperties is null || GetMethods is null)
+                return Array.Empty<MethodInfo>();
+
+            if (PropertiesAndMethods(viewModel) is not { } storage)
+                return Array.Empty<MethodInfo>();
+
+            var methods = GetMethods(storage);
+            return methods.Values;
         }
 
         private static bool GetOrCreateIndividualStorage(ViewModel viewModel, [NotNullWhen(true)] out Dictionary<string, PropertyInfo>? propDict, [NotNullWhen(true)] out Dictionary<string, MethodInfo>? methodDict)
