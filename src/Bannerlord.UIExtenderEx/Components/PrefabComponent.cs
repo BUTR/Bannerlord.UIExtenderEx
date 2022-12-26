@@ -161,7 +161,7 @@ namespace Bannerlord.UIExtenderEx.Components
                 patch(document);
             }
 
-            if (Settings.Instance?.DumpXML == true)
+            if (UIExtenderExSettings.Instance.DumpXML)
             {
                 DumpXml(_moduleName, movie, document);
             }

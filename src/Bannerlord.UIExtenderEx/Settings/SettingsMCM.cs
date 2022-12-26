@@ -1,12 +1,13 @@
-﻿using MCM.Abstractions.Attributes;
+﻿/*
+using MCM.Abstractions.Attributes;
 using MCM.Abstractions.Attributes.v2;
 using MCM.Abstractions.Base.Global;
 
 using TaleWorlds.Localization;
 
-namespace Bannerlord.UIExtenderEx
+namespace Bannerlord.UIExtenderEx.Settings
 {
-    internal sealed class Settings : AttributeGlobalSettings<Settings>
+    internal sealed class Settings : AttributeGlobalSettings<Settings>, ISettingsProvider
     {
         public override string Id => "UIExtenderEx_v1";
         public override string FolderName => "UIExtenderEx";
@@ -30,3 +31,4 @@ namespace Bannerlord.UIExtenderEx
         public bool DumpXML { get; set; } = false;
     }
 }
+*/

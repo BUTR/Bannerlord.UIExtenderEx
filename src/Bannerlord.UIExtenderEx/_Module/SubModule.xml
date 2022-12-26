@@ -31,6 +31,7 @@
   </DependedModuleMetadatas>
   <!-- Community Metadata -->
   <SubModules>
+    <!--
     <SubModule>
       <Name value="$modulename$" />
       <DLLName value="$moduleid$.dll" />
@@ -43,14 +44,17 @@
       <SubModuleClassType value="$moduleid$.MCMImplementationSubModuleWrapper" />
       <Tags />
     </SubModule>
+    -->
     <SubModule>
       <Name value="$modulename$" />
       <DLLName value="$moduleid$.dll" />
       <SubModuleClassType value="$moduleid$.SubModule" />
-      <Tags/>
+      <Tags>
+        <Tag key="DumpXML" value="false" />
+      </Tags>
     </SubModule>
     <SubModule>
-      <Name value="$modulename$" />
+      <Name value="$modulename$ UI Patch" />
       <DLLName value="$moduleid$.dll" />
       <SubModuleClassType value="$moduleid$.UIPatchSubModule" />
       <Tags />
