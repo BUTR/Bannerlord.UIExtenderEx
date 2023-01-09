@@ -1,4 +1,4 @@
-namespace Bannerlord.UIExtenderEx.Settings
+﻿namespace Bannerlord.UIExtenderEx.Settings
 {
     public interface ISettingsProvider
     {
