@@ -7,7 +7,7 @@ If the attribute already exists on the target node, it's value will be replaced 
 **Example of adding multiple attributes:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension( "ExampleFile", "descendant::OptionScreenWidget[@Id='Options']/Children/OptionsTabToggle" )]
 internal class AddMultipleAttributesExamplePatch : PrefabExtensionSetAttributePatch
 {
     public override List<Attribute> Attributes => new()

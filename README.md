@@ -16,6 +16,9 @@
   <a href="https://butr.github.io/Bannerlord.UIExtenderEx" alt="Documentation">
     <img src="https://img.shields.io/badge/Documentation-%F0%9F%94%8D-blue?style=flat" />
   </a>
+  <a title="Crowdin" target="_blank" href="https://crowdin.com/project/uiextenderex">
+    <img src="https://badges.crowdin.net/uiextenderex/localized.svg">
+  </a>
   </br>
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions/workflows/test.yml?query=branch%3Adev">
     <img alt="GitHub Workflow Status (event)" src="https://img.shields.io/github/actions/workflow/status/BUTR/Bannerlord.UIExtenderEx/test.yml?branch=dev&label=Game%20Stable%20and%20Beta">

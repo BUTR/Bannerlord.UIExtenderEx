@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Settings;
+﻿using Bannerlord.UIExtenderEx.Settings;
 
 namespace Bannerlord.UIExtenderEx
 {

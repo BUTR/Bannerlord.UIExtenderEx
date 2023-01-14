@@ -17,14 +17,14 @@ See [PrefabExtensionInsertPatch.cs](https://github.com/BUTR/Bannerlord.UIExtende
 **Example of prepending the content of an XmlDocument:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
 internal class PrependExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Prepend;
 
     private XmlDocument document;
 
-    public TestPrefabExtensionReplacePatch()
+    public PrependExamplePatch()
     {
         document = new XmlDocument();
         document.LoadXml("<OptionsTabToggle Id=\"PrependedTabToggle\"><SomeChild/></OptionsTabToggle>");
@@ -67,14 +67,14 @@ internal class PrependExamplePatch : PrefabExtensionInsertPatch
 **Example of appending an XmlNode:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
 internal class AppendExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Append;
 
     private XmlDocument document;
 
-    public TestPrefabExtensionReplacePatch()
+    public AppendExamplePatch()
     {
         document = new XmlDocument();
         document.LoadXml("<OptionsTabToggle Id=\"AppendedTabToggle\"/>");
@@ -115,7 +115,7 @@ internal class AppendExamplePatch : PrefabExtensionInsertPatch
 **Example of adding multiple XmlNodes as children:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children")]
 internal class AddAsChildrenExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Child;
@@ -126,7 +126,7 @@ internal class AddAsChildrenExamplePatch : PrefabExtensionInsertPatch
 
     private List<XmlNode> nodes;
 
-    public TestPrefabExtensionReplacePatch()
+    public AddAsChildrenExamplePatch()
     {
         XmlDocument firstChild = new XmlDocument();
         firstChild.LoadXml("<OptionsTabToggle Id=\"InsertedFirstChild\"><Children><InnerChild/></Children></OptionsTabToggle>");
@@ -179,7 +179,7 @@ internal class AddAsChildrenExamplePatch : PrefabExtensionInsertPatch
 **Example of replacing a node:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
 internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Replace;
@@ -222,7 +222,7 @@ internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 **Example of replacing a node while keeping its children:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
 internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.ReplaceKeepChildren;
@@ -291,7 +291,7 @@ Inserting multiple children at the "root" level like in the above example can be
 **Example of using RemoveRootNode. The result will be the same as the example above:**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
 internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.ReplaceKeepChildren;
@@ -312,7 +312,7 @@ The biggest advantage of doing this is being able to perform live debugging on y
 **Example of appending the content of a file using [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute):**
 
 ```csharp
-[PrefabExtension( "ExampleFile", "descendant::Widget[@Id='OptionsScreenWidget']/Children/OptionsTabToggle" )]
+[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
 internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Append;
