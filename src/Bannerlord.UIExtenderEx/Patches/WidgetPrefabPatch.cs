@@ -58,8 +58,10 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (instructionsList[i + 0].opcode != OpCodes.Newobj || !Equals(instructionsList[i + 0].operand, constructor))
                     continue;
 
+#if NET472 || NETCOREAPP3_1_OR_GREATER
                 if (!instructionsList[i + 1].IsStloc())
                     continue;
+#endif
 
                 startIndex = i;
                 break;

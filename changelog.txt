@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.6.1
+Game Versions: v1.0.0,v1.0.1,v1.0.2,v1.0.3,v1.1.0
+* Experimental support for Microsoft Store version of the game
+* Added Spanish translation
+---------------------------------------------------------------------------------------------------
 Version: 2.6.0
 Game Versions: v1.0.0,v1.0.1,v1.0.2,v1.0.3,v1.1.0
 * Adapted to v1.1.0

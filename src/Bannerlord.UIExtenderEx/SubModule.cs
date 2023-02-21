@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Windows.Forms;
 
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.Localization;
@@ -53,7 +52,7 @@ namespace Bannerlord.UIExtenderEx
                 sb.AppendLine(report);
                 sb.AppendLine();
                 sb.AppendLine(new TextObject(SMessageContinue)?.ToString() ?? "ERROR");
-                switch (MessageBox.Show(sb.ToString(), new TextObject(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
+                switch (MessageBoxWrapper.Show(sb.ToString(), new TextObject(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
                 {
                     case DialogResult.Yes:
                         Environment.Exit(1);
