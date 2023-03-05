@@ -2,14 +2,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp3.1;netstandard2.0</TargetFrameworks>
-    <LangVersion>9.0</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
-    <BuildForWindows>false</BuildForWindows>
-    <BuildForWindowsStore>false</BuildForWindowsStore>
+    <BuildForWindows>true</BuildForWindows>
+    <BuildForWindowsStore>true</BuildForWindowsStore>
 
     <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
+    <DefineConstants>$(DefineConstants);HARMONYEXTENSIONS_HARMONYX</DefineConstants>
   </PropertyGroup>
 
   <!--Module Creation-->
@@ -19,46 +20,24 @@
   </PropertyGroup>
   <!--Module Creation-->
 
-  <PropertyGroup Condition="$(TargetFramework) == 'net472'">
-    <BuildForWindows>true</BuildForWindows>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(TargetFramework) == 'netcoreapp3.1'">
-    <BuildForWindowsStore>true</BuildForWindowsStore>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
-  </PropertyGroup>
-  
   <!--NuGet Package-->
-  <PropertyGroup Condition="$(TargetFramework) == 'netstandard2.0'">
-    <TargetFrameworks>netstandard2.0;</TargetFrameworks>
+  <PropertyGroup>
     <PackageId>Bannerlord.UIExtenderEx</PackageId>
-    <PackageDescription>A library that enables multiple mods to alter standard game interface. Built against e$(GameVersion).</PackageDescription>
+    <PackageDescription>A library that enables multiple mods to alter standard game interface. Built against v$(GameVersion).</PackageDescription>
     <Title>UIExtenderEx</Title>
     <Authors>BUTR, shdwp</Authors>
-    <DevelopmentDependency>true</DevelopmentDependency>
+    <DevelopmentDependency>false</DevelopmentDependency>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageIcon>Butter.png</PackageIcon>
-    <PackageTargetFallback></PackageTargetFallback>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../resources/Butter.png" Pack="true" PackagePath="" />
   </ItemGroup>
-  <Target Name="_ExcludeTargetFramework" AfterTargets="_GetTargetFrameworksOutput" BeforeTargets="_WalkEachTargetPerFramework">
-    <ItemGroup>
-      <_TargetFrameworks Remove="net472" />
-      <_TargetFrameworks Remove="netcoreapp3.1" />
-    </ItemGroup>
-  </Target>
-  <Target Name="_ExcludeTargetFrameworkDependency" AfterTargets="_WalkEachTargetPerFramework" BeforeTargets="GenerateNuspec">
-    <ItemGroup>
-      <_FrameworksWithSuppressedDependencies Include="net472" />
-      <_FrameworksWithSuppressedDependencies Include="netcoreapp3.1" />
-    </ItemGroup>
-  </Target>
   <!--NuGet Package-->
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
+    <PackageReference Include="HarmonyX" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="compile" GeneratePathProperty="true" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" />
    

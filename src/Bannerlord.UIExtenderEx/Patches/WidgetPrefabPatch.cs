@@ -58,10 +58,8 @@ namespace Bannerlord.UIExtenderEx.Patches
                 if (instructionsList[i + 0].opcode != OpCodes.Newobj || !Equals(instructionsList[i + 0].operand, constructor))
                     continue;
 
-#if NET472 || NETCOREAPP3_1_OR_GREATER
                 if (!instructionsList[i + 1].IsStloc())
                     continue;
-#endif
 
                 startIndex = i;
                 break;
@@ -103,7 +101,7 @@ namespace Bannerlord.UIExtenderEx.Patches
         {
             // Replaces reading XML from file with assigning it from the new local variable `XmlDocument document`
             [MethodImpl(MethodImplOptions.NoInlining)]
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
             {
                 var returnNull = new List<CodeInstruction>
                 {
@@ -123,6 +121,7 @@ namespace Bannerlord.UIExtenderEx.Patches
 
                 var instructionList = instructions.ToList();
 
+                var method = AccessTools2.DeclaredMethod(typeof(WidgetPrefab), "LoadFrom")!;
                 var locals = method.GetMethodBody()?.LocalVariables;
                 var typeLocal = locals?.FirstOrDefault(x => x.LocalType == typeof(XmlDocument));
 
@@ -155,7 +154,7 @@ namespace Bannerlord.UIExtenderEx.Patches
             }
 
             // make compiler happy
-            _ = Transpiler(null!, null!);
+            _ = Transpiler(null!);
 
             // make analyzer happy
             prefabExtensionContext.AddExtension(null);

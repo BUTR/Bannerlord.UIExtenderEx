@@ -154,11 +154,9 @@ namespace Bannerlord.UIExtenderEx.Patches
             {
                 if (method is not null && instruction.opcode == OpCodes.Ret)
                 {
-#if NET472 || NETCOREAPP3_1_OR_GREATER
                     var labels = instruction.labels;
                     instruction.labels = new List<Label>();
                     yield return new CodeInstruction(OpCodes.Ldarg_0) { labels = labels };
-#endif
                     yield return new CodeInstruction(OpCodes.Ldstr, originalMethod.Name);
                     yield return new CodeInstruction(OpCodes.Call, method);
                 }
