@@ -1,7 +1,7 @@
 # Bannerlord.UIExtenderEx
 <p align="center">
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Logo">
-    <img src="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/resources/Butter.png?raw=true" />
+    <img src="https://media.discordapp.net/attachments/422092475163869201/1083742477250465843/BLSE_SMALL_SMALL.png" />
   </a>
   </br>
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx" alt="Lines Of Code">
