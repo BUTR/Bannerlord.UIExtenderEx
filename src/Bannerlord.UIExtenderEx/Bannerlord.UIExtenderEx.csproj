@@ -39,6 +39,7 @@
   <ItemGroup>
     <PackageReference Include="Bannerlord.Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="compile" GeneratePathProperty="true" />
+    <PackageReference Include="BUTR.MessageBoxPInvoke" Version="1.0.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" />
    
     <PackageReference Include="Bannerlord.BuildResources" Version="$(BuildResourcesVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />

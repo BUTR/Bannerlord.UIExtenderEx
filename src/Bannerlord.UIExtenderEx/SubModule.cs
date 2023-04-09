@@ -1,6 +1,8 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
 using Bannerlord.UIExtenderEx.Utils;
 
+using BUTR.MessageBoxPInvoke.Helpers;
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -52,9 +54,9 @@ namespace Bannerlord.UIExtenderEx
                 sb.AppendLine(report);
                 sb.AppendLine();
                 sb.AppendLine(new TextObject(SMessageContinue)?.ToString() ?? "ERROR");
-                switch (MessageBoxWrapper.Show(sb.ToString(), new TextObject(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
+                switch (MessageBoxDialog.Show(sb.ToString(), new TextObject(SWarningTitle)?.ToString() ?? "ERROR", MessageBoxButtons.YesNo))
                 {
-                    case DialogResult.Yes:
+                    case MessageBoxResult.Yes:
                         Environment.Exit(1);
                         break;
                 }
