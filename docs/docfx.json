@@ -41,6 +41,7 @@
     "template": [
       "default",
       "modern",
+      "_template/last-modified"
     ],
     "postProcessors": [
       "ExtractSearchIndex",
