@@ -36,7 +36,7 @@
       "_enableSearch": "true",
       "_appTitle": "UIExtenderEx Documentation",
       "_appName": "UIExtenderEx",
-      "_appFooter": "© 2020-2023 BUTR. Made with <a href=\"https://dotnet.github.io/docfx\">docfx</a></span>",
+      "_appFooter": "© 2020-2023 Bannerlord's Unofficial Tools & Resources",
     },
     "template": [
       "default",
