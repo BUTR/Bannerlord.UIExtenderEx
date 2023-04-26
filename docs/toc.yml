@@ -4,9 +4,14 @@
 - name: API Documentation
   href: api/
 
-- name: Bannerlord Documentations
-  items:
-    - name: Official Documentation
-      href: https://docs.modding.bannerlord.com/
-    - name: Community Documentation
-      href: https://docs.bannerlordmodding.com/
+- name: Official Game Docs
+  href: https://docs.modding.bannerlord.com/
+- name: Community Game Docs
+  href: https://docs.bannerlordmodding.com/
+#- name: Bannerlord Documentations
+#  dropdown: true
+#  items:
+#    - name: Official Documentation
+#      href: https://docs.modding.bannerlord.com/
+#    - name: Community Documentation
+#      href: https://docs.bannerlordmodding.com/
