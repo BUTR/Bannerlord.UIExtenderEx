@@ -2,14 +2,12 @@
   href: index.md
 
 - name: Articles
-  href: articles/
-  homepage: articles/index.md
+  href: articles/toc.yml
 
 - name: API Documentation
-  href: api/
+  href: api/toc.yml
 
 - name: Bannerlord Documentations
-  dropdown: true
   items:
     - name: Official Documentation
       href: http://docs.modding.bannerlord.com/
