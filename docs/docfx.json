@@ -36,7 +36,7 @@
       "_enableSearch": "true",
       "_appTitle": "UIExtenderEx Documentation",
       "_appName": "UIExtenderEx",
-      "_appLogoPath": "logo.png",
+      "_appLogoPath": "images/logo.png",
       "_appFooter": "© 2020-2023 Bannerlord's Unofficial Tools & Resources",
     },
     "template": [
