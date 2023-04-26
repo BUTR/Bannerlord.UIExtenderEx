@@ -21,46 +21,27 @@
     ],
     "content": [
       {
-        "files": [
-          "api/**.yml",
-          "api/index.md"
-        ]
-      },
-      {
-        "files": [
-          "articles/**.md",
-          "articles/**/toc.yml",
-          "toc.yml",
-          "*.md"
-        ]
+        "files": [ "**/**.{md,yml}" ],
+        "exclude": [ "_site/**", "obj/**" ]
       }
     ],
     "resource": [
       {
-        "files": [
-          "langwordMapping.yml",
-          "images/**"
-        ]
-      },
-      {
-        "src": "../",
-        "files": [ "resources/**" ]
+        "files": [ "**/images/**", "codesnippet/**" ],
+        "exclude": [ "_site/**", "obj/**" ]
       }
     ],
-    "overwrite": [ ],
     "dest": "_site",
     "globalMetadata": {
       "_enableSearch": "true",
       "_appTitle": "UIExtenderEx Documentation",
-      "_appFooter": "© 2020-2023 BUTR",
+      "_appName": "UIExtenderEx",
+      "_appFooter": "© 2020-2023 BUTR. Made with <a href=\"https://dotnet.github.io/docfx\">docfx</a></span>",
     },
-    "globalMetadataFiles": [],
-    "fileMetadataFiles": [],
     "template": [
       "default",
       "modern",
     ],
-    "postProcessors": ["ExtractSearchIndex"],
-    "markdownEngineName": "markdig"
+    "postProcessors": [ "ExtractSearchIndex" ]
   }
 }
