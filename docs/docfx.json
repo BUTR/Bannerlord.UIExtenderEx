@@ -27,7 +27,7 @@
     ],
     "resource": [
       {
-        "files": [ "**/images/**", "codesnippet/**" ],
+        "files": [ "**/images/**", "codesnippet/**", "../resources/**" ],
         "exclude": [ "_site/**", "obj/**" ]
       }
     ],
@@ -36,16 +36,18 @@
       "_enableSearch": "true",
       "_appTitle": "UIExtenderEx Documentation",
       "_appName": "UIExtenderEx",
+      "_appLogoPath": "../resources/Butter.png",
       "_appFooter": "© 2020-2023 Bannerlord's Unofficial Tools & Resources",
     },
     "template": [
       "default",
       "modern",
-      "_template/last-modified"
+      // https://github.com/dotnet/docfx/issues/8578
+      // "_template/last-modified"
     ],
     "postProcessors": [
       "ExtractSearchIndex",
-      "LastModifiedPostProcessor"
+      // "LastModifiedPostProcessor"
     ]
   }
 }
