@@ -39,7 +39,7 @@ jobs:
     - name: Run DocFX
       run: >-
         Copy-Item "README.md" -Destination "docs/index.md";
-        Copy-Item "resources/Butter.png" -Destination "docs/logo.png";
+        Copy-Item "resources/Butter.png" -Destination "docs/images/logo.png";
         docfx metadata docs/docfx.json;
         docfx build docs/docfx.json;
       shell: pwsh
