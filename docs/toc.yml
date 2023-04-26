@@ -1,9 +1,8 @@
-items:
 - name: Articles
-  href: articles/toc.yml
+  href: articles/
 
 - name: API Documentation
-  href: api/toc.yml
+  href: api/
 
 - name: Bannerlord Documentations
   items:
