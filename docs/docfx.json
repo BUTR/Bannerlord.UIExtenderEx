@@ -42,6 +42,9 @@
       "default",
       "modern",
     ],
-    "postProcessors": [ "ExtractSearchIndex" ]
+    "postProcessors": [
+      "ExtractSearchIndex",
+      "LastModifiedPostProcessor"
+    ]
   }
 }
