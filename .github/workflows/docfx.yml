@@ -23,7 +23,7 @@ env:
 
 jobs:
   docfx:
-    name: DocFX documentation
+    name: DocFX Documentation
     runs-on: ubuntu-latest
     steps:
     - name: DocFX Setup
