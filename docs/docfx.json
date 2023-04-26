@@ -52,13 +52,12 @@
     "globalMetadata": {
       "_enableSearch": "true",
       "_appTitle": "UIExtenderEx Documentation",
-      "_appFooter": "© 2020 BUTR",
+      "_appFooter": "© 2020-2023 BUTR",
     },
     "globalMetadataFiles": [],
     "fileMetadataFiles": [],
     "template": [
-      "default",
-      "_template/dark-theme"
+      "default"
     ],
     "postProcessors": ["ExtractSearchIndex"],
     "markdownEngineName": "markdig"
