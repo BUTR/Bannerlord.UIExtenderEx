@@ -32,8 +32,7 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Build Bannerlord.UIExtenderEx
-      run: >-
-        dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj;
+      run: dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj;
       shell: pwsh
 
     - name: Run DocFX
