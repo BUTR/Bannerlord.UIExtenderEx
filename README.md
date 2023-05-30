@@ -60,3 +60,20 @@ This mod is a dependency mod that does not provide anything by itself. You need 
 
 ## Usage
 Check the [``Articles``](https://butr.github.io/Bannerlord.UIExtenderEx/articles/v2/Overview.html) section of our documentation!
+
+## Current State of AutoGens
+The game uses two Prefab systems - static (pre-compiled XML) C# prefabs and dynamically serialized XML prefabs.  
+The XML prefabs were introduced with the Early Access.  
+The C# prefabs were introduced in the middle of Early Access. Most likely for Console releases, since they use the `Mono` runtime.  
+
+We call AutoGens the XML prefabs that are pre-compiled into C# prefabs. The pre-compilation is achieved by using `TaleWorlds.MountAndBlade.GauntletUI.CodeGenerator.exe`.
+It generates C# code based on the XML file. The C# code can then be compiled into an assembly (`.dll` file) that can be loaded by the game.  
+This has the following benefits:
+* We have ready-to-use prefabs at the very start of the game, removing the serialization step of the XML prefabs, which reduces the load time.
+* We have static (typed) access to anything within the prefab. We do not need to use reflection to get/set data, which, again, speeds up the game. This is particularly noticeable on the `Mono` runtime.  
+
+In summary, AutoGens are faster than the raw XML prefabs. The most performance is gained on the `Mono` runtime. On .NET (Core) the difference is more or less neglectable.
+
+UIExtenderEx modifies the raw XML prefabs. Since the game does not use XML prefabs and instead relies on the AutoGens, our modifications will not affect the game.  
+Currently, we just disable AutoGens globally. We are not able to do the pre-compilation at runtime. The issues are mostly not at our side - the `CodeGenerator` that the game provides doesn't support
+such scenarios.
