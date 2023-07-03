@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/ModuleLanguage.xsd">
+  <tags>
+    <tag language="日本語"/>
+  </tags>
+  <strings>
+    <string id="eySpdc25EE" text="Bannerlord.UIExtenderEx からの警告!"/>
+    <string id="FE6ya1gzZR" text="モジュール {REQUIRED_MODULE} が見つかりません!"/>
+    <string id="EvI6KPAqTT" text="互換性のないモジュール {DENIED_MODULE} が検出されました!"/>
+    <string id="5G9zffrgMh" text="{MODULE} が {REQUIRED_MODULE} より前に読み込まれています!{NL}{MODULE} が後に読み込まれるように確認してください!"/>
+    <string id="UZ8zfvudMs" text="{MODULE} が {REQUIRED_MODULE} より後に読み込まれています!{NL}{MODULE} が先に読み込まれるように確認してください!"/>
+    <string id="FcR4BXnhx8" text="{MODULE} は {REQUIRED_MODULE} に対して互いに矛盾するロード順が指定されています!"/>
+    <string id="eXs6FLm5DP" text="すぐにゲームを終了することを強く推奨します。今すぐ終了しますか?"/>
+  </strings>
+</base>
