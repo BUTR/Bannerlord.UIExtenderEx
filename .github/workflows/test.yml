@@ -61,7 +61,7 @@ jobs:
       shell: pwsh
 
     - name: ReportGenerator
-      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.22
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.1.23
       with:
         reports: 'coverage_uiextenderex_debug.xml;coverage_uiextenderex_release.xml'
         targetdir: 'coveragereport'
