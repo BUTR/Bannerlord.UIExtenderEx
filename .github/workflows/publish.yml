@@ -45,7 +45,7 @@ jobs:
         echo "::set-output name=mod_description::$desc"
 
     - name: Upload Bannerlord folder
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: bannerlord
         path: ./bannerlord/
