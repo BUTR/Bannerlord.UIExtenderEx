@@ -8,6 +8,7 @@
   <ModuleCategory value="Singleplayer" />
   <ModuleType value="Community" />
   <Url value="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" />
+  <UpdateInfo value="NexusMods:2102" />
   <DependedModules>
     <DependedModule Id="Bannerlord.Harmony" DependentVersion="v$harmonyversion$" />
   </DependedModules>
@@ -19,7 +20,7 @@
     <Module Id="CustomBattle" />
   </ModulesToLoadAfterThis>
   <!-- Community Dependency Metadata -->
-  <!-- https://github.com/BUTR/Bannerlord.BUTRLoader#for-modders -->
+  <!-- https://github.com/BUTR/Bannerlord.BLSE#community-dependency-metadata -->
   <DependedModuleMetadatas>
     <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" version="v$harmonyversion$" />
 
@@ -49,6 +50,7 @@
       <Name value="$modulename$" />
       <DLLName value="$moduleid$.dll" />
       <SubModuleClassType value="$moduleid$.SubModule" />
+      <Assemblies/>
       <Tags>
         <Tag key="DumpXML" value="false" />
       </Tags>
@@ -57,6 +59,7 @@
       <Name value="$modulename$ UI Patch" />
       <DLLName value="$moduleid$.dll" />
       <SubModuleClassType value="$moduleid$.UIPatchSubModule" />
+      <Assemblies/>
       <Tags />
     </SubModule>
   </SubModules>
