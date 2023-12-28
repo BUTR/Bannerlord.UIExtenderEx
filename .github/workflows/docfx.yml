@@ -23,34 +23,29 @@ env:
 
 jobs:
   docfx:
-    name: DocFX documentation
+    name: DocFX Documentation
     runs-on: ubuntu-latest
     steps:
     - name: DocFX Setup
-      uses: butr/actions-docfx-setup@v3.0
+      uses: butr/actions-docfx-setup@v3
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Build Bannerlord.UIExtenderEx
-      run: >-
-        dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj;
+      run: dotnet build src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj;
       shell: pwsh
 
     - name: Run DocFX
       run: >-
         Copy-Item "README.md" -Destination "docs/index.md";
-        if ($${{runner.os == 'Windows'}}) {
-          docfx.console/tools/docfx.exe metadata docs/docfx.json;
-          docfx.console/tools/docfx.exe build docs/docfx.json;
-        }
-        else {
-          mono docfx.console/tools/docfx.exe metadata docs/docfx.json;
-          mono docfx.console/tools/docfx.exe build docs/docfx.json;
-        }
+        New-Item -Type dir "docs/images";
+        Copy-Item "resources/BUTR48.svg" -Destination "docs/images/BUTR48.svg";
+        docfx metadata docs/docfx.json;
+        docfx build docs/docfx.json;
       shell: pwsh
 
     - name: Deploy DocFX
-      uses: crazy-max/ghaction-github-pages@v3
+      uses: crazy-max/ghaction-github-pages@v4
       with:
         target_branch: gh-pages
         build_dir: docs/_site
