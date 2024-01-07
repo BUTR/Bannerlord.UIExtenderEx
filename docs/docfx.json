@@ -18,16 +18,11 @@
       "https://butr.github.io/Bannerlord.ReferenceAssemblies.Documentation/xrefmap.yml"
     ],
     "content": [
-      {
-        "files": [ "**/**.{md,yml}" ],
-        "exclude": [ "_site/**", "obj/**" ]
-      }
+      { "files": [ "**/**.{md,yml}" ], "exclude": [ "_site/**", "obj/**" ] }
     ],
     "resource": [
-      {
-        "files": [ "**/images/**", "codesnippet/**", "CNAME", "**/**.png" ],
-        "exclude": [ "_site/**", "obj/**" ]
-      }
+      { "files": [ "images/**", "codesnippet/**", "CNAME" ], "exclude": [ "_site/**", "obj/**" ] },
+      { "files": [ "articles/**/*.png" ], "exclude": [ "_site/**", "obj/**" ] }
     ],
     "dest": "_site",
     "globalMetadata": {
@@ -40,11 +35,11 @@
     "template": [
       "default",
       "modern",
-      "_template/last-modified"
+      //"_template/last-modified"
     ],
     "postProcessors": [
       "ExtractSearchIndex",
-      "LastModifiedPostProcessor"
+      //"LastModifiedPostProcessor"
     ]
   }
 }
