@@ -7,7 +7,7 @@ namespace Bannerlord.UIExtenderEx.Settings;
 
 public class SettingsSubModuleTags : ISettingsProvider
 {
-    public bool DumpXML { get; set; } = true;
+    public bool DumpXML { get; set; } = false;
 
     public SettingsSubModuleTags()
     {
