@@ -16,7 +16,7 @@ using StringReader = System.IO.StringReader;
 
 namespace Bannerlord.UIExtenderEx.Tests;
 
-public class BaseTests
+public class BaseTests : SharedTests
 {
     protected class MockWidgetFactory : WidgetFactory
     {
@@ -118,8 +118,6 @@ public class BaseTests
     public void OneTimeSetup()
     {
         _ = Assembly.Load("TaleWorlds.Engine.GauntletUI");
-
-        System.Diagnostics.Trace.Listeners.Clear();
 
         var property = AccessTools2.DeclaredProperty("TaleWorlds.Engine.GauntletUI.UIResourceManager:WidgetFactory");
         property!.SetValue(null, new MockWidgetFactory());

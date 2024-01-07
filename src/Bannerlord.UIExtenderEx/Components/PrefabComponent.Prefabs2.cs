@@ -337,7 +337,7 @@ internal partial class PrefabComponent
         var value = GetFunction(typeof(T), instance, memberInfo)();
         if (value is null)
         {
-            Type memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo) memberInfo).ReturnType;
+            var memberType = memberInfo is PropertyInfo propertyInfo ? propertyInfo.PropertyType : ((MethodInfo) memberInfo).ReturnType;
             errorMessage += $"is of type: {memberType.Name}. A Member flagged with a Content attribute must be " +
                             $"of one of the types listed in {nameof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute)}";
             return false;

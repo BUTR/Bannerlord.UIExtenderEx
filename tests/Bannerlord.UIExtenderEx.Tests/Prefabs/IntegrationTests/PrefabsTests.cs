@@ -12,13 +12,32 @@ public class PrefabsTests : BaseTests
 {
     private const int Elements = 6;
 
+    private UIExtender? _uiExtender;
+
+    [SetUp]
+    public void Setup()
+    {
+        _uiExtender = UIExtender.Create("TestModule");
+        _uiExtender.Register(new[]
+        {
+            typeof(TestPrefabExtensionInsertAsSiblingAppendPatch),
+            typeof(TestPrefabExtensionInsertAsSiblingPrependPatch),
+            typeof(TestPrefabExtensionInsertPatch),
+            typeof(TestPrefabExtensionReplacePatch),
+            typeof(TestPrefabExtensionSetAttributePatch),
+        });
+        _uiExtender.Enable();
+    }
+
+    [TearDown]
+    public void Finalization()
+    {
+        _uiExtender?.Deregister();
+    }
+    
     [Test]
     public void PrefabsInsertTest()
     {
-        var uiExtender = UIExtender.Create("TestModule");
-        uiExtender.Register(typeof(PrefabsTests).Assembly);
-        uiExtender.Enable();
-
         var widgetTemplateInsert = UIResourceManager.WidgetFactory.GetCustomType("Insert").RootTemplate;
         var childrenInsert1 = GetChildren(widgetTemplateInsert);
         var childrenInsert2 = GetChildren(childrenInsert1[0]);
@@ -53,17 +72,12 @@ public class PrefabsTests : BaseTests
         var childrenSetAttribute3 = GetChildren(childrenSetAttribute2[0]);
         Assert.True(childrenSetAttribute3.Count == Elements);
         Assert.True(childrenSetAttribute3[3].AllAttributes.Any(a => a.Key == "CustomAttribute" && a.Value == "Value"));
-
-        uiExtender.Deregister();
     }
 
     [Test]
     public void PrefabsInsertTestDisabled()
     {
-        var uiExtender = UIExtender.Create("TestModule");
-        uiExtender.Register(typeof(PrefabsTests).Assembly);
-        uiExtender.Enable();
-        uiExtender.Disable(typeof(TestPrefabExtensionInsertAsSiblingAppendPatch));
+        _uiExtender.Disable(typeof(TestPrefabExtensionInsertAsSiblingAppendPatch));
 
         var widgetTemplateInsert = UIResourceManager.WidgetFactory.GetCustomType("Insert").RootTemplate;
         var childrenInsert1 = GetChildren(widgetTemplateInsert);
@@ -99,7 +113,5 @@ public class PrefabsTests : BaseTests
         var childrenSetAttribute3 = GetChildren(childrenSetAttribute2[0]);
         Assert.True(childrenSetAttribute3.Count == Elements);
         Assert.True(childrenSetAttribute3[3].AllAttributes.Any(a => a.Key == "CustomAttribute" && a.Value == "Value"));
-
-        uiExtender.Deregister();
     }
 }

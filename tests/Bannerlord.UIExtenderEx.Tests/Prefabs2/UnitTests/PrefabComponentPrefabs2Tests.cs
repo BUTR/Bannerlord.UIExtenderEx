@@ -2,29 +2,16 @@
 using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities;
 
-using HarmonyLib;
-using HarmonyLib.BUTR.Extensions;
-
 using NUnit.Framework;
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Xml;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs2;
 
-public class PrefabComponentPrefabs2Tests
+public class PrefabComponentPrefabs2Tests : SharedTests
 {
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool MockedGetBasePathPath(ref string __result)
-    {
-        __result = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
-        return false;
-    }
-
     private static XmlDocument GetBaseDocument()
     {
         XmlDocument document = new();
@@ -81,6 +68,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -107,6 +96,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -133,6 +124,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -157,6 +150,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -182,17 +177,13 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
         Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
         Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
     public void RegisterPatch_FileName_InsertAsLastChild()
     {
-        var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_FileName_InsertAsLastChild)}");
-        harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
-            prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
-        harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
-            prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
-
         // Arrange
         const string MovieName = "TestMovieName";
         const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
@@ -212,6 +203,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -237,6 +230,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
         Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
         Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -265,6 +260,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -297,6 +294,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -326,6 +325,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -355,6 +356,8 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
@@ -384,17 +387,13 @@ public class PrefabComponentPrefabs2Tests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
     }
 
     [Test]
     public void RegisterPatch_Remove()
     {
-        var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_Remove)}");
-        harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
-            prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
-        harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
-            prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
-
         // Arrange
         const string MovieName = "TestMovieName";
         const string XPath = "descendant::OptionsScreenWidget[@Id='Options']";
@@ -411,5 +410,7 @@ public class PrefabComponentPrefabs2Tests
         // Assert
         var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
         Assert.IsNull(removedNode);
+        
+        prefabComponent.Deregister();
     }
 }
