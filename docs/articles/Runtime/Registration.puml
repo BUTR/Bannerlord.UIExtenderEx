@@ -1,10 +1,11 @@
 ﻿@startuml
 
-actor UserLibrary
+actor Game
 
-UserLibrary -> UIExtender: Register()
+Game -> SubModule: OnBeforeInitialModuleScreenSetAsRoot()
+SubModule -> UIExtender: Register()
 
-UIExtender -> UIExtender: Find attributed types in calling assembly
+UIExtender -> UIExtender: Find attributed types
 UIExtender -> UIExtender: Create runtime for module and store it
 UIExtender -> UIExtenderRuntime: Register()
 loop for each type
@@ -13,28 +14,20 @@ loop for each type
         PrefabComponent --> UIExtenderRuntime
         PrefabComponent -> PrefabComponent: store extension for later
         PrefabComponent --> UIExtenderRuntime
+        UIExtenderRuntime -> GauntletMoviePatch: Register(AutoGenName)
+        GauntletMoviePatch --> UIExtenderRuntime
     else if view model extension
         UIExtenderRuntime -> ViewModelComponent: RegisterViewModelMixin()
         ViewModelComponent -> ViewModelComponent: store mixin for later
         ViewModelComponent --> UIExtenderRuntime
     end
 end
-UIExtenderRuntime  -> UIExtenderRuntime: <b>Patching</b> (see separate diagram)
+UIExtenderRuntime -> UIExtenderRuntime: <b>Patching</b> (see separate diagram)
 note over UIExtenderRuntime
-    See `VMPatching` and `PrefabPatching` diagrams.
+    See `ViewModelPatching` and `PrefabPatching` diagrams.
 endnote
 UIExtenderRuntime --> UIExtender
-UIExtender --> UserLibrary
-
-...
-
-UserLibrary -> UIExtender: Verify()
-UIExtender -> UIExtenderRuntime: Verify()
-alt any errors encountered during registration
-UIExtenderRuntime -> UIExtenderRuntime: display errors to the user
-end
-UIExtenderRuntime --> UIExtender
-UIExtender --> UserLibrary
-
+UIExtender --> SubModule
+SubModule --> Game
 
 @enduml

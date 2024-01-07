@@ -1,0 +1,53 @@
+﻿@startuml
+
+MyPrefabComponent --* v2.PrefabExtensionInsertPatch
+MyPrefabComponent --* v2.PrefabExtensionSetAttributePatch
+MyPrefabComponent --* v1.CustomPatch
+MyPrefabComponent --* v1.InsertPatch
+MyPrefabComponent --* v1.PrefabExtensionInsertAsSiblingPatch
+MyPrefabComponent --* v1.PrefabExtensionReplacePatch
+MyPrefabComponent --* v1.PrefabExtensionSetAttributePatch
+v1.CustomPatch --* v1.IPrefabPatch
+v1.InsertPatch --* v1.IPrefabPatch
+v1.PrefabExtensionInsertAsSiblingPatch --* v1.IPrefabPatch
+v1.PrefabExtensionReplacePatch --* v1.IPrefabPatch
+v1.PrefabExtensionSetAttributePatch --* v1.IPrefabPatch
+
+class MyPrefabComponent {
+[PrefabExtension("Movie", "XPath")]
+}
+abstract class v2.PrefabExtensionInsertPatch {
++ {abstract} InsertType Type
++ {abstract} int Index
+}
+abstract class v2.PrefabExtensionSetAttributePatch {
++ {abstract} List<Attribute> Attributes
+}
+abstract class v1.CustomPatch<T> {
++ {abstract} string Id
++ {abstract} void Apply(T obj)
+}
+abstract class v1.InsertPatch {
++ {abstract} string Id
++ {abstract} int Position
++ {abstract} XmlDocument GetPrefabExtension()
+}
+abstract class v1.PrefabExtensionInsertAsSiblingPatch {
++ {abstract} string Id
++ {abstract} InsertType Type
++ {abstract} XmlDocument GetPrefabExtension()
+}
+abstract class v1.PrefabExtensionReplacePatch {
++ {abstract} string Id
++ {abstract} XmlDocument GetPrefabExtension()
+}
+abstract class v1.PrefabExtensionSetAttributePatch {
++ {abstract} string Id
++ {abstract} string Attribute
++ {abstract} string Value
+}
+interface v1.IPrefabPatch {
++ string Id
+}
+
+@enduml

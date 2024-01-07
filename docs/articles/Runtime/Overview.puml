@@ -6,54 +6,37 @@ class UIExtender {
 
 class UIExtenderRuntime {
 + ModuleName
-- _userMessages
 }
 
 class PrefabComponent {
+- _moduleName
 - _moviePatches
+- _enabledPatches
 ~ RegisterPatch()
+~ Deregister()
+~ Enable()
+~ Disable()
 ~ ProcessMovieIfNeeded()
-~ ForceReloadMovies()
 }
 
 class ViewModelComponent {
-- _assemblyBuilder
-- _mixins
-- _mixinInstanceCache
-~ RegisterViewModelMixin()
-~ ExtendsViewModelType()
-~ ExtendedViewModelForType()
-~ MixinInstanceForObject()
-~ InitializeMixinsForVMInstance()
-~ RefreshMixinsForVMInstance()
-~ FinalizeMixinsForVMInstance()
-~ DestructMixinsForVMInstance()
-}
-
-class CodePatcherComponent {
+- _moduleName
 - _harmony
-- _patchesAssemblyBuilder
-- _transpilers
-- _postfixes
-~ AddViewModelInstantiationPatch()
-~ AddViewModelRefreshPatch()
-~ AddWidgetLoadPatch()
-~ AddViewModelExecutePatch()
-~ ApplyPatches()
-}
-
-class CodePatchesAssemblyBuilder {
-- _assemblyBuilder
-~ AddTranspiler()
-~ AddPostfix()
-~ SaveAndLoadLibraryType()
+~ Mixins
+~ MixinInstanceCache
+~ MixinInstanceRefreshFromConstructorCache
+- _mixinTypeEnabled
+- _mixinTypePropertyCache
+- _mixinTypeMethodCache
+~ RegisterViewModelMixin()
+~ Deregister()
+~ Enable()
+~ Disable()
+~ InitializeMixinsForVMInstance()
 }
 
 UIExtender --* UIExtenderRuntime
 UIExtenderRuntime --* PrefabComponent
 UIExtenderRuntime --* ViewModelComponent
-UIExtenderRuntime --* CodePatcherComponent
-
-CodePatcherComponent --* CodePatchesAssemblyBuilder
 
 @enduml

@@ -27,7 +27,7 @@
     ],
     "resource": [
       {
-        "files": [ "**/images/**", "codesnippet/**", "CNAME" ],
+        "files": [ "**/images/**", "codesnippet/**", "CNAME", "**/**.{png}" ],
         "exclude": [ "_site/**", "obj/**" ]
       }
     ],

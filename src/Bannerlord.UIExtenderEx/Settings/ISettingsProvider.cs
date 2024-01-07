@@ -1,7 +1,6 @@
-﻿namespace Bannerlord.UIExtenderEx.Settings
+﻿namespace Bannerlord.UIExtenderEx.Settings;
+
+public interface ISettingsProvider
 {
-    public interface ISettingsProvider
-    {
-        bool DumpXML { get; set; }
-    }
+    bool DumpXML { get; set; }
 }

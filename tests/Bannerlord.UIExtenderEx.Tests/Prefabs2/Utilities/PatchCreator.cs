@@ -9,121 +9,120 @@ using System.Xml;
 
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
-namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities
+namespace Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities;
+
+public static class PatchCreator
 {
-    public static class PatchCreator
+    public static PrefabExtensionInsertPatch ConstructInsertPatchPath(InsertType insertType, string path, int index = 0, bool removeRootNode = false)
     {
-        public static PrefabExtensionInsertPatch ConstructInsertPatchPath(InsertType insertType, string path, int index = 0, bool removeRootNode = false)
+        var patch = CreatePatchPath(path, removeRootNode);
+
+        patch.Index.Returns(index);
+        patch.Type.Returns(insertType);
+
+        return patch;
+    }
+
+    public static PrefabExtensionInsertPatch ConstructInsertRemovePatchPath(string path, bool removeRootNode = false)
+    {
+        var patch = CreatePatchPath(path, removeRootNode);
+
+        patch.Index.Returns(0);
+        patch.Type.Returns(InsertType.Remove);
+
+        return patch;
+    }
+
+    public static PrefabExtensionInsertPatch ConstructInsertPatch<T>(InsertType insertType, T contentValue, int index = 0, bool removeRootNode = false)
+    {
+        PrefabExtensionInsertPatch? patch;
+
+        // To pass XmlDocument as XmlNode
+        if (typeof(T) == typeof(XmlNode) && contentValue is XmlNode nodeContent)
         {
-            var patch = CreatePatchPath(path, removeRootNode);
-
-            patch.Index.Returns(index);
-            patch.Type.Returns(insertType);
-
-            return patch;
+            patch = CreatePatch(nodeContent, removeRootNode);
         }
-
-        public static PrefabExtensionInsertPatch ConstructInsertRemovePatchPath(string path, bool removeRootNode = false)
+        else
         {
-            var patch = CreatePatchPath(path, removeRootNode);
-
-            patch.Index.Returns(0);
-            patch.Type.Returns(InsertType.Remove);
-
-            return patch;
-        }
-
-        public static PrefabExtensionInsertPatch ConstructInsertPatch<T>(InsertType insertType, T contentValue, int index = 0, bool removeRootNode = false)
-        {
-            PrefabExtensionInsertPatch? patch;
-
-            // To pass XmlDocument as XmlNode
-            if (typeof(T) == typeof(XmlNode) && contentValue is XmlNode nodeContent)
+            switch (contentValue)
             {
-                patch = CreatePatch(nodeContent, removeRootNode);
+                case string textPatchContent:
+                    patch = CreatePatch(textPatchContent, removeRootNode);
+                    break;
+                case XmlDocument documentPatchContent:
+                    patch = CreatePatch(documentPatchContent, removeRootNode);
+                    break;
+                case XmlNode nodePatchContent:
+                    patch = CreatePatch(nodePatchContent, removeRootNode);
+                    break;
+                case IEnumerable<XmlNode> nodesPatchContent:
+                    var nodesPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodesPatch>();
+                    nodesPatch.GetPrefabExtension().Returns(nodesPatchContent);
+                    patch = nodesPatch;
+                    break;
+                default: throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                switch (contentValue)
-                {
-                    case string textPatchContent:
-                        patch = CreatePatch(textPatchContent, removeRootNode);
-                        break;
-                    case XmlDocument documentPatchContent:
-                        patch = CreatePatch(documentPatchContent, removeRootNode);
-                        break;
-                    case XmlNode nodePatchContent:
-                        patch = CreatePatch(nodePatchContent, removeRootNode);
-                        break;
-                    case IEnumerable<XmlNode> nodesPatchContent:
-                        var nodesPatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodesPatch>();
-                        nodesPatch.GetPrefabExtension().Returns(nodesPatchContent);
-                        patch = nodesPatch;
-                        break;
-                    default: throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            patch!.Index.Returns(index);
-            patch.Type.Returns(insertType);
-
-            return patch;
         }
 
-        private static PrefabExtensionInsertPatch CreatePatch(XmlNode patchContent, bool removeRootNode)
+        patch!.Index.Returns(index);
+        patch.Type.Returns(insertType);
+
+        return patch;
+    }
+
+    private static PrefabExtensionInsertPatch CreatePatch(XmlNode patchContent, bool removeRootNode)
+    {
+        if (removeRootNode)
         {
-            if (removeRootNode)
-            {
-                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatchRemoveRootNode>();
-                removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
-                return removeRootNodePatch;
-            }
-
-            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatch>();
-            patch.GetPrefabExtension().Returns(patchContent);
-            return patch;
+            var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatchRemoveRootNode>();
+            removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
+            return removeRootNodePatch;
         }
 
-        private static PrefabExtensionInsertPatch CreatePatch(XmlDocument patchContent, bool removeRootNode)
+        var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlNodePatch>();
+        patch.GetPrefabExtension().Returns(patchContent);
+        return patch;
+    }
+
+    private static PrefabExtensionInsertPatch CreatePatch(XmlDocument patchContent, bool removeRootNode)
+    {
+        if (removeRootNode)
         {
-            if (removeRootNode)
-            {
-                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatchRemoveRootNode>();
-                removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
-                return removeRootNodePatch;
-            }
-
-            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatch>();
-            patch.GetPrefabExtension().Returns(patchContent);
-            return patch;
+            var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatchRemoveRootNode>();
+            removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
+            return removeRootNodePatch;
         }
 
-        private static PrefabExtensionInsertPatch CreatePatch(string patchContent, bool removeRootNode)
+        var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertXmlDocumentPatch>();
+        patch.GetPrefabExtension().Returns(patchContent);
+        return patch;
+    }
+
+    private static PrefabExtensionInsertPatch CreatePatch(string patchContent, bool removeRootNode)
+    {
+        if (removeRootNode)
         {
-            if (removeRootNode)
-            {
-                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatchRemoveRootNode>();
-                removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
-                return removeRootNodePatch;
-            }
-
-            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatch>();
-            patch.GetPrefabExtension().Returns(patchContent);
-            return patch;
+            var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatchRemoveRootNode>();
+            removeRootNodePatch.GetPrefabExtension().Returns(patchContent);
+            return removeRootNodePatch;
         }
 
-        private static PrefabExtensionInsertPatch CreatePatchPath(string patchPath, bool removeRootNode)
+        var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertTextPatch>();
+        patch.GetPrefabExtension().Returns(patchContent);
+        return patch;
+    }
+
+    private static PrefabExtensionInsertPatch CreatePatchPath(string patchPath, bool removeRootNode)
+    {
+        if (removeRootNode)
         {
-            if (removeRootNode)
-            {
-                var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertFileNamePatchRemoveRootNode>();
-                removeRootNodePatch.GetPrefabExtension().Returns(patchPath);
-                return removeRootNodePatch;
-            }
-
-            var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertFileNamePatch>();
-            patch.GetPrefabExtension().Returns(patchPath);
-            return patch;
+            var removeRootNodePatch = Substitute.ForPartsOf<TestPrefabExtensionInsertFileNamePatchRemoveRootNode>();
+            removeRootNodePatch.GetPrefabExtension().Returns(patchPath);
+            return removeRootNodePatch;
         }
+
+        var patch = Substitute.ForPartsOf<TestPrefabExtensionInsertFileNamePatch>();
+        patch.GetPrefabExtension().Returns(patchPath);
+        return patch;
     }
 }

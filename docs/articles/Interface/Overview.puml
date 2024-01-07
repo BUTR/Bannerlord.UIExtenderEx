@@ -1,18 +1,18 @@
 ﻿@startuml
 
-SubModule --* UIExtender
-SubModule --* ViewModelMixinClasses
-SubModule --* PrefabExtensionClasses
+!include ViewModelMixin.puml
+!include Prefab.puml
 
-class ViewModelMixinClasses {
-[ViewModelMixin]
+SubModule --* UIExtenderEx
+UIExtenderEx --* UIExtenderExRuntime
+UIExtenderExRuntime --* ViewModelComponent
+UIExtenderExRuntime --* PrefabComponent
+
+ViewModelComponent ..|> MyVMMixin : Uses
+PrefabComponent ..|> MyPrefabComponent : Uses
+
+class SubModule {
+UIExtenderEx _uiExtenderEx = UIExtenderEx.Create("MyMod");
 }
-
-class PrefabExtensionClasses {
-[PrefabExtension("Movie", "XPath")]
-}
-
-ViewModelMixinClasses --|> BaseViewModelMixin
-PrefabExtensionClasses --|> IPrefabExtension
 
 @enduml

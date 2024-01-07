@@ -5,3 +5,9 @@ items:
 - name: APIv1
   href: v1/toc.yml
   homepage: v1/Overview.md
+- name: Interface
+  href: interface/toc.yml
+  homepage: interface/Overview.md
+- name: Runtime
+  href: runtime/toc.yml
+  homepage: runtime/Overview.md

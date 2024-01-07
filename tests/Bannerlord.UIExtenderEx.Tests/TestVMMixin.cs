@@ -5,67 +5,66 @@ using System.Diagnostics.CodeAnalysis;
 
 using TaleWorlds.Library;
 
-namespace Bannerlord.UIExtenderEx.Tests
+namespace Bannerlord.UIExtenderEx.Tests;
+
+[ViewModelMixin]
+internal class TestVMMixin : BaseViewModelMixin<TestVM>
 {
-    [ViewModelMixin]
-    internal class TestVMMixin : BaseViewModelMixin<TestVM>
+    public static bool MixinMethodCalled { get; private set; }
+
+    [DataSourceProperty]
+    public object MixinProperty => null!;
+
+    public TestVMMixin(TestVM vm) : base(vm) { }
+
+    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+    [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
+    public override void OnRefresh()
     {
-        public static bool MixinMethodCalled { get; private set; }
-
-        [DataSourceProperty]
-        public object MixinProperty => null!;
-
-        public TestVMMixin(TestVM vm) : base(vm) { }
-
-        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
-        [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
-        public override void OnRefresh()
-        {
-            base.OnRefresh();
-        }
-
-        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
-        [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
-        public override void OnFinalize()
-        {
-            base.OnFinalize();
-        }
-
-        [DataSourceMethod]
-        public void MixinMethod()
-        {
-            MixinMethodCalled = true;
-        }
+        base.OnRefresh();
     }
 
-    [ViewModelMixin(true)]
-    internal class DerivedTestVMMixin : BaseViewModelMixin<TestVM>
+    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+    [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
+    public override void OnFinalize()
     {
-        public static bool DerivedMixinMethodCalled { get; private set; }
+        base.OnFinalize();
+    }
 
-        [DataSourceProperty]
-        public object DerivedMixinProperty => null!;
+    [DataSourceMethod]
+    public void MixinMethod()
+    {
+        MixinMethodCalled = true;
+    }
+}
 
-        public DerivedTestVMMixin(TestVM vm) : base(vm) { }
+[ViewModelMixin(true)]
+internal class DerivedTestVMMixin : BaseViewModelMixin<TestVM>
+{
+    public static bool DerivedMixinMethodCalled { get; private set; }
 
-        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
-        [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
-        public override void OnRefresh()
-        {
-            base.OnRefresh();
-        }
+    [DataSourceProperty]
+    public object DerivedMixinProperty => null!;
 
-        [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
-        [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
-        public override void OnFinalize()
-        {
-            base.OnFinalize();
-        }
+    public DerivedTestVMMixin(TestVM vm) : base(vm) { }
 
-        [DataSourceMethod]
-        public void DerivedMixinMethod()
-        {
-            DerivedMixinMethodCalled = true;
-        }
+    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+    [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
+    public override void OnRefresh()
+    {
+        base.OnRefresh();
+    }
+
+    [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
+    [SuppressMessage("Redundancy", "RCS1132:Remove redundant overriding member.", Justification = "Explicit declaration")]
+    public override void OnFinalize()
+    {
+        base.OnFinalize();
+    }
+
+    [DataSourceMethod]
+    public void DerivedMixinMethod()
+    {
+        DerivedMixinMethodCalled = true;
     }
 }

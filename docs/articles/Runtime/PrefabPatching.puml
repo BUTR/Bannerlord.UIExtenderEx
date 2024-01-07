@@ -1,17 +1,25 @@
 ﻿@startuml
-loop for each Patch
-    CodePatcher -> Patch: apply with Harmony
-    alt widget load patch transpiler
-        Patch -> Patch: find marks of existing patch
-        alt existing patch found
-            Patch -> Patch: replace existing call with new DynamicMethod\nwhich calls both both previous and current `ProcessMovieDocumentIfNeeded`
-        else otherwise
-            Patch -> Patch: replace beginning of method with mark,\ncall to `LoadXmlDocument` and `ProcessMovieDocumentIfNeeded`
-        end
-    else otherwise
-        note over Patch
-            See `VMPatching` diagram.
-        endnote
-    end
+
+actor Game
+
+Game -> SubModule: OnBeforeInitialModuleScreenSetAsRoot()
+SubModule -> UIExtender: Register()
+UIExtender -> PrefabComponent: Register(Type[] prefabTypes)
+PrefabComponent --> UIExtender
+UIExtender --> SubModule
+SubModule --> Game
+
+...
+
+Game -> WidgetPrefab: LoadFrom()
+WidgetPrefab -> WidgetPrefabPatch: Harmony intercepts LoadFrom()
+WidgetPrefabPatch -> PrefabComponent: ProcessMovieIfNeeded()
+loop All registered Prefab
+    PrefabComponent -> Prefab: Apply XML transformation
+    Prefab --> PrefabComponent
 end
+PrefabComponent --> WidgetPrefabPatch
+WidgetPrefabPatch --> WidgetPrefab
+WidgetPrefab --> Game
+
 @enduml

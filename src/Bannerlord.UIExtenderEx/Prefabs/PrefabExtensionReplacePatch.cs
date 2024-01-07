@@ -1,17 +1,16 @@
 ﻿using System.Xml;
 
-namespace Bannerlord.UIExtenderEx.Prefabs
+namespace Bannerlord.UIExtenderEx.Prefabs;
+
+/// <summary>
+/// Patch that replaces node specified by XPath with node from prefab extension
+/// </summary>
+public abstract class PrefabExtensionReplacePatch : IPrefabPatch
 {
     /// <summary>
-    /// Patch that replaces node specified by XPath with node from prefab extension
+    /// Name of the extension snippet, without `.xml`
     /// </summary>
-    public abstract class PrefabExtensionReplacePatch : IPrefabPatch
-    {
-        /// <summary>
-        /// Name of the extension snippet, without `.xml`
-        /// </summary>
-        public abstract string Id { get; }
+    public abstract string Id { get; }
 
-        public abstract XmlDocument GetPrefabExtension();
-    }
+    public abstract XmlDocument GetPrefabExtension();
 }

@@ -1,57 +1,67 @@
-﻿using NUnit.Framework;
+﻿using Bannerlord.UIExtenderEx.Tests.Prefabs.IntegrationTests;
+
+using NUnit.Framework;
 
 using System;
 
-namespace Bannerlord.UIExtenderEx.Tests
+namespace Bannerlord.UIExtenderEx.Tests;
+
+public class ViewModelMixinTests : BaseTests
 {
-    public class ViewModelMixinTests : BaseTests
+    private UIExtender _uiExtender = default!;
+
+    [SetUp]
+    public void Setup()
     {
-        [Test]
-        public void MixinPropertyIsInjectedTest()
-        {
-            var uiExtender = new UIExtender(nameof(MixinPropertyIsInjectedTest));
-            uiExtender.Register(typeof(PrefabsTests).Assembly);
-            uiExtender.Enable();
+        _uiExtender = UIExtender.Create(nameof(ViewModelMixinTests));
+        _uiExtender.Register(typeof(PrefabsTests).Assembly);
+        _uiExtender.Enable();
+    }
 
-            var viewModel = new TestVM();
-            Assert.True(viewModel.GetPropertyType(nameof(TestVMMixin.MixinProperty)) is not null);
-        }
+    [TearDown]
+    public void Finalization()
+    {
+        _uiExtender.Deregister();
+    }
 
-        [Test]
-        public void MixinDerivedTest()
-        {
-            var uiExtender = new UIExtender(nameof(MixinPropertyIsInjectedTest));
-            uiExtender.Register(typeof(PrefabsTests).Assembly);
-            uiExtender.Enable();
+    [Test]
+    public void MixinPropertyIsInjectedTest()
+    {
+        var viewModel = new TestVM();
+        Assert.True(viewModel.GetPropertyType(nameof(TestVMMixin.MixinProperty)) is not null);
+    }
 
-            var viewModel = new DerivedTestVM();
-            Assert.True(viewModel.GetPropertyType(nameof(DerivedTestVMMixin.DerivedMixinProperty)) is not null);
-        }
+    [Test]
+    public void MixinDerivedTest()
+    {
+        var viewModel = new DerivedTestVM();
+        Assert.True(viewModel.GetPropertyType(nameof(DerivedTestVMMixin.DerivedMixinProperty)) is not null);
+    }
 
-        [Test]
-        public void MixinMethodIsCalledTest()
-        {
-            var uiExtender = new UIExtender(nameof(MixinMethodIsCalledTest));
-            uiExtender.Register(typeof(PrefabsTests).Assembly);
-            uiExtender.Enable();
+    [Test]
+    public void MixinMethodIsCalledTest()
+    {
+        var viewModel = new TestVM();
+        viewModel.ExecuteCommand(nameof(TestVMMixin.MixinMethod), Array.Empty<object>());
+        Assert.True(TestVMMixin.MixinMethodCalled);
+        Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
+    }
 
-            var viewModel = new TestVM();
-            viewModel.ExecuteCommand(nameof(TestVMMixin.MixinMethod), Array.Empty<object>());
-            Assert.True(TestVMMixin.MixinMethodCalled);
-            Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
-        }
+    [Test]
+    public void MixinMethodIsCalledDerivedTest()
+    {
+        var viewModel = new TestVM();
+        viewModel.ExecuteCommand(nameof(DerivedTestVMMixin.DerivedMixinMethod), Array.Empty<object>());
+        Assert.False(TestVMMixin.MixinMethodCalled);
+        Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
+    }
 
-        [Test]
-        public void MixinMethodIsCalledDerivedTest()
-        {
-            var uiExtender = new UIExtender(nameof(MixinMethodIsCalledTest));
-            uiExtender.Register(typeof(PrefabsTests).Assembly);
-            uiExtender.Enable();
+    [Test]
+    public void MixinDerivedTestDisabled()
+    {
+        _uiExtender.Disable(typeof(DerivedTestVMMixin));
 
-            var viewModel = new TestVM();
-            viewModel.ExecuteCommand(nameof(DerivedTestVMMixin.DerivedMixinMethod), Array.Empty<object>());
-            Assert.False(TestVMMixin.MixinMethodCalled);
-            Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
-        }
+        var viewModel = new DerivedTestVM();
+        Assert.True(viewModel.GetPropertyType(nameof(DerivedTestVMMixin.DerivedMixinProperty)) is null);
     }
 }
