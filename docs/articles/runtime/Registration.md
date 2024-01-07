@@ -1,3 +1,3 @@
 ﻿# Registration
 
-![image](Registration.png)
+![image](Registration.svg)

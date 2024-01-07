@@ -1,3 +1,3 @@
 ﻿# Prefab Patching
 
-![image](PrefabPatching.png)
+![image](PrefabPatching.svg)

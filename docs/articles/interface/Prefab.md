@@ -1,3 +1,3 @@
 ﻿# Overview
 
-![image](Prefab.png)
+![image](Prefab.svg)

@@ -1,3 +1,3 @@
 ﻿# Overview
 
-![image](Overview.png)
+![image](Overview.svg)

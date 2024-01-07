@@ -1,3 +1,3 @@
 ﻿# ViewModel Patching
 
-![image](ViewModelPatching.png)
+![image](ViewModelPatching.svg)
