@@ -22,7 +22,7 @@
     ],
     "resource": [
       { "files": [ "images/**", "codesnippet/**", "CNAME" ], "exclude": [ "_site/**", "obj/**" ] },
-      { "files": [ "articles/**/*.png" ], "exclude": [ "_site/**", "obj/**" ] }
+      { "files": [ "articles/**/*.{png,svg}" ], "exclude": [ "_site/**", "obj/**" ] }
     ],
     "dest": "_site",
     "globalMetadata": {
