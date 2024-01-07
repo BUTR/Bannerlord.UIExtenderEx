@@ -35,11 +35,11 @@
     "template": [
       "default",
       "modern",
-      //"_template/last-modified"
+      "_template/last-modified"
     ],
     "postProcessors": [
       "ExtractSearchIndex",
-      //"LastModifiedPostProcessor"
+      "LastModifiedPostProcessor"
     ]
   }
 }
