@@ -29,7 +29,6 @@ jobs:
     - name: DocFX Setup
       uses: butr/actions-docfx-setup@v4
       with:
-        docfx-version: 2.74.1
         github-token: ${{secrets.GITHUB_TOKEN}}
 
     - name: Build Bannerlord.UIExtenderEx
