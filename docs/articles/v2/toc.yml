@@ -4,7 +4,7 @@
   href: PrefabExtensionSetAttributePatch.md
 - name: PrefabExtensionInsertPatch
   href: PrefabExtensionInsertPatch.md
-- name: ViewModelMixin
+- name: ViewModel Mixin
   href: ViewModelMixin.md
 - name: Examples
   href: Examples.md

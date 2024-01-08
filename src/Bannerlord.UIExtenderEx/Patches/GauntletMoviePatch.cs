@@ -68,13 +68,13 @@ internal static class GauntletMoviePatch
                 var variantName = datasource != null ? datasource.GetType().FullName : "Default";
                 if (generatedPrefabs.TryGetValue(movieName, out var dict2) && dict2.TryGetValue(variantName, out var creator) && AccessTools2.TypeByName(creator.Method.Name.Remove(0, create.Length)) is { } type)
                 {
-                    var widgets = new List<Type> { type }.Concat(GetChildWidgets(type)).ToArray();
-                    var widgetNames = widgets.Select(x => x.Name).ToArray();
-                    var autoGenNames = widgetNames.Where(x => x.Contains("__")).ToArray();
+                    var widgets = new List<Type> { type }.Concat(GetChildWidgets(type));
+                    var widgetNames = widgets.Select(x => x.Name);
+                    var autoGenNames = widgetNames.Where(x => x.Contains("__"));
                     return autoGenNames.Select(x => x.Split(["__"], StringSplitOptions.None)[0]);
                 }
             }
-            /* This implementation actually created the Widget, but it seems tha game didn't intend for that
+            /* This implementation actually created the Widget, but it seems that game didn't intend for that
             var variantName = datasource == null ? "Default" : datasource.GetType().FullName;
             var data = datasource == null ? new Dictionary<string, object>() : new() { {"DataSource", datasource} };
             if (widgetFactory.GeneratedPrefabContext.InstantiatePrefab(context, movieName, variantName, data) is { } autogenResult)

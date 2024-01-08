@@ -19,7 +19,7 @@ namespace Bannerlord.UIExtenderEx;
 public class UIExtender
 {
     public static UIExtender Create(string moduleName) => new(moduleName, false);
-    public static UIExtender GetUIExtenderFor(string moduleName) => Instances[moduleName];
+    public static UIExtender? GetUIExtenderFor(string moduleName) => Instances.TryGetValue(moduleName, out var uiExtender) ? uiExtender : null;
     internal static UIExtenderRuntime? GetRuntimeFor(string moduleName) => Instances[moduleName]._runtime;
 
     internal static IReadOnlyList<UIExtenderRuntime> GetAllRuntimes() => Instances.Select(x => x.Value._runtime).OfType<UIExtenderRuntime>().ToList();
