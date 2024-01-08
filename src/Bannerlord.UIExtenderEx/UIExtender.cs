@@ -19,7 +19,7 @@ namespace Bannerlord.UIExtenderEx;
 public class UIExtender
 {
     public static UIExtender Create(string moduleName) => new(moduleName, false);
-    public static UIExtender GetUIExtenderFor(string moduleName) => Instances[moduleName];
+    public static UIExtender? GetUIExtenderFor(string moduleName) => Instances.TryGetValue(moduleName, out var uiExtender) ? uiExtender : null;
     internal static UIExtenderRuntime? GetRuntimeFor(string moduleName) => Instances[moduleName]._runtime;
 
     internal static IReadOnlyList<UIExtenderRuntime> GetAllRuntimes() => Instances.Select(x => x.Value._runtime).OfType<UIExtenderRuntime>().ToList();
@@ -29,10 +29,8 @@ public class UIExtender
 
     static UIExtender()
     {
-        // AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.
-        //GauntletMoviePatch.Patch(Harmony);
+        GauntletMoviePatch.Patch(Harmony);
         ViewModelPatch.Patch(Harmony);
-        UIConfigPatch.Patch(Harmony);
         WidgetPrefabPatch.Patch(Harmony);
         BrushFactoryManager.Patch(Harmony);
         WidgetFactoryManager.Patch(Harmony);
