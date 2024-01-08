@@ -34,7 +34,7 @@ public class PrefabsTests : BaseTests
     {
         _uiExtender?.Deregister();
     }
-    
+
     [Test]
     public void PrefabsInsertTest()
     {
