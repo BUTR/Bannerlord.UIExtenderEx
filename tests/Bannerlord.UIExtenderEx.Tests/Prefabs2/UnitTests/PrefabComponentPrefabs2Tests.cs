@@ -2,33 +2,20 @@
 using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.Tests.Prefabs2.Utilities;
 
-using HarmonyLib;
-using HarmonyLib.BUTR.Extensions;
-
 using NUnit.Framework;
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Xml;
 
-namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
-{
-    public class PrefabComponentPrefabs2Tests
-    {
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool MockedGetBasePathPath(ref string __result)
-        {
-            __result = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
-            return false;
-        }
+namespace Bannerlord.UIExtenderEx.Tests.Prefabs2;
 
-        private static XmlDocument GetBaseDocument()
-        {
-            XmlDocument document = new();
-            document.LoadXml(@"
+public class PrefabComponentPrefabs2Tests : SharedTests
+{
+    private static XmlDocument GetBaseDocument()
+    {
+        XmlDocument document = new();
+        document.LoadXml(@"
 <Prefab>
   <Window>
     <OptionsScreenWidget Id=""Options"">
@@ -54,350 +41,376 @@ namespace Bannerlord.UIExtenderEx.Tests.Prefabs2
   </Window>
 </Prefab>
 ");
-            return document;
-        }
+        return document;
+    }
 
-        [Test]
-        public void RegisterPatch_XmlDocument_InsertAsFirstChild()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<ValidRoot><SomeChild/></ValidRoot>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument);
+    [Test]
+    public void RegisterPatch_XmlDocument_InsertAsFirstChild()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<ValidRoot><SomeChild/></ValidRoot>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument);
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Assert
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+        // Assert
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-        [Test]
-        public void RegisterPatch_XmlNode_InsertAsMiddleChild()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<ValidRoot><SomeChild/></ValidRoot>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument.DocumentElement, 2);
+    [Test]
+    public void RegisterPatch_XmlNode_InsertAsMiddleChild()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<ValidRoot><SomeChild/></ValidRoot>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument.DocumentElement, 2);
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Assert
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+        // Assert
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-        [Test]
-        public void RegisterPatch_XmlNode_PassXmlDocumentAsXmlNode()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<ValidRoot><SomeChild/></ValidRoot>");
-            var patch = PatchCreator.ConstructInsertPatch<XmlNode>(InsertType.Child, patchedDocument, 2);
+    [Test]
+    public void RegisterPatch_XmlNode_PassXmlDocumentAsXmlNode()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<ValidRoot><SomeChild/></ValidRoot>");
+        var patch = PatchCreator.ConstructInsertPatch<XmlNode>(InsertType.Child, patchedDocument, 2);
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Assert
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+        // Assert
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-        [Test]
-        public void RegisterPatch_Text_InsertAsLastChild()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, "<ValidRoot><SomeChild/></ValidRoot>", 10);
+    [Test]
+    public void RegisterPatch_Text_InsertAsLastChild()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, "<ValidRoot><SomeChild/></ValidRoot>", 10);
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Assert
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+        // Assert
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-        [Test]
-        public void RegisterPatch_Text_ReplaceRemoveRootNode()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Replace, "<DiscardedRoot><SomeChild1/><SomeChild2/></DiscardedRoot>", 10, true);
+    [Test]
+    public void RegisterPatch_Text_ReplaceRemoveRootNode()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Replace, "<DiscardedRoot><SomeChild1/><SomeChild2/></DiscardedRoot>", 10, true);
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Assert
-            var someChild1Node = movieDocument.SelectSingleNode("descendant::SomeChild1");
-            Assert.IsNotNull(someChild1Node);
-            Assert.AreEqual("Children", someChild1Node!.ParentNode!.Name);
-            Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
-            Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
-            Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
-        }
+        // Assert
+        var someChild1Node = movieDocument.SelectSingleNode("descendant::SomeChild1");
+        Assert.IsNotNull(someChild1Node);
+        Assert.AreEqual("Children", someChild1Node!.ParentNode!.Name);
+        Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
+        Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
+        Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
+        
+        prefabComponent.Deregister();
+    }
 
-        [Test]
-        public void RegisterPatch_FileName_InsertAsLastChild()
-        {
-            var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_FileName_InsertAsLastChild)}");
-            harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
-                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
-            harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
-                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
+    [Test]
+    public void RegisterPatch_FileName_InsertAsLastChild()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        var patch = PatchCreator.ConstructInsertPatchPath(InsertType.Child, "Prefab", 10);
 
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            var patch = PatchCreator.ConstructInsertPatchPath(InsertType.Child, "Prefab", 10);
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-            // Assert
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+    [Test]
+    public void RegisterPatch_FileName_ReplaceRemoveRootNode()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
+        var patch = PatchCreator.ConstructInsertPatchPath(InsertType.Replace, "PrefabRemoveRootNode", 10, true);
 
-        [Test]
-        public void RegisterPatch_FileName_ReplaceRemoveRootNode()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel";
-            var patch = PatchCreator.ConstructInsertPatchPath(InsertType.Replace, "PrefabRemoveRootNode", 10, true);
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        var someChild1Node = movieDocument.SelectSingleNode("descendant::SomeChild1");
+        Assert.IsNotNull(someChild1Node);
+        Assert.AreEqual("Children", someChild1Node!.ParentNode!.Name);
+        Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
+        Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
+        Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
+        
+        prefabComponent.Deregister();
+    }
 
-            // Assert
-            var someChild1Node = movieDocument.SelectSingleNode("descendant::SomeChild1");
-            Assert.IsNotNull(someChild1Node);
-            Assert.AreEqual("Children", someChild1Node!.ParentNode!.Name);
-            Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
-            Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
-            Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
-        }
+    [Test]
+    public void RegisterPatch_XmlNodes_InsertMultipleChildren()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<DiscardedRoot><Child1><InnerChild/></Child1><Child2/><Child3/></DiscardedRoot>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
 
-        [Test]
-        public void RegisterPatch_XmlNodes_InsertMultipleChildren()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<DiscardedRoot><Child1><InnerChild/></Child1><Child2/><Child3/></DiscardedRoot>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        var child1Node = movieDocument.SelectSingleNode("descendant::Child1");
+        Assert.IsNotNull(child1Node);
+        Assert.AreEqual("Children", child1Node!.ParentNode!.Name);
+        Assert.AreEqual("InnerChild", child1Node.FirstChild.Name);
+        Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
+        Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
+        Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-            // Assert
-            var child1Node = movieDocument.SelectSingleNode("descendant::Child1");
-            Assert.IsNotNull(child1Node);
-            Assert.AreEqual("Children", child1Node!.ParentNode!.Name);
-            Assert.AreEqual("InnerChild", child1Node.FirstChild.Name);
-            Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
-            Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
-            Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
-        }
+    [Test]
+    public void RegisterPatch_XmlNodes_PassXmlDocumentsAsXmlNodes()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument1 = new();
+        patchedDocument1.LoadXml("<Child1><InnerChild/></Child1> ");
+        XmlDocument patchedDocument2 = new();
+        patchedDocument2.LoadXml("<Child2/>");
+        XmlDocument patchedDocument3 = new();
+        patchedDocument3.LoadXml("<Child3/>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, new List<XmlNode> { patchedDocument1, patchedDocument2, patchedDocument3 });
 
-        [Test]
-        public void RegisterPatch_XmlNodes_PassXmlDocumentsAsXmlNodes()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument1 = new();
-            patchedDocument1.LoadXml("<Child1><InnerChild/></Child1> ");
-            XmlDocument patchedDocument2 = new();
-            patchedDocument2.LoadXml("<Child2/>");
-            XmlDocument patchedDocument3 = new();
-            patchedDocument3.LoadXml("<Child3/>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, new List<XmlNode> { patchedDocument1, patchedDocument2, patchedDocument3 });
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        var child1Node = movieDocument.SelectSingleNode("descendant::Child1");
+        Assert.IsNotNull(child1Node);
+        Assert.AreEqual("Children", child1Node!.ParentNode!.Name);
+        Assert.AreEqual("InnerChild", child1Node.FirstChild.Name);
+        Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
+        Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
+        Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-            // Assert
-            var child1Node = movieDocument.SelectSingleNode("descendant::Child1");
-            Assert.IsNotNull(child1Node);
-            Assert.AreEqual("Children", child1Node!.ParentNode!.Name);
-            Assert.AreEqual("InnerChild", child1Node.FirstChild.Name);
-            Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
-            Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
-            Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
-        }
+    [Test]
+    public void RegisterPatch_RemoveComments_ChildComments()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<ValidRoot><!--Child Comment--><SomeChild/></ValidRoot>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument);
 
-        [Test]
-        public void RegisterPatch_RemoveComments_ChildComments()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<ValidRoot><!--Child Comment--><SomeChild/></ValidRoot>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument);
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
 
-            // Assert
-            Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
+        // Validate that every node we did want inserted is actually inserted.
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-            // Validate that every node we did want inserted is actually inserted.
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+    [Test]
+    public void RegisterPatch_RemoveComments_RootComment()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<DiscardedRoot><ValidRoot><SomeChild/></ValidRoot><!--Root Comment--></DiscardedRoot>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
 
-        [Test]
-        public void RegisterPatch_RemoveComments_RootComment()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<DiscardedRoot><ValidRoot><SomeChild/></ValidRoot><!--Root Comment--></DiscardedRoot>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
 
-            // Assert
-            Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
+        // Validate that every node we did want inserted are actually inserted.
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-            // Validate that every node we did want inserted are actually inserted.
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+    [Test]
+    public void RegisterPatch_RemoveComments_FirstNodeRootComment()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
+        XmlDocument patchedDocument = new();
+        patchedDocument.LoadXml("<DiscardedRoot><!--Root Comment--><ValidRoot><SomeChild/></ValidRoot></DiscardedRoot>");
+        var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
 
-        [Test]
-        public void RegisterPatch_RemoveComments_FirstNodeRootComment()
-        {
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']/Children";
-            XmlDocument patchedDocument = new();
-            patchedDocument.LoadXml("<DiscardedRoot><!--Root Comment--><ValidRoot><SomeChild/></ValidRoot></DiscardedRoot>");
-            var patch = PatchCreator.ConstructInsertPatch(InsertType.Child, patchedDocument!.DocumentElement!.ChildNodes.Cast<XmlNode>());
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+        // Assert
+        Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
 
-            // Assert
-            Assert.AreEqual(0, movieDocument.SelectNodes("//comment()")?.Count, $"Remaining comments count: {movieDocument.SelectNodes("//comment()")?.Count}");
+        // Validate that every node we did want inserted are actually inserted.
+        var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
+        Assert.IsNotNull(validRootNode);
+        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
+        Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
+        
+        prefabComponent.Deregister();
+    }
 
-            // Validate that every node we did want inserted are actually inserted.
-            var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
-            Assert.IsNotNull(validRootNode);
-            Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
-            Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
-            Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        }
+    [Test]
+    public void RegisterPatch_Remove()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']";
+        var patch = PatchCreator.ConstructInsertRemovePatchPath("Prefab");
 
-        [Test]
-        public void RegisterPatch_Remove()
-        {
-            var harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}.{nameof(RegisterPatch_Remove)}");
-            harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
-                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
-            harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
-                prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
 
-            // Arrange
-            const string MovieName = "TestMovieName";
-            const string XPath = "descendant::OptionsScreenWidget[@Id='Options']";
-            var patch = PatchCreator.ConstructInsertRemovePatchPath("Prefab");
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
 
-            PrefabComponent prefabComponent = new("TestModule");
-            var movieDocument = GetBaseDocument();
-
-            // Act
-            prefabComponent.RegisterPatch(MovieName, XPath, patch);
-            prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
-
-            // Assert
-            var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
-            Assert.IsNull(removedNode);
-        }
+        // Assert
+        var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
+        Assert.IsNull(removedNode);
+        
+        prefabComponent.Deregister();
     }
 }

@@ -42,7 +42,7 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         steam-login: ${{secrets.STEAM_LOGIN}}
         steam-password: ${{secrets.STEAM_PASSWORD}}
-        stable-version: ${{secrets.SYNCED_GAME_STABLE_VERSION}}
+        stable-version: ${{vars.GAME_VERSION_STABLE}}
 
     - name: Test
       run: >-
@@ -51,7 +51,7 @@ jobs:
           dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
           dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
       env:
-        STABLE_VERSION: ${{secrets.SYNCED_GAME_STABLE_VERSION}}
+        STABLE_VERSION: ${{vars.GAME_VERSION_STABLE}}
       shell: pwsh
 
     - name: Test Coverage

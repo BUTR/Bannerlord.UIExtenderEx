@@ -1,0 +1,18 @@
+﻿@startuml
+
+!include ViewModelMixin.puml
+!include Prefab.puml
+
+SubModule --* UIExtenderEx
+UIExtenderEx --* UIExtenderExRuntime
+UIExtenderExRuntime --* ViewModelComponent
+UIExtenderExRuntime --* PrefabComponent
+
+ViewModelComponent ..|> MyVMMixin : Uses
+PrefabComponent ..|> MyPrefabComponent : Uses
+
+class SubModule {
+UIExtenderEx _uiExtenderEx = UIExtenderEx.Create("MyMod");
+}
+
+@enduml

@@ -1,0 +1,25 @@
+﻿@startuml
+
+MyVMMixin --* BaseViewModelMixin
+BaseViewModelMixin --* IViewModel
+
+class MyVMMixin {
+[ViewModelMixin]
+}
+abstract class BaseViewModelMixin<TViewModel> {
+# TViewModel? ViewModel
++ BaseViewModelMixin(TViewModel vm)
++ void OnRefresh()
++ void OnFinalize()
+# void OnPropertyChanged(string? propertyName = null)
+# void OnPropertyChangedWithValue(object value, string? propertyName = null)
+# TValue? GetPrivate<TValue>(string name)
+# void SetPrivate<TValue>(string name, TValue? value)
+# bool SetField<T>(ref T field, T value, string propertyName)
+}
+interface IViewModel {
++ void OnRefresh()
++ void OnFinalize()
+}
+
+@enduml

@@ -1,12 +1,11 @@
-﻿namespace Bannerlord.UIExtenderEx.Prefabs2
+﻿namespace Bannerlord.UIExtenderEx.Prefabs2;
+
+public enum InsertType
 {
-    public enum InsertType
-    {
-        Prepend,
-        ReplaceKeepChildren,
-        Replace,
-        Child,
-        Append,
-        Remove
-    }
+    Prepend,
+    ReplaceKeepChildren,
+    Replace,
+    Child,
+    Append,
+    Remove
 }

@@ -1,0 +1,25 @@
+﻿@startuml
+
+actor Game
+
+Game -> SubModule: OnBeforeInitialModuleScreenSetAsRoot()
+SubModule -> UIExtender: Register()
+UIExtender -> PrefabComponent: Register(Type[] prefabTypes)
+PrefabComponent --> UIExtender
+UIExtender --> SubModule
+SubModule --> Game
+
+...
+
+Game -> WidgetPrefab: LoadFrom()
+WidgetPrefab -> WidgetPrefabPatch: Harmony intercepts LoadFrom()
+WidgetPrefabPatch -> PrefabComponent: ProcessMovieIfNeeded()
+loop All registered Prefab
+    PrefabComponent -> Prefab: Apply XML transformation
+    Prefab --> PrefabComponent
+end
+PrefabComponent --> WidgetPrefabPatch
+WidgetPrefabPatch --> WidgetPrefab
+WidgetPrefab --> Game
+
+@enduml

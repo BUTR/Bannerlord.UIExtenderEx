@@ -1,5 +1,5 @@
 ## Quickstart
-*See [here](../v1) for the PrefabsV1 API documentation.*  
+*See [here](../v1/Overview.md) for the PrefabsV1 API documentation.*  
 It contains both the v1 API usage and how to generally register UIExtenderEx to make it work!  
 
 Version 2 of the API builds off of the the concepts of the original API, but offers a bit more versatility, and aggregates some of the original prefab types to offer a (hopefully) simpler API.

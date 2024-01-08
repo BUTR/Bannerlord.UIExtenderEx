@@ -1,10 +1,9 @@
-﻿namespace Bannerlord.UIExtenderEx.Prefabs
+﻿namespace Bannerlord.UIExtenderEx.Prefabs;
+
+/// <summary>
+/// General interface for XML prefab patch
+/// </summary>
+public interface IPrefabPatch
 {
-    /// <summary>
-    /// General interface for XML prefab patch
-    /// </summary>
-    public interface IPrefabPatch
-    {
-        string Id { get; }
-    }
+    string Id { get; }
 }

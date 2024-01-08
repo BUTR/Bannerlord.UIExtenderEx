@@ -1,0 +1,49 @@
+﻿@startuml
+
+actor Game
+
+Game -> SubModule: OnBeforeInitialModuleScreenSetAsRoot()
+SubModule -> UIExtender: Register()
+UIExtender -> ViewModelComponent: Register(Type[] mixinTypes)
+ViewModelComponent --> UIExtender
+UIExtender --> SubModule
+SubModule --> Game
+
+...
+
+Game -> ViewModel: Constructor()
+ViewModel -> ViewModelWithMixinPatch: Harmony intercepts Constructor()
+ViewModelWithMixinPatch -> ViewModelComponent: InitializeMixinsForVMInstance()
+loop All registered ViewModelMixin
+    ViewModelComponent -> ViewModelMixin: Constructor()
+    ViewModelMixin -> ViewModel: Refresh() (if the original Constructor() calls it)
+    ViewModel --> ViewModelMixin
+    ViewModelMixin --> ViewModelComponent
+end
+ViewModelComponent --> ViewModelWithMixinPatch
+ViewModelWithMixinPatch --> ViewModel
+ViewModel --> Game
+
+...
+
+Game -> ViewModel: Refresh()
+ViewModel -> ViewModelWithMixinPatch: Harmony intercepts Refresh()
+loop All registered ViewModelMixin
+    ViewModelWithMixinPatch -> ViewModelMixin: Refresh()
+    ViewModelMixin --> ViewModelWithMixinPatch
+end
+ViewModelWithMixinPatch --> ViewModel
+ViewModel --> Game
+
+...
+
+Game -> ViewModel: OnFinalize()
+ViewModel -> ViewModelWithMixinPatch: Harmony intercepts OnFinalize()
+loop All registered ViewModelMixin
+    ViewModelWithMixinPatch -> ViewModelMixin: OnFinalize()
+    ViewModelMixin --> ViewModelWithMixinPatch
+end
+ViewModelWithMixinPatch --> ViewModel
+ViewModel --> Game
+
+@enduml

@@ -1,0 +1,42 @@
+﻿@startuml
+
+class UIExtender {
+- _runtime
+}
+
+class UIExtenderRuntime {
++ ModuleName
+}
+
+class PrefabComponent {
+- _moduleName
+- _moviePatches
+- _enabledPatches
+~ RegisterPatch()
+~ Deregister()
+~ Enable()
+~ Disable()
+~ ProcessMovieIfNeeded()
+}
+
+class ViewModelComponent {
+- _moduleName
+- _harmony
+~ Mixins
+~ MixinInstanceCache
+~ MixinInstanceRefreshFromConstructorCache
+- _mixinTypeEnabled
+- _mixinTypePropertyCache
+- _mixinTypeMethodCache
+~ RegisterViewModelMixin()
+~ Deregister()
+~ Enable()
+~ Disable()
+~ InitializeMixinsForVMInstance()
+}
+
+UIExtender --* UIExtenderRuntime
+UIExtenderRuntime --* PrefabComponent
+UIExtenderRuntime --* ViewModelComponent
+
+@enduml
