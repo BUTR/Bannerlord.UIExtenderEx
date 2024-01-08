@@ -31,8 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bannerlord.UIExtenderEx.Tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6A6FB1BE-5426-4835-A308-0E74E66299D5}"
 	ProjectSection(SolutionItems) = preProject
-		..\docs\articles\toc.yml = ..\docs\articles\toc.yml
 		..\docs\docfx.json = ..\docs\docfx.json
+		..\docs\toc.yml = ..\docs\toc.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1", "v1", "{395402D4-28B5-4974-943D-04B7D5F6673D}"
@@ -53,33 +53,38 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v2", "v2", "{B4D6A888-2D8F-
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "interface", "interface", "{252A68C5-9E10-4E28-AF49-37E6DF1E62F0}"
 	ProjectSection(SolutionItems) = preProject
-		..\docs\articles\Interface\Overview.png = ..\docs\articles\Interface\Overview.png
-		..\docs\articles\Interface\Overview.puml = ..\docs\articles\Interface\Overview.puml
-		..\docs\articles\Interface\Prefab.png = ..\docs\articles\Interface\Prefab.png
-		..\docs\articles\Interface\Prefab.puml = ..\docs\articles\Interface\Prefab.puml
-		..\docs\articles\Interface\ViewModelMixin.png = ..\docs\articles\Interface\ViewModelMixin.png
-		..\docs\articles\Interface\ViewModelMixin.puml = ..\docs\articles\Interface\ViewModelMixin.puml
-		..\docs\articles\Interface\Overview.md = ..\docs\articles\Interface\Overview.md
-		..\docs\articles\Interface\Prefab.md = ..\docs\articles\Interface\Prefab.md
-		..\docs\articles\Interface\ViewModelMixin.md = ..\docs\articles\Interface\ViewModelMixin.md
-		..\docs\articles\Interface\toc.yml = ..\docs\articles\Interface\toc.yml
+		..\docs\articles\interface\Overview.svg = ..\docs\articles\interface\Overview.svg
+		..\docs\articles\interface\Overview.puml = ..\docs\articles\interface\Overview.puml
+		..\docs\articles\interface\Overview.md = ..\docs\articles\interface\Overview.md
+		..\docs\articles\interface\Prefab.svg = ..\docs\articles\interface\Prefab.svg
+		..\docs\articles\interface\Prefab.puml = ..\docs\articles\interface\Prefab.puml
+		..\docs\articles\interface\Prefab.md = ..\docs\articles\interface\Prefab.md
+		..\docs\articles\interface\ViewModelMixin.svg = ..\docs\articles\interface\ViewModelMixin.svg
+		..\docs\articles\interface\ViewModelMixin.puml = ..\docs\articles\interface\ViewModelMixin.puml
+		..\docs\articles\interface\ViewModelMixin.md = ..\docs\articles\interface\ViewModelMixin.md
+		..\docs\articles\interface\toc.yml = ..\docs\articles\interface\toc.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runtime", "runtime", "{8969A5E2-BC12-46F8-BF4A-E8F73771E4E5}"
 	ProjectSection(SolutionItems) = preProject
-		..\docs\articles\Runtime\ViewModelPatching.png = ..\docs\articles\Runtime\ViewModelPatching.png
-		..\docs\articles\Runtime\ViewModelPatching.puml = ..\docs\articles\Runtime\ViewModelPatching.puml
-		..\docs\articles\Runtime\Overview.png = ..\docs\articles\Runtime\Overview.png
-		..\docs\articles\Runtime\Overview.puml = ..\docs\articles\Runtime\Overview.puml
-		..\docs\articles\Runtime\PrefabPatching.png = ..\docs\articles\Runtime\PrefabPatching.png
-		..\docs\articles\Runtime\PrefabPatching.puml = ..\docs\articles\Runtime\PrefabPatching.puml
-		..\docs\articles\Runtime\Registration.png = ..\docs\articles\Runtime\Registration.png
-		..\docs\articles\Runtime\Registration.puml = ..\docs\articles\Runtime\Registration.puml
-		..\docs\articles\Runtime\Overview.md = ..\docs\articles\Runtime\Overview.md
-		..\docs\articles\Runtime\PrefabPatching.md = ..\docs\articles\Runtime\PrefabPatching.md
-		..\docs\articles\Runtime\Registration.md = ..\docs\articles\Runtime\Registration.md
-		..\docs\articles\Runtime\ViewModelPatching.md = ..\docs\articles\Runtime\ViewModelPatching.md
-		..\docs\articles\Runtime\toc.yml = ..\docs\articles\Runtime\toc.yml
+		..\docs\articles\runtime\ViewModelPatching.svg = ..\docs\articles\runtime\ViewModelPatching.svg
+		..\docs\articles\runtime\ViewModelPatching.puml = ..\docs\articles\runtime\ViewModelPatching.puml
+		..\docs\articles\runtime\ViewModelPatching.md = ..\docs\articles\runtime\ViewModelPatching.md
+		..\docs\articles\runtime\Overview.svg = ..\docs\articles\runtime\Overview.svg
+		..\docs\articles\runtime\Overview.puml = ..\docs\articles\runtime\Overview.puml
+		..\docs\articles\runtime\Overview.md = ..\docs\articles\runtime\Overview.md
+		..\docs\articles\runtime\PrefabPatching.svg = ..\docs\articles\runtime\PrefabPatching.svg
+		..\docs\articles\runtime\PrefabPatching.puml = ..\docs\articles\runtime\PrefabPatching.puml
+		..\docs\articles\runtime\PrefabPatching.md = ..\docs\articles\runtime\PrefabPatching.md
+		..\docs\articles\runtime\Registration.svg = ..\docs\articles\runtime\Registration.svg
+		..\docs\articles\runtime\Registration.puml = ..\docs\articles\runtime\Registration.puml
+		..\docs\articles\runtime\Registration.md = ..\docs\articles\runtime\Registration.md
+		..\docs\articles\runtime\toc.yml = ..\docs\articles\runtime\toc.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "articles", "articles", "{8034BC17-4282-4A4B-942B-80EEC315C1C2}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\articles\toc.yml = ..\docs\articles\toc.yml
 	EndProjectSection
 EndProject
 Global
@@ -118,10 +123,11 @@ Global
 		{74E13D44-2846-49A3-A5AC-D432AD83C9F0} = {9D2C61D6-D1B6-4C89-80B2-6DAE2D5FCEE4}
 		{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988} = {74E13D44-2846-49A3-A5AC-D432AD83C9F0}
 		{6A6FB1BE-5426-4835-A308-0E74E66299D5} = {9D2C61D6-D1B6-4C89-80B2-6DAE2D5FCEE4}
-		{395402D4-28B5-4974-943D-04B7D5F6673D} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
-		{B4D6A888-2D8F-49A4-87C5-6CD18D8F818B} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
-		{252A68C5-9E10-4E28-AF49-37E6DF1E62F0} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
-		{8969A5E2-BC12-46F8-BF4A-E8F73771E4E5} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
+		{8034BC17-4282-4A4B-942B-80EEC315C1C2} = {6A6FB1BE-5426-4835-A308-0E74E66299D5}
+		{252A68C5-9E10-4E28-AF49-37E6DF1E62F0} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
+		{8969A5E2-BC12-46F8-BF4A-E8F73771E4E5} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
+		{395402D4-28B5-4974-943D-04B7D5F6673D} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
+		{B4D6A888-2D8F-49A4-87C5-6CD18D8F818B} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31629F18-48B4-4C3E-87C3-BDCB9BBF1BBD}

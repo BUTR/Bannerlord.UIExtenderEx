@@ -29,10 +29,8 @@ public class UIExtender
 
     static UIExtender()
     {
-        // AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.
-        //GauntletMoviePatch.Patch(Harmony);
+        GauntletMoviePatch.Patch(Harmony);
         ViewModelPatch.Patch(Harmony);
-        UIConfigPatch.Patch(Harmony);
         WidgetPrefabPatch.Patch(Harmony);
         BrushFactoryManager.Patch(Harmony);
         WidgetFactoryManager.Patch(Harmony);

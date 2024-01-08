@@ -1,4 +1,5 @@
-﻿using Bannerlord.BUTR.Shared.Helpers;
+﻿using Bannerlord.BUTR.Shared.Extensions;
+using Bannerlord.BUTR.Shared.Helpers;
 using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib.BUTR.Extensions;
@@ -21,7 +22,7 @@ namespace Bannerlord.UIExtenderEx.Components;
 /// </summary>
 internal partial class PrefabComponent
 {
-    private sealed record PrefabPatch(Type Type, Action<XmlDocument> Patcher);
+    internal sealed record PrefabPatch(Type Type, Action<XmlDocument> Patcher);
 
     private delegate Dictionary<string, string> GetPrefabNamesAndPathsFromCurrentPathDelegate(object instance);
     private static readonly GetPrefabNamesAndPathsFromCurrentPathDelegate? PrefabNamesMethod =
@@ -36,12 +37,21 @@ internal partial class PrefabComponent
     /// <summary>
     /// Registered movie patches
     /// </summary>
-    private readonly ConcurrentDictionary<string, List<PrefabPatch>> _moviePatches = new();
+    internal readonly ConcurrentDictionary<string, List<PrefabPatch>> MoviePatches = new();
     private readonly ConcurrentDictionary<Type, bool> _enabledPatches = new();
 
     public PrefabComponent(string moduleName)
     {
         _moduleName = moduleName;
+    }
+
+    public IEnumerable<string> GetMoviesToPatch()
+    {
+        foreach (var (movie, patches) in MoviePatches)
+        {
+            if (patches.Any(x => _enabledPatches.TryGetValue(x.Type, out var enabled) && enabled))
+                yield return movie;
+        }
     }
 
     /// <summary>
@@ -96,7 +106,7 @@ internal partial class PrefabComponent
             return;
         }
 
-        _moviePatches.GetOrAdd(movie, _ => new List<PrefabPatch>()).Add(new(prefabType, patcher));
+        MoviePatches.GetOrAdd(movie, _ => new List<PrefabPatch>()).Add(new(prefabType, patcher));
         _enabledPatches[prefabType] = false;
     }
 
@@ -115,7 +125,7 @@ internal partial class PrefabComponent
             return;
         }
 
-        _moviePatches.GetOrAdd(movie, _ => new List<PrefabPatch>()).Add(new(prefabType, patcher));
+        MoviePatches.GetOrAdd(movie, _ => new List<PrefabPatch>()).Add(new(prefabType, patcher));
         _enabledPatches[prefabType] = false;
     }
 
@@ -140,7 +150,7 @@ internal partial class PrefabComponent
 
     public void Deregister()
     {
-        _moviePatches.Clear();
+        MoviePatches.Clear();
         _enabledPatches.Clear();
     }
 
@@ -193,7 +203,7 @@ internal partial class PrefabComponent
     /// <param name="document"></param>
     public void ProcessMovieIfNeeded(string movie, XmlDocument document)
     {
-        if (!_moviePatches.TryGetValue(movie, out var patches))
+        if (!MoviePatches.TryGetValue(movie, out var patches))
             return;
 
         if (_enabledPatches.Values.All(x => !x))
