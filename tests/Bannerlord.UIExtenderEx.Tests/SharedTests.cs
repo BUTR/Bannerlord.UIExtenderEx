@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Tests.Prefabs2;
+﻿using Bannerlord.UIExtenderEx.Tests.Prefabs2;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -21,26 +21,26 @@ public class SharedTests
         __result = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
         return false;
     }
-    
+
     private Harmony _harmony;
-    
+
     [OneTimeSetUp]
     public void SharedOneTimeSetUp()
     {
         Trace.Listeners.Add(new ConsoleTraceListener());
-        
+
         _harmony = new Harmony($"{nameof(PrefabComponentPrefabs2Tests)}");
         _harmony.Patch(SymbolExtensions2.GetMethodInfo(() => TaleWorlds.Engine.Utilities.GetBasePath()),
             prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
         _harmony.Patch(SymbolExtensions2.GetPropertyGetter(() => TaleWorlds.Library.BasePath.Name),
             prefix: new HarmonyMethod(typeof(PrefabComponentPrefabs2Tests), nameof(MockedGetBasePathPath)));
     }
-    
+
     [OneTimeTearDown]
     public void SharedOneTimeTearDown()
     {
         Trace.Flush();
-        
+
         foreach (var patchedMethod in _harmony.GetPatchedMethods())
         {
             if (patchedMethod is not MethodInfo patchedMethodInfo)
