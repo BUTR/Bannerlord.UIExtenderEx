@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.10.0
+Game Versions: v1.0.0,v1.0.1,v1.0.2,v1.0.3,v1.1.0,v1.1.1,v1.1.2,v1.1.3,v1.1.4,v1.1.5,v1.1.6,v1.2.8
+* BETA! Might cause issues with the UI in specific cases!
+* UIExtender now only disables AutoGens that are patched, should increase the game's performance
+---------------------------------------------------------------------------------------------------
 Version: 2.9.0
 Game Versions: v1.0.0,v1.0.1,v1.0.2,v1.0.3,v1.1.0,v1.1.1,v1.1.2,v1.1.3,v1.1.4,v1.1.5,v1.1.6,v1.2.8
 * Added the ability to disable specific Prefabs and Mixins, also to deregister a mods UIExtender

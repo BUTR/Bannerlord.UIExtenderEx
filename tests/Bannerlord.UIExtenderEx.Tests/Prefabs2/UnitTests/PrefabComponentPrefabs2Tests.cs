@@ -68,7 +68,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -96,7 +96,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -124,7 +124,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[2], $"Third child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -150,7 +150,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -177,7 +177,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
         Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
         Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
-        
+
         prefabComponent.Deregister();
     }
 
@@ -203,7 +203,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.ChildNodes[validRootNode.ParentNode.ChildNodes.Count - 1], $"Last child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -230,7 +230,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual(4, someChild1Node!.ParentNode!.ChildNodes.Count);
         Assert.AreEqual("SomeChild1", someChild1Node!.ParentNode!.ChildNodes[0].Name);
         Assert.AreEqual("SomeChild2", someChild1Node!.ParentNode!.ChildNodes[1].Name);
-        
+
         prefabComponent.Deregister();
     }
 
@@ -260,7 +260,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -294,7 +294,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Child1", child1Node.ParentNode.ChildNodes[0].Name, $"First child should be Child1. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child2", child1Node.ParentNode.ChildNodes[1].Name, $"Second child should be Child2. Was {child1Node.ParentNode.FirstChild.Name}");
         Assert.AreEqual("Child3", child1Node.ParentNode.ChildNodes[2].Name, $"Third child should be Child3. Was {child1Node.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -325,7 +325,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -356,7 +356,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -387,7 +387,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
-        
+
         prefabComponent.Deregister();
     }
 
@@ -410,7 +410,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         // Assert
         var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
         Assert.IsNull(removedNode);
-        
+
         prefabComponent.Deregister();
     }
 }
