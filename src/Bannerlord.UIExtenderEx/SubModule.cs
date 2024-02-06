@@ -1,4 +1,5 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
+
 using BUTR.MessageBoxPInvoke.Helpers;
 
 using System;
@@ -12,6 +13,24 @@ namespace Bannerlord.UIExtenderEx;
 
 public class SubModule : MBSubModuleBase
 {
+#if !ENABLE_PARTIAL_AUTOGEN
+    static SubModule()
+    {
+        // Disable AutoGens as early as possible
+        try
+        {
+            // Force load TaleWorlds.Engine.GauntletUI as it might not be loaded yet!
+            System.Reflection.Assembly.Load("TaleWorlds.Engine.GauntletUI");
+        }
+        catch (Exception e)
+        {
+            Utils.MessageUtils.Fail($"Failed to load 'TaleWorlds.Engine.GauntletUI'! Exception: {e}");
+        }
+
+        TaleWorlds.Engine.GauntletUI.UIConfig.DoNotUseGeneratedPrefabs = true;
+    }
+#endif
+
     // We can't rely on EN since the game assumes that the default locale is always English
     private const string SWarningTitle =
         @"{=eySpdc25EE}Warning from Bannerlord.UIExtenderEx!";
