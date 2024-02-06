@@ -18,7 +18,7 @@ internal static class GauntletMoviePatch
     private static readonly ConcurrentDictionary<Type, Type[]> _widgetChildCache = new();
     private static readonly AccessTools.FieldRef<GeneratedPrefabContext, Dictionary<string, Dictionary<string, CreateGeneratedWidget>>>? _generatedPrefabs =
         AccessTools2.FieldRefAccess<GeneratedPrefabContext, Dictionary<string, Dictionary<string, CreateGeneratedWidget>>>("_generatedPrefabs");
-    
+
     public static void Register(UIExtenderRuntime runtime, string? autoGenWidgetName)
     {
         if (string.IsNullOrEmpty(autoGenWidgetName))
@@ -89,7 +89,7 @@ internal static class GauntletMoviePatch
                 return autoGenNames.Select(x => x.Split(["__"], StringSplitOptions.None)[0]);
             }
             */
-            
+
             return Enumerable.Empty<string>();
         }
 
@@ -97,7 +97,7 @@ internal static class GauntletMoviePatch
         var moviesInvolved = new HashSet<string>(GetAllInvolvedAutoGenNames(widgetFactory, movieName, datasource));
         if (moviesInvolved.Overlaps(moviesPatched))
             doNotUseGeneratedPrefabs = true;
-        
+
         var moviesBlacklisted = _widgetNames.SelectMany(kv => kv.Value);
         if (moviesBlacklisted.Contains(movieName))
             doNotUseGeneratedPrefabs = true;
