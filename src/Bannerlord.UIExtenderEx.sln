@@ -87,6 +87,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "articles", "articles", "{80
 		..\docs\articles\toc.yml = ..\docs\articles\toc.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "general", "general", "{3FA98C73-903D-406D-A1C4-D22DF4C5C00B}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\articles\general\InteractingWithOtherMods.md = ..\docs\articles\general\InteractingWithOtherMods.md
+		..\docs\articles\general\Overview.md = ..\docs\articles\general\Overview.md
+		..\docs\articles\general\toc.yml = ..\docs\articles\general\toc.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Beta_Release|x64 = Beta_Release|x64
@@ -128,6 +135,7 @@ Global
 		{8969A5E2-BC12-46F8-BF4A-E8F73771E4E5} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
 		{395402D4-28B5-4974-943D-04B7D5F6673D} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
 		{B4D6A888-2D8F-49A4-87C5-6CD18D8F818B} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
+		{3FA98C73-903D-406D-A1C4-D22DF4C5C00B} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31629F18-48B4-4C3E-87C3-BDCB9BBF1BBD}

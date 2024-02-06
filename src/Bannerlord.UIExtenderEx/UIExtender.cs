@@ -29,7 +29,11 @@ public class UIExtender
 
     static UIExtender()
     {
+#if ENABLE_PARTIAL_AUTOGEN
         GauntletMoviePatch.Patch(Harmony);
+#else
+        UIConfigPatch.Patch(Harmony);
+#endif
         ViewModelPatch.Patch(Harmony);
         WidgetPrefabPatch.Patch(Harmony);
         BrushFactoryManager.Patch(Harmony);
@@ -61,7 +65,7 @@ public class UIExtender
     /// Default constructor. `moduleName` should match module folder because it will be used to look-up resources
     /// </summary>
     /// <param name="moduleName">Module name, should match module folder</param>
-    [Obsolete("Use UIExtender.Create(moduleName)", true)]
+    [Obsolete("Use UIExtender.Create(moduleName) if backwards compatibility is not a concern.", false)]
     public UIExtender(string moduleName)
     {
         _moduleName = moduleName;
