@@ -15,18 +15,12 @@ public class UIPatchSubModule : MBSubModuleBase
     [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel")]
     private sealed class ClanPartiesPrefabExtensionPoste180_1 : PrefabExtensionSetAttributePatch
     {
-        public override List<Attribute> Attributes => new()
-        {
-            new Attribute("IsEnabled", "@CanUseActions")
-        };
+        public override List<Attribute> Attributes => [new Attribute("IsEnabled", "@CanUseActions")];
     }
     [PrefabExtension("ClanParties", "descendant::Prefab/Window/Widget/Children/ListPanel/Children/Widget/Children/Widget/Children/Widget/Children/ListPanel/Children/ListPanel/Children/Standard.DropdownWithHorizontalControl")]
     private sealed class ClanPartiesPrefabExtensionPoste180_2 : PrefabExtensionSetAttributePatch
     {
-        public override List<Attribute> Attributes => new()
-        {
-            new Attribute("Parameter.IsEnabled", "true")
-        };
+        public override List<Attribute> Attributes => [new Attribute("Parameter.IsEnabled", "true")];
     }
 
     private static readonly UIExtender Extender = UIExtender.Create("Bannerlord.UIExtenderEx.UIPatch");

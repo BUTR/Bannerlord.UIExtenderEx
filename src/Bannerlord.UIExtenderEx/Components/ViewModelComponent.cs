@@ -151,13 +151,13 @@ internal class ViewModelComponent
     /// <param name="instance">instance of extended VM</param>
     public void InitializeMixinsForVMInstance(ViewModel instance)
     {
-        var mixins = MixinInstanceCache.GetOrAdd(instance, _ => new List<IViewModelMixin>());
+        var mixins = MixinInstanceCache.GetOrAdd(instance, _ => []);
 
         var type = instance.GetType();
-        if (!Mixins.ContainsKey(type))
+        if (!Mixins.TryGetValue(type, out var mixinTypes))
             return;
 
-        var newMixins = Mixins[type]
+        var newMixins = mixinTypes
             .Where(mixinType => _mixinTypeEnabled.TryGetValue(mixinType, out var enabled) && enabled)
             .Where(mixinType => mixins.All(mixin => mixin.GetType() != mixinType))
             .Select(mixinType => Activator.CreateInstance(mixinType, instance) as IViewModelMixin)

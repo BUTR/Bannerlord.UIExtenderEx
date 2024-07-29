@@ -42,7 +42,7 @@ public class ViewModelMixinTests : BaseTests
     public void MixinMethodIsCalledTest()
     {
         var viewModel = new TestVM();
-        viewModel.ExecuteCommand(nameof(TestVMMixin.MixinMethod), Array.Empty<object>());
+        viewModel.ExecuteCommand(nameof(TestVMMixin.MixinMethod), []);
         Assert.True(TestVMMixin.MixinMethodCalled);
         Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
     }
@@ -51,7 +51,7 @@ public class ViewModelMixinTests : BaseTests
     public void MixinMethodIsCalledDerivedTest()
     {
         var viewModel = new TestVM();
-        viewModel.ExecuteCommand(nameof(DerivedTestVMMixin.DerivedMixinMethod), Array.Empty<object>());
+        viewModel.ExecuteCommand(nameof(DerivedTestVMMixin.DerivedMixinMethod), []);
         Assert.False(TestVMMixin.MixinMethodCalled);
         Assert.True(DerivedTestVMMixin.DerivedMixinMethodCalled);
     }

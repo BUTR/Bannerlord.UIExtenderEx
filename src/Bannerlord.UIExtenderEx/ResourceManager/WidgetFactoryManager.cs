@@ -118,7 +118,7 @@ public static class WidgetFactoryManager
         if (!BuiltinTypes.TryGetValue(typeName, out var type))
             return true;
 
-        var ctor = WidgetConstructors.GetOrAdd(type, static x => AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(x, new[] { typeof(UIContext) }));
+        var ctor = WidgetConstructors.GetOrAdd(type, static x => AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(x, [typeof(UIContext)]));
         if (ctor is null)
             return true;
 

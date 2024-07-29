@@ -31,7 +31,8 @@ internal static class ViewModelExtensions
 
     public delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
     public static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
-        AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(NestedType, new[] { typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>) });
+        AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(NestedType, [typeof(Dictionary<string, PropertyInfo>), typeof(Dictionary<string, MethodInfo>)
+        ]);
 
     public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
     {

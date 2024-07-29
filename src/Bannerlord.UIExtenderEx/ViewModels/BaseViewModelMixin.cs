@@ -31,31 +31,31 @@ public abstract class BaseViewModelMixin<TViewModel> : IViewModelMixin where TVi
 
     private delegate void OnPropertyChangedWithValueDelegate2(ViewModel instance, bool value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate2? OnPropertyChangedWithValue2 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate2>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(bool), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate2>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(bool), typeof(string)]);
 
     private delegate void OnPropertyChangedWithValueDelegate3(ViewModel instance, int value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate3? OnPropertyChangedWithValue3 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate3>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(int), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate3>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(int), typeof(string)]);
 
     private delegate void OnPropertyChangedWithValueDelegate4(ViewModel instance, float value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate4? OnPropertyChangedWithValue4 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate4>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(float), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate4>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(float), typeof(string)]);
 
     private delegate void OnPropertyChangedWithValueDelegate5(ViewModel instance, uint value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate5? OnPropertyChangedWithValue5 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate5>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(uint), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate5>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(uint), typeof(string)]);
 
     private delegate void OnPropertyChangedWithValueDelegate6(ViewModel instance, Color value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate6? OnPropertyChangedWithValue6 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate6>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(Color), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate6>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(Color), typeof(string)]);
 
     private delegate void OnPropertyChangedWithValueDelegate7(ViewModel instance, double value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate7? OnPropertyChangedWithValue7 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate7>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(double), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate7>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(double), typeof(string)]);
 
     private delegate void OnPropertyChangedWithValueDelegate8(ViewModel instance, Vec2 value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate8? OnPropertyChangedWithValue8 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate8>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), new[] { typeof(Vec2), typeof(string) });
+        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate8>(typeof(ViewModel), nameof(OnPropertyChangedWithValue), [typeof(Vec2), typeof(string)]);
 
 
     private readonly WeakReference<TViewModel> _vm;

@@ -66,7 +66,7 @@ internal class UIExtenderRuntime
                         }
 
                         // gauntlet xml extension
-                        switch (constructor.Invoke(Array.Empty<object>()))
+                        switch (constructor.Invoke([]))
                         {
                             case Prefabs.PrefabExtensionSetAttributePatch patch:
                                 PrefabComponent.RegisterPatch(xmlExtension.Movie, xmlExtension.XPath, patch);
