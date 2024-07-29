@@ -1,0 +1,803 @@
+{
+  "source_base_path": "/home/runner/work/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "CNAME",
+      "output": {
+        "resource": {
+          "relative_path": "CNAME"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Settings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Settings.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.SubModule.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.SubModule.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.UIExtender.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.UIExtender.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.UIExtenderExSettings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.UIPatchSubModule.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.UIPatchSubModule.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "api/toc.json"
+        },
+        ".html": {
+          "relative_path": "api/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/general/InteractingWithOtherMods.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/general/InteractingWithOtherMods.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/general/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/general/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/general/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "articles/general/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/general/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/interface/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/interface/Overview.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/interface/Overview.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/interface/Prefab.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/Prefab.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/interface/Prefab.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/interface/Prefab.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/interface/ViewModelMixin.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/ViewModelMixin.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/interface/ViewModelMixin.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/interface/ViewModelMixin.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/interface/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "articles/interface/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/interface/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/Overview.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/Overview.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/PrefabPatching.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/PrefabPatching.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/PrefabPatching.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/PrefabPatching.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/Registration.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/Registration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/Registration.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/Registration.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/ViewModelPatching.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/ViewModelPatching.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/ViewModelPatching.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/ViewModelPatching.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/runtime/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "articles/runtime/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/runtime/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "articles/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v1/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v1/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/v1/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "articles/v1/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/v1/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/Examples.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/Examples.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/PrefabExtensionInsertPatch.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/PrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/PrefabExtensionSetAttributePatch.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/PrefabExtensionSetAttributePatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/ViewModelMixin.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/ViewModelMixin.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/v2/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "articles/v2/toc.json"
+        },
+        ".html": {
+          "relative_path": "articles/v2/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/BUTR48.svg",
+      "output": {
+        "resource": {
+          "relative_path": "images/BUTR48.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "toc.json"
+        },
+        ".html": {
+          "relative_path": "toc.html"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
