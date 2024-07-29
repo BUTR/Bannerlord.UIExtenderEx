@@ -101,7 +101,7 @@ internal static class ViewModelWithMixinPatch
             // Refresh was called from VM Constructor, delay the call to Refresh()
             if (!runtime.ViewModelComponent.MixinInstanceCache.TryGetValue(viewModel, out var list))
             {
-                runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => new List<string>()).Add(methodName);
+                runtime.ViewModelComponent.MixinInstanceRefreshFromConstructorCache.GetOrAdd(viewModel, _ => []).Add(methodName);
                 continue;
             }
 

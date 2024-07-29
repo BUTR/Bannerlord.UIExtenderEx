@@ -30,7 +30,7 @@ public class BaseTests : SharedTests
                 new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix)));
             harmony.Patch(AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetCustomType"),
                 new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix)));
-            harmony.Patch(AccessTools2.DeclaredMethod("System.Xml.XmlReader:Create", new[] { typeof(string), typeof(XmlReaderSettings) }),
+            harmony.Patch(AccessTools2.DeclaredMethod("System.Xml.XmlReader:Create", [typeof(string), typeof(XmlReaderSettings)]),
                 new HarmonyMethod(typeof(MockWidgetFactory), nameof(CreatePrefix)));
 
             if (GetCustomTypes?.Invoke(this) is { } dictionary)

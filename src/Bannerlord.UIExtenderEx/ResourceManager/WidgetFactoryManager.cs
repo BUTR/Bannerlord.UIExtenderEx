@@ -74,7 +74,7 @@ public static class WidgetFactoryManager
 
         harmony.Patch(
             AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetWidgetTypes"),
-            prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix)));
+            postfix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix)));
 
         harmony.Patch(
             AccessTools2.DeclaredMethod(typeof(WidgetFactory), "IsCustomType"),
@@ -118,7 +118,7 @@ public static class WidgetFactoryManager
         if (!BuiltinTypes.TryGetValue(typeName, out var type))
             return true;
 
-        var ctor = WidgetConstructors.GetOrAdd(type, static x => AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(x, new[] { typeof(UIContext) }));
+        var ctor = WidgetConstructors.GetOrAdd(type, static x => AccessTools2.GetDeclaredConstructorDelegate<WidgetConstructor>(x, [typeof(UIContext)]));
         if (ctor is null)
             return true;
 

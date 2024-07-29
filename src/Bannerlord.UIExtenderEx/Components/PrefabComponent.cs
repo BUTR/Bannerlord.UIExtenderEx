@@ -106,7 +106,7 @@ internal partial class PrefabComponent
             return;
         }
 
-        MoviePatches.GetOrAdd(movie, _ => new List<PrefabPatch>()).Add(new(prefabType, patcher));
+        MoviePatches.GetOrAdd(movie, _ => []).Add(new(prefabType, patcher));
         _enabledPatches[prefabType] = false;
     }
 
@@ -125,7 +125,7 @@ internal partial class PrefabComponent
             return;
         }
 
-        MoviePatches.GetOrAdd(movie, _ => new List<PrefabPatch>()).Add(new(prefabType, patcher));
+        MoviePatches.GetOrAdd(movie, _ => []).Add(new(prefabType, patcher));
         _enabledPatches[prefabType] = false;
     }
 
