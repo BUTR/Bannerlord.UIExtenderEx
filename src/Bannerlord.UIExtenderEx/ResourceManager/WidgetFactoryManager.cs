@@ -74,7 +74,7 @@ public static class WidgetFactoryManager
 
         harmony.Patch(
             AccessTools2.DeclaredMethod(typeof(WidgetFactory), "GetWidgetTypes"),
-            prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix)));
+            postfix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(GetWidgetTypesPostfix)));
 
         harmony.Patch(
             AccessTools2.DeclaredMethod(typeof(WidgetFactory), "IsCustomType"),
