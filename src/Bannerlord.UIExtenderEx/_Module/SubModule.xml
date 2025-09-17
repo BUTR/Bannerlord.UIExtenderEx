@@ -55,12 +55,5 @@
         <Tag key="DumpXML" value="false" />
       </Tags>
     </SubModule>
-    <SubModule>
-      <Name value="$modulename$ UI Patch" />
-      <DLLName value="$moduleid$.dll" />
-      <SubModuleClassType value="$moduleid$.UIPatchSubModule" />
-      <Assemblies/>
-      <Tags />
-    </SubModule>
   </SubModules>
 </Module>
