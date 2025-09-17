@@ -37,6 +37,7 @@
   <!--NuGet Package-->
 
   <ItemGroup>
+    <!-- Keep Bannerlord.Lib.Harmony intil we upgrade to v2.3.3 or higher -->
     <PackageReference Include="Bannerlord.Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="compile" GeneratePathProperty="true" />
     <PackageReference Include="BUTR.MessageBoxPInvoke" Version="1.0.0.1" />
