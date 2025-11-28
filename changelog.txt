@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.13.2
+Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x
+* Fixed an issue when a derived VM was not overriding RefreshValues by Quas(adwitkow)
+---------------------------------------------------------------------------------------------------
 Version: 2.13.1
 Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x
 * Removed old UI patches that are no longer needed
