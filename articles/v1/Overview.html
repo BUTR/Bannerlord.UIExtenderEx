@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>v1 Documentation | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="v1 Documentation | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v1/Overview.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../images/BUTR48.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="v1-documentation">v1 Documentation</h1>
+
+<p>If possible, it is recommended to now use the PrefabsV2 API.</p>
+<h2 id="quickstart">Quickstart</h2>
+<p>You mark your <em>prefab extensions</em> based on one of the <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html"><code>IPrefabPatch</code></a> descendants and marking it with <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html"><code>PrefabExtension</code></a> attribute, therefore enabling you to make additions to the specified Movie's XML data.</p>
+<p>Example of inserting <code>XML</code> at a specific position:</p>
+<pre><code class="lang-csharp">    [PrefabExtension(&quot;Insert&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children&quot;)]
+    internal class TestPrefabExtensionInsertPatch : PrefabExtensionInsertPatch
+    {
+        public override string Id =&gt; &quot;Insert&quot;;
+        public override int Position =&gt; 3;
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
+
+        public TestPrefabExtensionInsertPatch()
+        {
+            XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;Insert\&quot; /&gt;&quot;);
+        }
+
+        public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+    }
+</code></pre>
+<p>Example of replacing <code>XML</code>:</p>
+<pre><code class="lang-csharp">    [PrefabExtension(&quot;Replace&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='Replace']&quot;)]
+    internal class TestPrefabExtensionReplacePatch : PrefabExtensionReplacePatch
+    {
+        public override string Id =&gt; &quot;Replace&quot;;
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
+
+        public TestPrefabExtensionReplacePatch()
+        {
+            XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;Replaced\&quot; /&gt;&quot;);
+        }
+
+        public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+    }
+</code></pre>
+<p>Example of inserting <code>XML</code> after a specific element:</p>
+<pre><code class="lang-csharp">    [PrefabExtension(&quot;InsertAsSiblingAppend&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']&quot;)]
+    internal class TestPrefabExtensionInsertAsSiblingAppendPatch : PrefabExtensionInsertAsSiblingPatch
+    {
+        public override string Id =&gt; &quot;InsertAsSiblingAppend&quot;;
+        public override InsertType Type =&gt; InsertType.Append;
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
+
+        public TestPrefabExtensionInsertAsSiblingAppendPatch()
+        {
+            XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;InsertAsSiblingAppend\&quot; /&gt;&quot;);
+        }
+
+        public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+    }
+</code></pre>
+<p>Example of adding or replacing  <code>XML</code> attribute:</p>
+<pre><code class="lang-csharp">    [PrefabExtension(&quot;SetAttribute&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='SetAttribute']&quot;)]
+    internal class TestPrefabExtensionSetAttributePatch : PrefabExtensionSetAttributePatch
+    {
+        public override string Id =&gt; &quot;SetAttribute&quot;;
+        public override string Attribute =&gt; &quot;CustomAttribute&quot;;
+        public override string Value =&gt; &quot;Value&quot;;
+    }
+</code></pre>
+<p>Example of inserting <code>XML</code> before a specific element:</p>
+<pre><code class="lang-csharp">    [PrefabExtension(&quot;InsertAsSiblingPrepend&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='InsertAsSibling']&quot;)]
+    internal class TestPrefabExtensionInsertAsSiblingPrependPatch : PrefabExtensionInsertAsSiblingPatch
+    {
+        public override string Id =&gt; &quot;InsertAsSiblingPrepend&quot;;
+        public override InsertType Type =&gt; InsertType.Prepend;
+        private XmlDocument XmlDocument { get; } = new XmlDocument();
+
+        public TestPrefabExtensionInsertAsSiblingPrependPatch()
+        {
+            XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;InsertAsSiblingPrepend\&quot; /&gt;&quot;);
+        }
+
+        public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+    }
+</code></pre>
+<p>In order to add data to the prefab, you need to add properties to the target datasource class, this is done by making a <em>mixin</em> class, inheriting from <a class="xref" href="../../api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html"><code>BaseViewModelMixin&lt;T&gt;</code></a> and marking it with <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html"><code>ViewModelMixin</code></a> attribute. This class will be mixed in to the target view model <code>T</code>, making fields and methods accessible in the prefab:</p>
+<pre><code class="lang-csharp">    [ViewModelMixin]
+    public class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+    {
+        private readonly ModOptionsVM _modOptions;
+
+        [DataSourceProperty]
+        public ModOptionsVM ModOptions
+        {
+            get
+            {
+                return _modOptions;
+            }
+        }
+
+        public OptionsVMMixin(OptionsVM vm) : base(vm)
+        {
+            _modOptions = new ModOptionsVM();
+        }
+
+        [DataSourceMethod]
+        public void ExecuteCloseOptions()
+        {
+            ModOptions.ExecuteCancelInternal(false);
+            ViewModel?.ExecuteCloseOptions();
+        }
+    }
+</code></pre>
+<p>The last thing is to call <code>UIExtender.Register</code> and <code>UIExtender.Enable</code> to apply your extensions:</p>
+<pre><code class="lang-cs">      public class CustomSubModule : MBSubModuleBase
+      {
+          protected override void OnSubModuleLoad()
+          {
+              base.OnSubModuleLoad();
+            
+              _extender = new UIExtender(&quot;ModuleName&quot;);
+              _extender.Register(typeof(CustomSubModule).Assembly);
+              _extender.Enable();
+          }
+        }
+</code></pre>
+<p>To use the <code>OnRefresh</code> overload you will need to specify for UIExtenderEx the underlying method that acts as the conceptual 'Refresh' method in the <a class="xref" href="https://butr.github.io/Bannerlord.ReferenceAssemblies.Documentation/api/core/TaleWorlds.Library.ViewModel.html"><code>ViewModel</code></a>.<br>
+For example, <a href="xref:TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapInfoVM"><code>MapInfoVM</code></a> has a method <code>Refresh</code>.<br>
+If such method exists, specify it in the <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html"><code>ViewModelMixin</code></a> like this:</p>
+<pre><code class="lang-csharp">[ViewModelMixin(&quot;Refresh&quot;)] // or [ViewModelMixin(nameof(MapInfoVM.Refresh))] // if the method is public
+public class MapInfoMixin : BaseViewModelMixin&lt;MapInfoVM&gt;
+</code></pre>
+<h3 id="examples">Examples</h3>
+<ul>
+<li><a href="https://github.com/Aragas/Bannerlord.MBOptionScreen/tree/dev/src/MCM.UI/UIExtenderEx">Bannerlord.MBOptionScreen</a></li>
+<li><a href="https://github.com/tbeswick96/BannerlordYetAnotherPartyOrganiser">Yet Another Party Organiser</a></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v1/Overview.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2024 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

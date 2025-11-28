@@ -1,0 +1,957 @@
+{
+  "source_base_path": "/home/runner/work/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx/docs",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "CNAME",
+      "output": {
+        "resource": {
+          "relative_path": "CNAME"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.yml\" sourcestartlinenumber=\"1\">Base class for extensions attributes</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.yml\" sourcestartlinenumber=\"1\">Attribute for mixin methods to be added to view models.\nOnly methods specified by this attribute will actually end up in extended view model</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.yml\" sourcestartlinenumber=\"1\">Attribute for prefab XML extensions.\nExtension classes should inherit from one of the <code sourcefile=\"api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.yml\" sourcestartlinenumber=\"2\">IPrefabPatch</code> base classes and should be marked with this attribute</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.yml\" sourcestartlinenumber=\"1\">Attribute to mark view model mixins.\nMixin classes should extend from <xref href=\"Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin%601\" data-throw-if-not-resolved=\"false\"></xref> and should be marked with this attribute</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Attributes.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Attributes.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Attributes",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.CustomPatch<T>",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.yml\" sourcestartlinenumber=\"1\">Custom patch on either whole XmlDocument (if T is XmlDocument) or Xpath specified node (if XmlNode is the generic argument)</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.yml\" sourcestartlinenumber=\"1\">General interface for XML prefab patch</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.InsertPatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.yml\" sourcestartlinenumber=\"1\">Base class for insert patches</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Patch that inserts prefab extension (specified by <code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Name</code>) as a child in XPath specified node, at specific position (<code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Position</code> property)\nExtension snippet should be named as <code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"2\">{Name}.xml</code> and located at module's <code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"2\">GUI/PrefabExtensions</code> folder.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.yml\" sourcestartlinenumber=\"1\">Insert type enum - Prepend inserts snippet before sibling, Append - after</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.yml\" sourcestartlinenumber=\"1\">Patch that inserts prefab extension as a sibling to node specified by Xpath.\nOrder is controlled by <code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.yml\" sourcestartlinenumber=\"2\">Type</code> property.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Patch that inserts prefab extension (specified by <code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Name</code>) as a child in XPath specified node, at specific position (<code sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Position</code> property)</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.yml\" sourcestartlinenumber=\"1\">Patch that replaces node specified by XPath with node from prefab extension</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.yml\" sourcestartlinenumber=\"1\">Patch that adds or replaces node's attribute specified by XPath with node from prefab extension</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.InsertType",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute.yml\" sourcestartlinenumber=\"1\">Used on a single Property or Method in <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch\" data-throw-if-not-resolved=\"false\"></xref> to flag it as containing the patch information.<br>\n<b>Supported Types:</b></p>\n<ul><li><span class=\"term\"><xref href=\"System.String\" data-throw-if-not-resolved=\"false\"></xref></span>Represents either the name of a file (use <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute\" data-throw-if-not-resolved=\"false\"></xref>),\n    or xml (use <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute\" data-throw-if-not-resolved=\"false\"></xref>).</li><li><span class=\"term\"><xref href=\"System.Xml.XmlDocument\" data-throw-if-not-resolved=\"false\"></xref></span>Use <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute\" data-throw-if-not-resolved=\"false\"></xref>.\n    The root node of the document and all of its children will be inserted at the target location.</li><li><span class=\"term\"><xref href=\"System.Xml.XmlNode\" data-throw-if-not-resolved=\"false\"></xref></span>Use <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute\" data-throw-if-not-resolved=\"false\"></xref>.\n    The node and all of its children will be inserted at the target location.</li><li><span class=\"term\"><xref href=\"System.Collections.Generic.IEnumerable%601\" data-throw-if-not-resolved=\"false\"></xref> of type <xref href=\"System.Xml.XmlNode\" data-throw-if-not-resolved=\"false\"></xref></span>Use <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute\" data-throw-if-not-resolved=\"false\"></xref>.\n    Nodes will be inserted in the same order that they appear in this list at the target location.</li></ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.yml\" sourcestartlinenumber=\"1\">Used when Content is of type string and refers to a file name.<br>\nThe file should have an extension of type .xml, and be located inside of the GUI folder of your module.<br>\nYou can include or omit the extension type. I.e. both of the following will work:<br></p>\n<ul><li>YourPatchFileName</li><li>YourPatchFileName.xml</li></ul>\nSee <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute\" data-throw-if-not-resolved=\"false\"></xref> for info on other attribute types.\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.yml\" sourcestartlinenumber=\"1\">Use when the property or return of your method is of type <xref href=\"System.String\" data-throw-if-not-resolved=\"false\"></xref> and is xml.<br>\nThe xml must be properly formatted with a single root node.<br>\nIf <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode\" data-throw-if-not-resolved=\"false\"></xref> is set to false, the root node of the document,\nas well as all of its children, will be inserted at the target location.<br>\nIf <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode\" data-throw-if-not-resolved=\"false\"></xref> is set to true, the root node of the document\nwill be ignored, and all of the root node's children will be placed at the target location instead.<br>\nSee <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute\" data-throw-if-not-resolved=\"false\"></xref> for more info.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.yml\" sourcestartlinenumber=\"1\">Use when the property or return of your method is of type <xref href=\"System.Xml.XmlDocument\" data-throw-if-not-resolved=\"false\"></xref>.<br>\nIf <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode\" data-throw-if-not-resolved=\"false\"></xref> is set to false, the root node of the document,\nas well as all of its children, will be inserted at the target location.<br>\nIf <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode\" data-throw-if-not-resolved=\"false\"></xref> is set to true, the root node of the document\nwill be ignored, and all of the root node's children will be placed at the target location instead.<br>\nSee <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute\" data-throw-if-not-resolved=\"false\"></xref> for more info.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.yml\" sourcestartlinenumber=\"1\">Use when the property or return of your method is of type <xref href=\"System.Xml.XmlNode\" data-throw-if-not-resolved=\"false\"></xref>.<br>\nThe node and all of its children will be inserted at the target location.<br>\nIf <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode\" data-throw-if-not-resolved=\"false\"></xref> is set to false, the root node of the document,\nas well as all of its children, will be inserted at the target location.<br>\nIf <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode\" data-throw-if-not-resolved=\"false\"></xref> is set to true, the root node of the document\nwill be ignored, and all of the root node's children will be placed at the target location instead.<br>\nSee <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute\" data-throw-if-not-resolved=\"false\"></xref> for more info.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.yml\" sourcestartlinenumber=\"1\">Use when the property or return of your method is of type IEnumerable{<xref href=\"System.Xml.XmlNode\" data-throw-if-not-resolved=\"false\"></xref>}.<br>\nNodes will be inserted in the same order that they appear in this list at the target location.<br>\nSee <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute\" data-throw-if-not-resolved=\"false\"></xref> for more info.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.yml\" sourcestartlinenumber=\"1\">Patch that inserts Content relative to the target node specified in the <xref href=\"Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.XPath\" data-throw-if-not-resolved=\"false\"></xref> property.<br>\nA single Method or Property should be flagged with the <xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute\" data-throw-if-not-resolved=\"false\"></xref>.<br>\n<b>Content Attribute Types:</b></p>\n<ul><li><xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute\" data-throw-if-not-resolved=\"false\"></xref></li><li><xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute\" data-throw-if-not-resolved=\"false\"></xref></li><li><xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute\" data-throw-if-not-resolved=\"false\"></xref></li><li><xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute\" data-throw-if-not-resolved=\"false\"></xref></li><li><xref href=\"Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute\" data-throw-if-not-resolved=\"false\"></xref></li></ul>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.yml\" sourcestartlinenumber=\"1\">Patch that adds or replaces node's attributes specified by <xref href=\"Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.XPath\" data-throw-if-not-resolved=\"false\"></xref> with node from prefab extension</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Prefabs2.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Prefabs2",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ResourceManager.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.ResourceManager",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Settings.ISettingsProvider",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.Settings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.Settings.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.Settings",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.SubModule.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.SubModule.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.SubModule",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.UIExtender.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.UIExtender.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.UIExtender",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.UIExtender.yml\" sourcestartlinenumber=\"1\">Client class instance of which should be created for each module using this library</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.UIExtenderExSettings.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.UIExtenderExSettings",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin<TViewModel>",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.yml\" sourcestartlinenumber=\"1\">Basic implementation for <xref href=\"Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin\" data-throw-if-not-resolved=\"false\"></xref>.<br>\nGeneric parameter <code class=\"typeparamref\">TViewModel</code> will be used to determine which <xref href=\"TaleWorlds.Library.ViewModel\" data-throw-if-not-resolved=\"false\"></xref> to extend.<br>\nYou can use the field <xref href=\"Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin%601.ViewModel\" data-throw-if-not-resolved=\"false\"></xref> to access the original <xref href=\"TaleWorlds.Library.ViewModel\" data-throw-if-not-resolved=\"false\"></xref>.<br>\nBe aware that it might be null if GC has disposed the original <xref href=\"Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin%601.ViewModel\" data-throw-if-not-resolved=\"false\"></xref>. The mixin holds a weak reference to it.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin",
+      "Summary": "<p sourcefile=\"api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.yml\" sourcestartlinenumber=\"1\">Interface for <xref href=\"TaleWorlds.Library.ViewModel\" data-throw-if-not-resolved=\"false\"></xref> mixins.<br>\nShould not be used directly, <xref href=\"Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin%601\" data-throw-if-not-resolved=\"false\"></xref> should be used as base class.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.ViewModels.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx.ViewModels",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Bannerlord.UIExtenderEx.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Bannerlord.UIExtenderEx.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Bannerlord.UIExtenderEx",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/general/InteractingWithOtherMods.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/general/InteractingWithOtherMods.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/general/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/general/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/general/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/general/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/general/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/interface/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/interface/Overview.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/interface/Overview.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/interface/Prefab.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/Prefab.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/interface/Prefab.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/interface/Prefab.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/interface/ViewModelMixin.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/ViewModelMixin.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/interface/ViewModelMixin.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/interface/ViewModelMixin.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/interface/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/interface/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/interface/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/Overview.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/Overview.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/PrefabPatching.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/PrefabPatching.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/PrefabPatching.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/PrefabPatching.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/Registration.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/Registration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/Registration.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/Registration.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/runtime/ViewModelPatching.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/ViewModelPatching.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "articles/runtime/ViewModelPatching.svg",
+      "output": {
+        "resource": {
+          "relative_path": "articles/runtime/ViewModelPatching.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/runtime/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/runtime/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/runtime/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v1/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v1/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/v1/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v1/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/v1/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/Examples.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/Examples.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/Overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/Overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/PrefabExtensionInsertPatch.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/PrefabExtensionInsertPatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/PrefabExtensionSetAttributePatch.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/PrefabExtensionSetAttributePatch.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "articles/v2/ViewModelMixin.md",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/ViewModelMixin.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "articles/v2/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "articles/v2/toc.html"
+        },
+        ".json": {
+          "relative_path": "articles/v2/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/BUTR48.svg",
+      "output": {
+        "resource": {
+          "relative_path": "images/BUTR48.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
