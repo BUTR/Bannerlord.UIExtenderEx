@@ -43,12 +43,20 @@ internal static class ViewModelWithMixinPatch
         if (ViewModelsRefreshPatches.TryAdd($"{viewModelType.FullName}:{refreshMethodName}", null)) // first initialization
         {
             // multiple mixins have their own name
-            if (refreshMethodName is not null && AccessTools2.Method(viewModelType, refreshMethodName) is { } method)
+            if (refreshMethodName is null)
             {
-                harmony.Patch(
-                    method,
-                    transpiler: new HarmonyMethod(typeof(ViewModelWithMixinPatch), nameof(ViewModel_Refresh_Transpiler)));
+                return;
             }
+
+            var method = AccessTools2.Method(viewModelType, refreshMethodName);
+            while (!method.IsDeclaredMember())
+            {
+                method = method.GetDeclaredMember();
+            }
+
+            harmony.Patch(
+                method,
+                transpiler: new HarmonyMethod(typeof(ViewModelWithMixinPatch), nameof(ViewModel_Refresh_Transpiler)));
         }
     }
 

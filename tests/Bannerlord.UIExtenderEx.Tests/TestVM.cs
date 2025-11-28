@@ -25,3 +25,16 @@ public class DerivedTestVM : TestVM
         base.OnFinalize();
     }
 }
+
+public class RefreshValuesVM : ViewModel
+{
+    public override void RefreshValues()
+    {
+        base.RefreshValues();
+    }
+}
+
+public class DerivedRefreshValuesVM : RefreshValuesVM
+{
+    // No override for RefreshValues
+}
