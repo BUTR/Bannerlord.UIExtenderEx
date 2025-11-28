@@ -68,3 +68,11 @@ internal class DerivedTestVMMixin : BaseViewModelMixin<TestVM>
         DerivedMixinMethodCalled = true;
     }
 }
+
+[ViewModelMixin(nameof(RefreshValuesVM.RefreshValues), true)]
+internal class RefreshValuesVMMixin : BaseViewModelMixin<RefreshValuesVM>
+{
+    public RefreshValuesVMMixin(RefreshValuesVM vm) : base(vm)
+    {
+    }
+}
