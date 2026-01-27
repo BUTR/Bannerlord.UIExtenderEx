@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.13.3
+Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x
+* Fixed decimal.Parse issue in some cultures
+---------------------------------------------------------------------------------------------------
 Version: 2.13.2
 Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x
 * Fixed an issue when a derived VM was not overriding RefreshValues by Quas(adwitkow)
