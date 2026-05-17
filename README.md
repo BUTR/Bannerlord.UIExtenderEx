@@ -77,6 +77,39 @@ This mod is a dependency mod that does not provide anything by itself. You need 
 ## Usage
 Check the [``Articles``](https://butr.github.io/Bannerlord.UIExtenderEx/articles/v2/Overview.html) section of our documentation!
 
+## Development
+This repository includes a cross-platform `just` entrypoint. The root `Justfile` dispatches to `Justfile.unix` or `Justfile.windows` based on the host OS.
+
+Required tools:
+* [.NET SDK](https://dotnet.microsoft.com/download) available as `dotnet`, or set `DOTNET` to the full executable path.
+* `just` available on `PATH`.
+* Linux/WSL: `mono` is required for the `net472` test project, and `zip` is required for `just package`.
+* Windows: PowerShell with `Compress-Archive` is required for `just package`.
+
+Bannerlord path configuration is read by MSBuild from environment variables. Set one or more of these if auto-detection is not enough:
+* `BANNERLORD_GAME_DIR` for a single local Bannerlord install.
+* `BANNERLORD_STABLE_DIR` for `Stable_Debug` and `Stable_Release`.
+* `BANNERLORD_BETA_DIR` for `Beta_Debug` and `Beta_Release`.
+
+Examples:
+```bash
+DOTNET=/home/user/.dotnet/dotnet \
+BANNERLORD_GAME_DIR="/mnt/f/SteamLibrary/steamapps/common/Mount & Blade II Bannerlord" \
+just build Stable_Debug
+
+just test Stable_Debug
+just package Stable_Release
+```
+
+```powershell
+$env:BANNERLORD_GAME_DIR = "C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord"
+just build Stable_Debug
+just test Stable_Debug
+just package Stable_Release
+```
+
+Packaging writes local artifacts under `artifacts/package`: a Bannerlord module zip and NuGet packages.
+
 ## Current State of AutoGens
 The game uses two Prefab systems - static (pre-compiled XML) C# prefabs and dynamically serialized XML prefabs.  
 The XML prefabs were introduced with the Early Access.  

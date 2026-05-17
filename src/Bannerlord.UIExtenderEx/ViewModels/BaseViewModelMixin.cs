@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using TaleWorlds.GauntletUI;
@@ -25,7 +26,9 @@ public abstract class BaseViewModelMixin<TViewModel> : IViewModelMixin where TVi
 {
     private delegate void OnPropertyChangedWithValueDelegate0(ViewModel instance, object value, [CallerMemberName] string? propertyName = null);
     private static readonly OnPropertyChangedWithValueDelegate0? OnPropertyChangedWithValue0 =
-        AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate0>(typeof(ViewModel), nameof(OnPropertyChangedWithValue));
+        typeof(ViewModel).GetMethod(nameof(OnPropertyChangedWithValue), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly, null, [typeof(object), typeof(string)], null) is { } method
+            ? AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate0>(method)
+            : null;
 
     private static readonly ConcurrentDictionary<Type, OnPropertyChangedWithValueDelegate0?> OnPropertyChangedWithValue1 = new();
 
@@ -97,9 +100,12 @@ public abstract class BaseViewModelMixin<TViewModel> : IViewModelMixin where TVi
             case Vec2 val when OnPropertyChangedWithValue8 is not null: OnPropertyChangedWithValue8(ViewModel, val, propertyName); return;
         }
 
-        static OnPropertyChangedWithValueDelegate0 ValueFactory(Type x) => AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate0>(AccessTools.GetDeclaredMethods(typeof(ViewModel))
-            .FirstOrDefault(x => x.IsGenericMethod && x.Name == nameof(OnPropertyChangedWithValue))?
-            .MakeGenericMethod(x));
+        static OnPropertyChangedWithValueDelegate0? ValueFactory(Type type)
+        {
+            var method = AccessTools.GetDeclaredMethods(typeof(ViewModel))
+                .FirstOrDefault(candidate => candidate.IsGenericMethod && candidate.Name == nameof(OnPropertyChangedWithValue));
+            return method is null ? null : AccessTools2.GetDelegate<OnPropertyChangedWithValueDelegate0>(method.MakeGenericMethod(type));
+        }
         if (OnPropertyChangedWithValue1.GetOrAdd(value.GetType(), ValueFactory) is { } del)
         {
             del(ViewModel, value, propertyName);
