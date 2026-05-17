@@ -5,8 +5,10 @@ using HarmonyLib.BUTR.Extensions;
 
 using NUnit.Framework;
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Xml;
 
@@ -20,6 +22,32 @@ public class BaseTests : SharedTests
 {
     protected class MockWidgetFactory : WidgetFactory
     {
+        private const string PrefabXml = @"
+<Prefab>
+  <Window>
+    <OptionsScreenWidget Id=""Options"">
+      <Children>
+        <Standard.TopPanel Parameter.Title=""@OptionsLbl"">
+          <Children>
+            <ListPanel>
+              <Children>
+                <OptionsTabToggle Id=""InsertAsSibling""/>
+                <OptionsTabToggle Id=""InsertAsSibling""/>
+                <OptionsTabToggle Id=""ReplaceKeepChildren""/>
+                <OptionsTabToggle Id=""SetAttribute""/>
+                <OptionsTabToggle/>
+                <OptionsTabToggle/>
+              </Children>
+            </ListPanel>
+          </Children>
+        </Standard.TopPanel>
+      </Children>
+    </OptionsScreenWidget>
+  </Window>
+</Prefab>
+";
+      private static readonly object PrefabFileLock = new();
+
         private static readonly AccessTools.FieldRef<object, IDictionary>? GetCustomTypes =
             AccessTools2.FieldRefAccess<IDictionary>("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:_customTypes");
 
@@ -54,37 +82,27 @@ public class BaseTests : SharedTests
 
         public static bool CreatePrefix(ref XmlReader __result)
         {
-            __result = XmlReader.Create(new StringReader(@"
-<Prefab>
-  <Window>
-    <OptionsScreenWidget Id=""Options"">
-      <Children>
-        <Standard.TopPanel Parameter.Title=""@OptionsLbl"">
-          <Children>
-            <ListPanel>
-              <Children>
-                <OptionsTabToggle Id=""InsertAsSibling""/>
-                <OptionsTabToggle Id=""InsertAsSibling""/>
-                <OptionsTabToggle Id=""ReplaceKeepChildren""/>
-                <OptionsTabToggle Id=""SetAttribute""/>
-                <OptionsTabToggle/>
-                <OptionsTabToggle/>
-              </Children>
-            </ListPanel>
-          </Children>
-        </Standard.TopPanel>
-      </Children>
-    </OptionsScreenWidget>
-  </Window>
-</Prefab>
-"), new XmlReaderSettings { IgnoreComments = true });
+            __result = XmlReader.Create(new StringReader(PrefabXml), new XmlReaderSettings { IgnoreComments = true });
             return false;
         }
 
         public static bool GetCustomTypePrefix(string typeName, ref WidgetPrefab __result)
         {
-            __result = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), typeName);
+            __result = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), EnsurePrefabFile(typeName));
             return false;
+        }
+
+        private static string EnsurePrefabFile(string typeName)
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, typeName);
+            lock (PrefabFileLock)
+            {
+                if (!File.Exists(path) || new FileInfo(path).Length == 0)
+                {
+                    File.WriteAllText(path, PrefabXml);
+                }
+            }
+            return path;
         }
 
         private static bool GetPrefabNamesAndPathsFromCurrentPathPrefix(ref Dictionary<string, string> __result)
@@ -111,8 +129,10 @@ public class BaseTests : SharedTests
         }
     }
 
+#pragma warning disable BHA0006
     protected AccessTools.FieldRef<WidgetTemplate, List<WidgetTemplate>> GetChildren { get; } =
         AccessTools.FieldRefAccess<WidgetTemplate, List<WidgetTemplate>>("_children")!;
+#pragma warning restore BHA0006
 
     [OneTimeSetUp]
     public void OneTimeSetup()
