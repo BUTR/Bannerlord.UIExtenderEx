@@ -1,0 +1,62 @@
+set dotenv-load := true
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"]
+
+root := justfile_directory()
+dotnet := env_var_or_default("DOTNET", "dotnet")
+platform := env_var_or_default("PLATFORM", "x64")
+solution := root + "/src/Bannerlord.UIExtenderEx.sln"
+project := root + "/src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj"
+test_project := root + "/tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj"
+test_results := root + "/artifacts/test-results"
+package_root := root + "/artifacts/package"
+module_output := package_root + "/bannerlord"
+nuget_output := package_root + "/nuget"
+module_id := "Bannerlord.UIExtenderEx"
+build_config := "Stable_Debug"
+package_config := "Stable_Release"
+
+# Check required local tools and Bannerlord path configuration.
+doctor:
+    & "{{ dotnet }}" --version; if ($LASTEXITCODE -ne 0) { Write-Error "dotnet not found. Install the .NET SDK or set DOTNET to dotnet.exe."; exit $LASTEXITCODE }
+    if (Get-Command Compress-Archive -ErrorAction SilentlyContinue) { Write-Host "Compress-Archive: available" } else { Write-Error "Compress-Archive is required for 'just package'."; exit 1 }
+    Write-Host "BANNERLORD_GAME_DIR=$($env:BANNERLORD_GAME_DIR)"
+    Write-Host "BANNERLORD_STABLE_DIR=$($env:BANNERLORD_STABLE_DIR)"
+    Write-Host "BANNERLORD_BETA_DIR=$($env:BANNERLORD_BETA_DIR)"
+
+# Build the solution. Defaults to Stable_Debug.
+build configuration=build_config:
+    & "{{ dotnet }}" build "{{ solution }}" --configuration "{{ configuration }}" -p:Platform="{{ platform }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+# Build all supported configurations.
+build-all:
+    foreach ($configuration in @("Stable_Debug", "Stable_Release", "Beta_Debug", "Beta_Release")) { & "{{ dotnet }}" build "{{ solution }}" --configuration $configuration -p:Platform="{{ platform }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+
+# Run the NUnit test project. Defaults to Stable_Debug.
+test configuration=build_config:
+    New-Item -ItemType Directory -Force "{{ test_results }}" | Out-Null
+    & "{{ dotnet }}" test "{{ test_project }}" --configuration "{{ configuration }}" -p:Platform="{{ platform }}" --logger "trx;LogFileName={{ configuration }}.trx" --results-directory "{{ test_results }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+# Run tests for all supported configurations.
+test-all:
+    New-Item -ItemType Directory -Force "{{ test_results }}" | Out-Null
+    foreach ($configuration in @("Stable_Debug", "Stable_Release", "Beta_Debug", "Beta_Release")) { & "{{ dotnet }}" test "{{ test_project }}" --configuration $configuration -p:Platform="{{ platform }}" --logger "trx;LogFileName=$configuration.trx" --results-directory "{{ test_results }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+
+# Build a local module zip and NuGet packages. Defaults to Stable_Release.
+package configuration=package_config:
+    if (Test-Path "{{ module_output }}") { Remove-Item -Recurse -Force "{{ module_output }}" }
+    if (Test-Path "{{ nuget_output }}") { Remove-Item -Recurse -Force "{{ nuget_output }}" }
+    New-Item -ItemType Directory -Force "{{ module_output }}", "{{ nuget_output }}" | Out-Null
+    & "{{ dotnet }}" build "{{ project }}" --configuration "{{ configuration }}" -p:Platform="{{ platform }}" -p:GameFolder="{{ module_output }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & "{{ dotnet }}" pack "{{ project }}" --configuration "{{ configuration }}" --no-build -p:Platform="{{ platform }}" --output "{{ nuget_output }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $modulePath = "{{ module_output }}/Modules/{{ module_id }}"; if (!(Test-Path $modulePath)) { Write-Error "Expected module output not found: $modulePath"; exit 1 }
+    $zipPath = "{{ package_root }}/{{ module_id }}-{{ configuration }}.zip"; if (Test-Path $zipPath) { Remove-Item -Force $zipPath }; Compress-Archive -Path $modulePath -DestinationPath $zipPath -Force
+    Write-Host "Module zip: {{ package_root }}/{{ module_id }}-{{ configuration }}.zip"
+    Write-Host "NuGet packages: {{ nuget_output }}"
+
+# Build, test, then package using platform-specific recipes.
+all: build-all test-all package
+
+# Remove local artifacts and clean the solution. Defaults to Stable_Debug.
+clean configuration=build_config:
+    if (Test-Path artifacts) { Remove-Item -Recurse -Force artifacts }
+    & "{{ dotnet }}" clean "{{ solution }}" --configuration "{{ configuration }}" -p:Platform="{{ platform }}"; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

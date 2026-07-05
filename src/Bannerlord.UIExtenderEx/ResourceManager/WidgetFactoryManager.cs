@@ -1,4 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Patches;
+using Bannerlord.UIExtenderEx.Utils;
 
 using HarmonyLib;
 using HarmonyLib.BUTR.Extensions;
@@ -23,7 +24,18 @@ public static class WidgetFactoryManager
 {
     private delegate void ReloadDelegate();
     private static readonly ReloadDelegate? Reload =
-        AccessTools2.GetDeclaredDelegate<ReloadDelegate>(typeof(WidgetInfo), "Reload");
+        CreateWidgetInfoReloadDelegate();
+
+    private static ReloadDelegate? CreateWidgetInfoReloadDelegate()
+    {
+#pragma warning disable BHA0001
+        var method =
+            AccessTools2.DeclaredMethod(typeof(WidgetInfo), "Refresh", logErrorInTrace: false) ??
+            AccessTools2.DeclaredMethod(typeof(WidgetInfo), "Reload", logErrorInTrace: false);
+#pragma warning restore BHA0001
+
+        return method is null ? null : AccessTools2.GetDelegate<ReloadDelegate>(method);
+    }
 
     private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? _liveCustomTypes =
         AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");
@@ -54,7 +66,11 @@ public static class WidgetFactoryManager
 
     public static void Register(Type widgetType)
     {
-        if (Reload is null) return;
+        if (Reload is null)
+        {
+            MessageUtils.DisplayUserWarning("WidgetInfo.Refresh/Reload was not found; custom widget type {0} could not be registered.", widgetType.FullName ?? widgetType.Name);
+            return;
+        }
 
         BuiltinTypes[widgetType.Name] = widgetType;
         Reload();
@@ -81,6 +97,8 @@ public static class WidgetFactoryManager
             prefix: new HarmonyMethod(typeof(WidgetFactoryManager), nameof(IsCustomTypePrefix)));
 
 #pragma warning disable BHA0001
+    var blankTranspiler = AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler));
+
         harmony.TryPatch(
             AccessTools2.DeclaredMethod(typeof(WidgetFactory), "OnUnload"),
             prefix: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(OnUnloadPrefix)));
@@ -89,17 +107,19 @@ public static class WidgetFactoryManager
         // CreateBuiltinWidget is too complex to be inlined
         // GetWidgetTypes is not used?
         // Preventing inlining IsCustomType
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:CreateWidgets"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:OnRelease"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:CreateWidgets", blankTranspiler);
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.PrefabSystem.WidgetTemplate:OnRelease", blankTranspiler);
         // Preventing inlining GetCustomType
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.Data.GauntletMovie:LoadMovie"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(WidgetFactoryManager), nameof(BlankTranspiler)));
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.Data.GauntletMovie:LoadMovie", blankTranspiler);
 #pragma warning restore BHA0001
+    }
+
+    private static void TryPatchIfFound(Harmony harmony, string typeColonName, System.Reflection.MethodInfo? transpiler)
+    {
+        if (transpiler is not null && AccessTools2.DeclaredMethod(typeColonName, null, null, false) is { } method)
+        {
+            harmony.TryPatch(method, transpiler: transpiler);
+        }
     }
 
     [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]

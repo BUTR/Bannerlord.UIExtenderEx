@@ -1,4 +1,4 @@
-<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
+<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion;HarmonyPackageVersion-->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 
-    <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" />
+    <PackageReference Include="Lib.Harmony" Version="$(HarmonyPackageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
   </ItemGroup>

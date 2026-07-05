@@ -54,24 +54,24 @@ public static class BrushFactoryManager
             prefix: new HarmonyMethod(typeof(BrushFactoryManager), nameof(GetBrushPrefix)));
 
 #pragma warning disable BHA0001
+        var blankTranspiler = AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler));
+
         // Preventing inlining GetBrush
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.ConstantDefinition:GetValue"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:SetWidgetAttributeFromString"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.UIContext:GetBrush"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:ConvertObject"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
-        harmony.TryPatch(
-            AccessTools2.DeclaredMethod("TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChangerBrushWidget:OnBooleanUpdated"),
-            transpiler: AccessTools2.DeclaredMethod(typeof(BrushFactoryManager), nameof(BlankTranspiler)));
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.PrefabSystem.ConstantDefinition:GetValue", blankTranspiler);
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:SetWidgetAttributeFromString", blankTranspiler);
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.UIContext:GetBrush", blankTranspiler);
+        TryPatchIfFound(harmony, "TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions:ConvertObject", blankTranspiler);
+        TryPatchIfFound(harmony, "TaleWorlds.MountAndBlade.GauntletUI.Widgets.BoolBrushChangerBrushWidget:OnBooleanUpdated", blankTranspiler);
         // Preventing inlining GetBrush
 #pragma warning restore BHA0001
+    }
+
+    private static void TryPatchIfFound(Harmony harmony, string typeColonName, System.Reflection.MethodInfo? transpiler)
+    {
+        if (transpiler is not null && AccessTools2.DeclaredMethod(typeColonName, null, null, false) is { } method)
+        {
+            harmony.TryPatch(method, transpiler: transpiler);
+        }
     }
 
     [SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "For ReSharper")]
