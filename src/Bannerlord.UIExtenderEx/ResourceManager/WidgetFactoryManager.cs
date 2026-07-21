@@ -22,8 +22,10 @@ namespace Bannerlord.UIExtenderEx.ResourceManager;
 public static class WidgetFactoryManager
 {
     private delegate void ReloadDelegate();
+    // 'Reload' was renamed to 'Refresh' in a newer game version. Support both.
     private static readonly ReloadDelegate? Reload =
-        AccessTools2.GetDeclaredDelegate<ReloadDelegate>(typeof(WidgetInfo), "Reload");
+        AccessTools2.GetDeclaredDelegate<ReloadDelegate>(typeof(WidgetInfo), "Reload") ??
+        AccessTools2.GetDeclaredDelegate<ReloadDelegate>(typeof(WidgetInfo), "Refresh");
 
     private static readonly AccessTools.FieldRef<WidgetFactory, IDictionary>? _liveCustomTypes =
         AccessTools2.FieldRefAccess<WidgetFactory, IDictionary>("_liveCustomTypes");

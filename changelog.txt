@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.13.4
+Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x
+* Fixed WidgetInfo.Reload/Refresh
+---------------------------------------------------------------------------------------------------
 Version: 2.13.3
 Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x
 * Fixed decimal.Parse issue in some cultures
