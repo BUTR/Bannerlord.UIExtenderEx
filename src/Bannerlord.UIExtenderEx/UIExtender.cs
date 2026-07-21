@@ -34,6 +34,7 @@ public class UIExtender
 #else
         UIConfigPatch.Patch(Harmony);
 #endif
+        ParsePatch.Patch(Harmony);
         ViewModelPatch.Patch(Harmony);
         WidgetPrefabPatch.Patch(Harmony);
         BrushFactoryManager.Patch(Harmony);

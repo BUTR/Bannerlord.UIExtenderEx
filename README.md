@@ -16,8 +16,8 @@
   <a href="https://butr.github.io/Bannerlord.UIExtenderEx">
     <img src="https://img.shields.io/badge/Documentation-%F0%9F%94%8D-blue?style=flat" alt="Documentation"/>
   </a>
-  <a title="Crowdin" target="_blank" href="https://crowdin.com/project/uiextenderex">
-    <img src="https://badges.crowdin.net/uiextenderex/localized.svg" alt="Crowdin">
+  <a href="https://translate.butr.link/engage/bannerlord-uiextenderex/">
+    <img src="https://translate.butr.link/widget/bannerlord-uiextenderex/svg-badge.svg" alt="Translation status">
   </a>
   <br/>
   <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/actions/workflows/test.yml?query=branch%3Adev">
