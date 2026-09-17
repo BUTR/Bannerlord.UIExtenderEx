@@ -5,14 +5,13 @@ using HarmonyLib.BUTR.Extensions;
 
 using NUnit.Framework;
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
-using System.Xml;
 
 using TaleWorlds.GauntletUI.PrefabSystem;
-
-using StringReader = System.IO.StringReader;
 
 namespace Bannerlord.UIExtenderEx.Tests;
 
@@ -30,8 +29,6 @@ public class BaseTests : SharedTests
                 new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetPrefabNamesAndPathsFromCurrentPathPrefix)));
             harmony.Patch(AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory:GetCustomType"),
                 new HarmonyMethod(typeof(MockWidgetFactory), nameof(GetCustomTypePrefix)));
-            harmony.Patch(AccessTools2.DeclaredMethod("System.Xml.XmlReader:Create", [typeof(string), typeof(XmlReaderSettings)]),
-                new HarmonyMethod(typeof(MockWidgetFactory), nameof(CreatePrefix)));
 
             if (GetCustomTypes?.Invoke(this) is { } dictionary)
             {
@@ -52,9 +49,7 @@ public class BaseTests : SharedTests
             }
         }
 
-        public static bool CreatePrefix(ref XmlReader __result)
-        {
-            __result = XmlReader.Create(new StringReader(@"
+        private const string MockPrefab = @"
 <Prefab>
   <Window>
     <OptionsScreenWidget Id=""Options"">
@@ -77,13 +72,25 @@ public class BaseTests : SharedTests
     </OptionsScreenWidget>
   </Window>
 </Prefab>
-"), new XmlReaderSettings { IgnoreComments = true });
-            return false;
+";
+
+        private static readonly string MockPrefabDirectory =
+            Path.Combine(Path.GetTempPath(), $"{nameof(MockWidgetFactory)}-{Guid.NewGuid():N}");
+
+        // The game reads the prefab from the file system, so the mock prefab has to exist as a real file.
+        // Its name matters - WidgetPrefabPatch derives the movie name from it.
+        private static string GetMockPrefabPath(string typeName)
+        {
+            Directory.CreateDirectory(MockPrefabDirectory);
+            var path = Path.Combine(MockPrefabDirectory, $"{typeName}.xml");
+            if (!File.Exists(path))
+                File.WriteAllText(path, MockPrefab);
+            return path;
         }
 
         public static bool GetCustomTypePrefix(string typeName, ref WidgetPrefab __result)
         {
-            __result = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), typeName);
+            __result = WidgetPrefab.LoadFrom(new PrefabExtensionContext(), new WidgetAttributeContext(), GetMockPrefabPath(typeName));
             return false;
         }
 
