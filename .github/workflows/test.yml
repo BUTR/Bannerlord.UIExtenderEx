@@ -76,8 +76,8 @@ jobs:
         path: coveragereport
 
     - name: Upload ReportGenerator to CodeCov
-      uses: codecov/codecov-action@v5.5.1
+      uses: codecov/codecov-action@v5.5.5
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: coveragereport/Cobertura.xml
+        files: coveragereport/Cobertura.xml
         fail_ci_if_error: true
