@@ -132,7 +132,7 @@ The last thing is to call `UIExtender.Register` and `UIExtender.Enable` to apply
 ```
 
 To use the `OnRefresh` overload you will need to specify for UIExtenderEx the underlying method that acts as the conceptual 'Refresh' method in the [``ViewModel``](xref:TaleWorlds.Library.ViewModel).  
-For example, [``MapInfoVM``](xref:TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapInfoVM) has a method `Refresh`.  
+For example, [``MapInfoVM``](xref:TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapBar.MapInfoVM) has a method `Refresh`.  
 If such method exists, specify it in the [``ViewModelMixin``](xref:Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute) like this:
 ```csharp
 [ViewModelMixin("Refresh")] // or [ViewModelMixin(nameof(MapInfoVM.Refresh))] // if the method is public
