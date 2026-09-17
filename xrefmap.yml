@@ -1,0 +1,831 @@
+### YamlMime:XRefMap
+baseUrl: https://uiextenderex.butr.link/
+sorted: true
+references:
+- uid: Bannerlord.UIExtenderEx
+  name: Bannerlord.UIExtenderEx
+  href: api/Bannerlord.UIExtenderEx.html
+- uid: Bannerlord.UIExtenderEx.Attributes
+  name: Bannerlord.UIExtenderEx.Attributes
+  href: api/Bannerlord.UIExtenderEx.Attributes.html
+- uid: Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute
+  name: BaseUIExtenderAttribute
+  href: api/Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.html
+- uid: Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute
+  name: DataSourceMethodAttribute
+  href: api/Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.html
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute
+  name: PrefabExtensionAttribute
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.#ctor(System.String,System.String)
+  name: PrefabExtensionAttribute(string, string?)
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute__ctor_System_String_System_String_
+  name.vb: New(String, String)
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.New(String, String)
+  nameWithType.vb: PrefabExtensionAttribute.New(String, String)
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.#ctor(System.String,System.String,System.String)
+  name: PrefabExtensionAttribute(string, string?, string?)
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute__ctor_System_String_System_String_System_String_
+  name.vb: New(String, String, String)
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.New(String, String, String)
+  nameWithType.vb: PrefabExtensionAttribute.New(String, String, String)
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.#ctor*
+  name: PrefabExtensionAttribute
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.New
+  nameWithType.vb: PrefabExtensionAttribute.New
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.AutoGenWidgetName
+  name: AutoGenWidgetName
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute_AutoGenWidgetName
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.AutoGenWidgetName*
+  name: AutoGenWidgetName
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute_AutoGenWidgetName_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.Movie
+  name: Movie
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute_Movie
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.Movie*
+  name: Movie
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute_Movie_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.XPath
+  name: XPath
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute_XPath
+- uid: Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.XPath*
+  name: XPath
+  href: api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabExtensionAttribute_XPath_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute
+  name: ViewModelMixinAttribute
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.#ctor
+  name: ViewModelMixinAttribute()
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute__ctor
+  name.vb: New()
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.New()
+  nameWithType.vb: ViewModelMixinAttribute.New()
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.#ctor(System.Boolean)
+  name: ViewModelMixinAttribute(bool)
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute__ctor_System_Boolean_
+  name.vb: New(Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.New(Boolean)
+  nameWithType.vb: ViewModelMixinAttribute.New(Boolean)
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.#ctor(System.String)
+  name: ViewModelMixinAttribute(string)
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute__ctor_System_String_
+  name.vb: New(String)
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.New(String)
+  nameWithType.vb: ViewModelMixinAttribute.New(String)
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.#ctor(System.String,System.Boolean)
+  name: ViewModelMixinAttribute(string?, bool)
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute__ctor_System_String_System_Boolean_
+  name.vb: New(String, Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.New(String, Boolean)
+  nameWithType.vb: ViewModelMixinAttribute.New(String, Boolean)
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.#ctor*
+  name: ViewModelMixinAttribute
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.New
+  nameWithType.vb: ViewModelMixinAttribute.New
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.HandleDerived
+  name: HandleDerived
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute_HandleDerived
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.HandleDerived*
+  name: HandleDerived
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute_HandleDerived_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.RefreshMethodName
+  name: RefreshMethodName
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute_RefreshMethodName
+- uid: Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.RefreshMethodName*
+  name: RefreshMethodName
+  href: api/Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute_RefreshMethodName_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs
+  name: Bannerlord.UIExtenderEx.Prefabs
+  href: api/Bannerlord.UIExtenderEx.Prefabs.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.CustomPatch`1
+  name: CustomPatch<T>
+  href: api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html
+  name.vb: CustomPatch(Of T)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.CustomPatch(Of T)
+  nameWithType.vb: CustomPatch(Of T)
+- uid: Bannerlord.UIExtenderEx.Prefabs.CustomPatch`1.Apply(`0)
+  name: Apply(T)
+  href: api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html#Bannerlord_UIExtenderEx_Prefabs_CustomPatch_1_Apply__0_
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.CustomPatch(Of T).Apply(T)
+  nameWithType.vb: CustomPatch(Of T).Apply(T)
+- uid: Bannerlord.UIExtenderEx.Prefabs.CustomPatch`1.Apply*
+  name: Apply
+  href: api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html#Bannerlord_UIExtenderEx_Prefabs_CustomPatch_1_Apply_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.CustomPatch(Of T).Apply
+  nameWithType.vb: CustomPatch(Of T).Apply
+- uid: Bannerlord.UIExtenderEx.Prefabs.CustomPatch`1.Id
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html#Bannerlord_UIExtenderEx_Prefabs_CustomPatch_1_Id
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.CustomPatch(Of T).Id
+  nameWithType.vb: CustomPatch(Of T).Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.CustomPatch`1.Id*
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html#Bannerlord_UIExtenderEx_Prefabs_CustomPatch_1_Id_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.CustomPatch(Of T).Id
+  nameWithType.vb: CustomPatch(Of T).Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch
+  name: EmbedPrefabExtensionInsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.#ctor(System.Reflection.Assembly,System.String)
+  name: EmbedPrefabExtensionInsertPatch(Assembly, string)
+  href: api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_EmbedPrefabExtensionInsertPatch__ctor_System_Reflection_Assembly_System_String_
+  name.vb: New(Assembly, String)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.New(System.Reflection.Assembly, String)
+  nameWithType.vb: EmbedPrefabExtensionInsertPatch.New(Assembly, String)
+- uid: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.#ctor*
+  name: EmbedPrefabExtensionInsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_EmbedPrefabExtensionInsertPatch__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.New
+  nameWithType.vb: EmbedPrefabExtensionInsertPatch.New
+- uid: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.GetPrefabExtension
+  name: GetPrefabExtension()
+  href: api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_EmbedPrefabExtensionInsertPatch_GetPrefabExtension
+- uid: Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.GetPrefabExtension*
+  name: GetPrefabExtension
+  href: api/Bannerlord.UIExtenderEx.Prefabs.EmbedPrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_EmbedPrefabExtensionInsertPatch_GetPrefabExtension_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch
+  name: IPrefabPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.Id
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html#Bannerlord_UIExtenderEx_Prefabs_IPrefabPatch_Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.Id*
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html#Bannerlord_UIExtenderEx_Prefabs_IPrefabPatch_Id_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch
+  name: InsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.GetPrefabExtension
+  name: GetPrefabExtension()
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_GetPrefabExtension
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.GetPrefabExtension*
+  name: GetPrefabExtension
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_GetPrefabExtension_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.Id
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.Id*
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_Id_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.Position
+  name: Position
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_Position
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.Position*
+  name: Position
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_Position_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.PositionFirst
+  name: PositionFirst
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_PositionFirst
+- uid: Bannerlord.UIExtenderEx.Prefabs.InsertPatch.PositionLast
+  name: PositionLast
+  href: api/Bannerlord.UIExtenderEx.Prefabs.InsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_InsertPatch_PositionLast
+- uid: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch
+  name: ModulePrefabExtensionInsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.#ctor(System.String,System.String)
+  name: ModulePrefabExtensionInsertPatch(string, string)
+  href: api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_ModulePrefabExtensionInsertPatch__ctor_System_String_System_String_
+  name.vb: New(String, String)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.New(String, String)
+  nameWithType.vb: ModulePrefabExtensionInsertPatch.New(String, String)
+- uid: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.#ctor*
+  name: ModulePrefabExtensionInsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_ModulePrefabExtensionInsertPatch__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.New
+  nameWithType.vb: ModulePrefabExtensionInsertPatch.New
+- uid: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.GetPrefabExtension
+  name: GetPrefabExtension()
+  href: api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_ModulePrefabExtensionInsertPatch_GetPrefabExtension
+- uid: Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.GetPrefabExtension*
+  name: GetPrefabExtension
+  href: api/Bannerlord.UIExtenderEx.Prefabs.ModulePrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs_ModulePrefabExtensionInsertPatch_GetPrefabExtension_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch
+  name: PrefabExtensionInsertAsSiblingPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.GetPrefabExtension
+  name: GetPrefabExtension()
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_GetPrefabExtension
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.GetPrefabExtension*
+  name: GetPrefabExtension
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_GetPrefabExtension_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.Id
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.Id*
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_Id_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType
+  name: PrefabExtensionInsertAsSiblingPatch.InsertType
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.Append
+  name: Append
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_InsertType_Append
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.Prepend
+  name: Prepend
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.InsertType.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_InsertType_Prepend
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.Type
+  name: Type
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_Type
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.Type*
+  name: Type
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionInsertAsSiblingPatch_Type_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch
+  name: PrefabExtensionInsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch
+  name: PrefabExtensionReplacePatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.GetPrefabExtension
+  name: GetPrefabExtension()
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionReplacePatch_GetPrefabExtension
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.GetPrefabExtension*
+  name: GetPrefabExtension
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionReplacePatch_GetPrefabExtension_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.Id
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionReplacePatch_Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.Id*
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionReplacePatch_Id_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch
+  name: PrefabExtensionSetAttributePatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.Attribute
+  name: Attribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionSetAttributePatch_Attribute
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.Attribute*
+  name: Attribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionSetAttributePatch_Attribute_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.Id
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionSetAttributePatch_Id
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.Id*
+  name: Id
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionSetAttributePatch_Id_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.Value
+  name: Value
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionSetAttributePatch_Value
+- uid: Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.Value*
+  name: Value
+  href: api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs_PrefabExtensionSetAttributePatch_Value_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs2
+  name: Bannerlord.UIExtenderEx.Prefabs2
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType
+  name: InsertType
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType.Append
+  name: Append
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html#Bannerlord_UIExtenderEx_Prefabs2_InsertType_Append
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType.Child
+  name: Child
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html#Bannerlord_UIExtenderEx_Prefabs2_InsertType_Child
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType.Prepend
+  name: Prepend
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html#Bannerlord_UIExtenderEx_Prefabs2_InsertType_Prepend
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType.Remove
+  name: Remove
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html#Bannerlord_UIExtenderEx_Prefabs2_InsertType_Remove
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType.Replace
+  name: Replace
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html#Bannerlord_UIExtenderEx_Prefabs2_InsertType_Replace
+- uid: Bannerlord.UIExtenderEx.Prefabs2.InsertType.ReplaceKeepChildren
+  name: ReplaceKeepChildren
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.InsertType.html#Bannerlord_UIExtenderEx_Prefabs2_InsertType_ReplaceKeepChildren
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch
+  name: PrefabExtensionInsertPatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.Index
+  name: Index
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Index
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.Index*
+  name: Index
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Index_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionContentAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.#ctor(System.Boolean)
+  name: PrefabExtensionFileNameAttribute(bool)
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionFileNameAttribute__ctor_System_Boolean_
+  name.vb: New(Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.New(Boolean)
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.New(Boolean)
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.#ctor*
+  name: PrefabExtensionFileNameAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionFileNameAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.New
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.New
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.#ctor(System.Boolean)
+  name: PrefabExtensionSingleContentAttribute(bool)
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionSingleContentAttribute__ctor_System_Boolean_
+  name.vb: New(Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.New(Boolean)
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.New(Boolean)
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.#ctor*
+  name: PrefabExtensionSingleContentAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionSingleContentAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.New
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.New
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode
+  name: RemoveRootNode
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionSingleContentAttribute_RemoveRootNode
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.RemoveRootNode*
+  name: RemoveRootNode
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionSingleContentAttribute_RemoveRootNode_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionTextAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.#ctor(System.Boolean)
+  name: PrefabExtensionTextAttribute(bool)
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionTextAttribute__ctor_System_Boolean_
+  name.vb: New(Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.New(Boolean)
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.New(Boolean)
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.#ctor*
+  name: PrefabExtensionTextAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionTextAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.New
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.New
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.#ctor(System.Boolean)
+  name: PrefabExtensionXmlDocumentAttribute(bool)
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionXmlDocumentAttribute__ctor_System_Boolean_
+  name.vb: New(Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.New(Boolean)
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.New(Boolean)
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.#ctor*
+  name: PrefabExtensionXmlDocumentAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionXmlDocumentAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.New
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute.New
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.#ctor(System.Boolean)
+  name: PrefabExtensionXmlNodeAttribute(bool)
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionXmlNodeAttribute__ctor_System_Boolean_
+  name.vb: New(Boolean)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.New(Boolean)
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.New(Boolean)
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.#ctor*
+  name: PrefabExtensionXmlNodeAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_PrefabExtensionXmlNodeAttribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.New
+  nameWithType.vb: PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.New
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute
+  name: PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.Type
+  name: Type
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Type
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.Type*
+  name: Type
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Type_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch
+  name: PrefabExtensionSetAttributePatch
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute
+  name: PrefabExtensionSetAttributePatch.Attribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.#ctor(System.String,System.String)
+  name: Attribute(string, string)
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attribute__ctor_System_String_System_String_
+  name.vb: New(String, String)
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.New(String, String)
+  nameWithType.vb: PrefabExtensionSetAttributePatch.Attribute.New(String, String)
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.#ctor*
+  name: Attribute
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attribute__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.New
+  nameWithType.vb: PrefabExtensionSetAttributePatch.Attribute.New
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.Name
+  name: Name
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attribute_Name
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.Name*
+  name: Name
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attribute_Name_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.Value
+  name: Value
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attribute_Value
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.Value*
+  name: Value
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attribute.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attribute_Value_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attributes
+  name: Attributes
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attributes
+- uid: Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.Attributes*
+  name: Attributes
+  href: api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.html#Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionSetAttributePatch_Attributes_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager
+  name: Bannerlord.UIExtenderEx.ResourceManager
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.html
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager
+  name: BrushFactoryManager
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.Create(System.Xml.XmlDocument)
+  name: Create(XmlDocument)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_BrushFactoryManager_Create_System_Xml_XmlDocument_
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.Create*
+  name: Create
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_BrushFactoryManager_Create_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.CreateAndRegister(System.Xml.XmlDocument)
+  name: CreateAndRegister(XmlDocument)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_BrushFactoryManager_CreateAndRegister_System_Xml_XmlDocument_
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.CreateAndRegister*
+  name: CreateAndRegister
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_BrushFactoryManager_CreateAndRegister_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.Register(System.Collections.Generic.IEnumerable{TaleWorlds.GauntletUI.Brush})
+  name: Register(IEnumerable<Brush>)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_BrushFactoryManager_Register_System_Collections_Generic_IEnumerable_TaleWorlds_GauntletUI_Brush__
+  name.vb: Register(IEnumerable(Of Brush))
+  fullName.vb: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.Register(System.Collections.Generic.IEnumerable(Of TaleWorlds.GauntletUI.Brush))
+  nameWithType.vb: BrushFactoryManager.Register(IEnumerable(Of Brush))
+- uid: Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.Register*
+  name: Register
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.BrushFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_BrushFactoryManager_Register_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager
+  name: WidgetFactoryManager
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Create(System.String,System.Xml.XmlDocument)
+  name: Create(string, XmlDocument)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Create_System_String_System_Xml_XmlDocument_
+  name.vb: Create(String, XmlDocument)
+  fullName.vb: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Create(String, System.Xml.XmlDocument)
+  nameWithType.vb: WidgetFactoryManager.Create(String, XmlDocument)
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Create(System.Xml.XmlDocument)
+  name: Create(XmlDocument)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Create_System_Xml_XmlDocument_
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Create*
+  name: Create
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Create_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.CreateAndRegister(System.String,System.Xml.XmlDocument)
+  name: CreateAndRegister(string, XmlDocument)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_CreateAndRegister_System_String_System_Xml_XmlDocument_
+  name.vb: CreateAndRegister(String, XmlDocument)
+  fullName.vb: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.CreateAndRegister(String, System.Xml.XmlDocument)
+  nameWithType.vb: WidgetFactoryManager.CreateAndRegister(String, XmlDocument)
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.CreateAndRegister*
+  name: CreateAndRegister
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_CreateAndRegister_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Patch(HarmonyLib.Harmony)
+  name: Patch(Harmony)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Patch_HarmonyLib_Harmony_
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Patch*
+  name: Patch
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Patch_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Register(System.String,System.Func{TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab})
+  name: Register(string, Func<WidgetPrefab?>)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Register_System_String_System_Func_TaleWorlds_GauntletUI_PrefabSystem_WidgetPrefab__
+  name.vb: Register(String, Func(Of WidgetPrefab))
+  fullName.vb: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Register(String, System.Func(Of TaleWorlds.GauntletUI.PrefabSystem.WidgetPrefab))
+  nameWithType.vb: WidgetFactoryManager.Register(String, Func(Of WidgetPrefab))
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Register(System.Type)
+  name: Register(Type)
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Register_System_Type_
+- uid: Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.Register*
+  name: Register
+  href: api/Bannerlord.UIExtenderEx.ResourceManager.WidgetFactoryManager.html#Bannerlord_UIExtenderEx_ResourceManager_WidgetFactoryManager_Register_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Settings
+  name: Bannerlord.UIExtenderEx.Settings
+  href: api/Bannerlord.UIExtenderEx.Settings.html
+- uid: Bannerlord.UIExtenderEx.Settings.ISettingsProvider
+  name: ISettingsProvider
+  href: api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.html
+- uid: Bannerlord.UIExtenderEx.Settings.ISettingsProvider.DumpXML
+  name: DumpXML
+  href: api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.html#Bannerlord_UIExtenderEx_Settings_ISettingsProvider_DumpXML
+- uid: Bannerlord.UIExtenderEx.Settings.ISettingsProvider.DumpXML*
+  name: DumpXML
+  href: api/Bannerlord.UIExtenderEx.Settings.ISettingsProvider.html#Bannerlord_UIExtenderEx_Settings_ISettingsProvider_DumpXML_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags
+  name: SettingsSubModuleTags
+  href: api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html
+- uid: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.#ctor
+  name: SettingsSubModuleTags()
+  href: api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html#Bannerlord_UIExtenderEx_Settings_SettingsSubModuleTags__ctor
+  name.vb: New()
+  fullName.vb: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.New()
+  nameWithType.vb: SettingsSubModuleTags.New()
+- uid: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.#ctor*
+  name: SettingsSubModuleTags
+  href: api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html#Bannerlord_UIExtenderEx_Settings_SettingsSubModuleTags__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.New
+  nameWithType.vb: SettingsSubModuleTags.New
+- uid: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.DumpXML
+  name: DumpXML
+  href: api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html#Bannerlord_UIExtenderEx_Settings_SettingsSubModuleTags_DumpXML
+- uid: Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.DumpXML*
+  name: DumpXML
+  href: api/Bannerlord.UIExtenderEx.Settings.SettingsSubModuleTags.html#Bannerlord_UIExtenderEx_Settings_SettingsSubModuleTags_DumpXML_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.SubModule
+  name: SubModule
+  href: api/Bannerlord.UIExtenderEx.SubModule.html
+- uid: Bannerlord.UIExtenderEx.SubModule.#ctor
+  name: SubModule()
+  href: api/Bannerlord.UIExtenderEx.SubModule.html#Bannerlord_UIExtenderEx_SubModule__ctor
+  name.vb: New()
+  fullName.vb: Bannerlord.UIExtenderEx.SubModule.New()
+  nameWithType.vb: SubModule.New()
+- uid: Bannerlord.UIExtenderEx.SubModule.#ctor*
+  name: SubModule
+  href: api/Bannerlord.UIExtenderEx.SubModule.html#Bannerlord_UIExtenderEx_SubModule__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.SubModule.New
+  nameWithType.vb: SubModule.New
+- uid: Bannerlord.UIExtenderEx.UIExtender
+  name: UIExtender
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html
+- uid: Bannerlord.UIExtenderEx.UIExtender.#ctor(System.String)
+  name: UIExtender(string)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender__ctor_System_String_
+  name.vb: New(String)
+  fullName.vb: Bannerlord.UIExtenderEx.UIExtender.New(String)
+  nameWithType.vb: UIExtender.New(String)
+- uid: Bannerlord.UIExtenderEx.UIExtender.#ctor*
+  name: UIExtender
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.UIExtender.New
+  nameWithType.vb: UIExtender.New
+- uid: Bannerlord.UIExtenderEx.UIExtender.Create(System.String)
+  name: Create(string)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Create_System_String_
+  name.vb: Create(String)
+  fullName.vb: Bannerlord.UIExtenderEx.UIExtender.Create(String)
+  nameWithType.vb: UIExtender.Create(String)
+- uid: Bannerlord.UIExtenderEx.UIExtender.Create*
+  name: Create
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Create_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtender.Deregister
+  name: Deregister()
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Deregister
+- uid: Bannerlord.UIExtenderEx.UIExtender.Deregister*
+  name: Deregister
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Deregister_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtender.Disable
+  name: Disable()
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Disable
+- uid: Bannerlord.UIExtenderEx.UIExtender.Disable(System.Type)
+  name: Disable(Type)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Disable_System_Type_
+- uid: Bannerlord.UIExtenderEx.UIExtender.Disable*
+  name: Disable
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Disable_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtender.Enable
+  name: Enable()
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Enable
+- uid: Bannerlord.UIExtenderEx.UIExtender.Enable(System.Type)
+  name: Enable(Type)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Enable_System_Type_
+- uid: Bannerlord.UIExtenderEx.UIExtender.Enable*
+  name: Enable
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Enable_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtender.GetUIExtenderFor(System.String)
+  name: GetUIExtenderFor(string)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_GetUIExtenderFor_System_String_
+  name.vb: GetUIExtenderFor(String)
+  fullName.vb: Bannerlord.UIExtenderEx.UIExtender.GetUIExtenderFor(String)
+  nameWithType.vb: UIExtender.GetUIExtenderFor(String)
+- uid: Bannerlord.UIExtenderEx.UIExtender.GetUIExtenderFor*
+  name: GetUIExtenderFor
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_GetUIExtenderFor_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtender.Register
+  name: Register()
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Register
+- uid: Bannerlord.UIExtenderEx.UIExtender.Register(System.Collections.Generic.IEnumerable{System.Type})
+  name: Register(IEnumerable<Type>)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Register_System_Collections_Generic_IEnumerable_System_Type__
+  name.vb: Register(IEnumerable(Of Type))
+  fullName.vb: Bannerlord.UIExtenderEx.UIExtender.Register(System.Collections.Generic.IEnumerable(Of System.Type))
+  nameWithType.vb: UIExtender.Register(IEnumerable(Of Type))
+- uid: Bannerlord.UIExtenderEx.UIExtender.Register(System.Reflection.Assembly)
+  name: Register(Assembly)
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Register_System_Reflection_Assembly_
+- uid: Bannerlord.UIExtenderEx.UIExtender.Register*
+  name: Register
+  href: api/Bannerlord.UIExtenderEx.UIExtender.html#Bannerlord_UIExtenderEx_UIExtender_Register_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtenderExSettings
+  name: UIExtenderExSettings
+  href: api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html
+- uid: Bannerlord.UIExtenderEx.UIExtenderExSettings.DumpXML
+  name: DumpXML
+  href: api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html#Bannerlord_UIExtenderEx_UIExtenderExSettings_DumpXML
+- uid: Bannerlord.UIExtenderEx.UIExtenderExSettings.DumpXML*
+  name: DumpXML
+  href: api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html#Bannerlord_UIExtenderEx_UIExtenderExSettings_DumpXML_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.UIExtenderExSettings.Instance
+  name: Instance
+  href: api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html#Bannerlord_UIExtenderEx_UIExtenderExSettings_Instance
+- uid: Bannerlord.UIExtenderEx.UIExtenderExSettings.Instance*
+  name: Instance
+  href: api/Bannerlord.UIExtenderEx.UIExtenderExSettings.html#Bannerlord_UIExtenderEx_UIExtenderExSettings_Instance_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ViewModels
+  name: Bannerlord.UIExtenderEx.ViewModels
+  href: api/Bannerlord.UIExtenderEx.ViewModels.html
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1
+  name: BaseViewModelMixin<TViewModel>
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html
+  name.vb: BaseViewModelMixin(Of TViewModel)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.#ctor(`0)
+  name: BaseViewModelMixin(TViewModel)
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1__ctor__0_
+  name.vb: New(TViewModel)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).New(TViewModel)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).New(TViewModel)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.#ctor*
+  name: BaseViewModelMixin
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1__ctor_
+  isSpec: "True"
+  name.vb: New
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).New
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).New
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.GetPrivate*
+  name: GetPrivate
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_GetPrivate_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).GetPrivate
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).GetPrivate
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.GetPrivate``1(System.String)
+  name: GetPrivate<TValue>(string)
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_GetPrivate__1_System_String_
+  name.vb: GetPrivate(Of TValue)(String)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).GetPrivate(Of TValue)(String)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).GetPrivate(Of TValue)(String)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnFinalize
+  name: OnFinalize()
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnFinalize
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnFinalize()
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnFinalize()
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnFinalize*
+  name: OnFinalize
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnFinalize_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnFinalize
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnFinalize
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChanged(System.String)
+  name: OnPropertyChanged(string?)
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChanged_System_String_
+  name.vb: OnPropertyChanged(String)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnPropertyChanged(String)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnPropertyChanged(String)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChanged*
+  name: OnPropertyChanged
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChanged_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnPropertyChanged
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnPropertyChanged
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChangedWithValue(System.Object,System.String)
+  name: OnPropertyChangedWithValue(object, string?)
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChangedWithValue_System_Object_System_String_
+  name.vb: OnPropertyChangedWithValue(Object, String)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnPropertyChangedWithValue(Object, String)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnPropertyChangedWithValue(Object, String)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChangedWithValue*
+  name: OnPropertyChangedWithValue
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChangedWithValue_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnPropertyChangedWithValue
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnPropertyChangedWithValue
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnRefresh
+  name: OnRefresh()
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnRefresh
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnRefresh()
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnRefresh()
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnRefresh*
+  name: OnRefresh
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnRefresh_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).OnRefresh
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).OnRefresh
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetField*
+  name: SetField
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetField_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).SetField
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).SetField
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetField``1(``0@,``0,System.String)
+  name: SetField<T>(ref T, T, string)
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetField__1___0____0_System_String_
+  name.vb: SetField(Of T)(T, T, String)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).SetField(Of T)(T, T, String)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).SetField(Of T)(T, T, String)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetPrivate*
+  name: SetPrivate
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetPrivate_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).SetPrivate
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).SetPrivate
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetPrivate``1(System.String,``0)
+  name: SetPrivate<TValue>(string, TValue?)
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetPrivate__1_System_String___0_
+  name.vb: SetPrivate(Of TValue)(String, TValue)
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).SetPrivate(Of TValue)(String, TValue)
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).SetPrivate(Of TValue)(String, TValue)
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.ViewModel
+  name: ViewModel
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_ViewModel
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).ViewModel
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).ViewModel
+- uid: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.ViewModel*
+  name: ViewModel
+  href: api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_ViewModel_
+  isSpec: "True"
+  fullName.vb: Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin(Of TViewModel).ViewModel
+  nameWithType.vb: BaseViewModelMixin(Of TViewModel).ViewModel
+- uid: Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin
+  name: IViewModelMixin
+  href: api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html
+- uid: Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.OnFinalize
+  name: OnFinalize()
+  href: api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html#Bannerlord_UIExtenderEx_ViewModels_IViewModelMixin_OnFinalize
+- uid: Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.OnFinalize*
+  name: OnFinalize
+  href: api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html#Bannerlord_UIExtenderEx_ViewModels_IViewModelMixin_OnFinalize_
+  isSpec: "True"
+- uid: Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.OnRefresh
+  name: OnRefresh()
+  href: api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html#Bannerlord_UIExtenderEx_ViewModels_IViewModelMixin_OnRefresh
+- uid: Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.OnRefresh*
+  name: OnRefresh
+  href: api/Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html#Bannerlord_UIExtenderEx_ViewModels_IViewModelMixin_OnRefresh_
+  isSpec: "True"
