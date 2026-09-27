@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\docfx.yml = ..\.github\workflows\docfx.yml
 		..\.github\workflows\publish.yml = ..\.github\workflows\publish.yml
+		..\.github\workflows\publish-analyzers.yml = ..\.github\workflows\publish-analyzers.yml
 		..\.github\workflows\test.yml = ..\.github\workflows\test.yml
 	EndProjectSection
 EndProject
@@ -94,6 +95,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "general", "general", "{3FA9
 		..\docs\articles\general\toc.yml = ..\docs\articles\general\toc.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bannerlord.UIExtenderEx.Analyzers", "Bannerlord.UIExtenderEx.Analyzers\Bannerlord.UIExtenderEx.Analyzers.csproj", "{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bannerlord.UIExtenderEx.Analyzers.CodeFixes", "Bannerlord.UIExtenderEx.Analyzers.CodeFixes\Bannerlord.UIExtenderEx.Analyzers.CodeFixes.csproj", "{20E8917D-A831-425C-B041-B21B407235EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bannerlord.UIExtenderEx.Analyzers.Tests", "..\tests\Bannerlord.UIExtenderEx.Analyzers.Tests\Bannerlord.UIExtenderEx.Analyzers.Tests.csproj", "{459C8770-1E2A-468B-90F4-966914CF308B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Beta_Release|x64 = Beta_Release|x64
@@ -118,6 +125,30 @@ Global
 		{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988}.Stable_Release|x64.Build.0 = Stable_Release|x64
 		{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988}.Beta_Debug|x64.ActiveCfg = Beta_Debug|x64
 		{7C6449DA-635E-4BD9-AAFE-CF2C4B2FB988}.Beta_Debug|x64.Build.0 = Beta_Debug|x64
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Beta_Release|x64.ActiveCfg = Release|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Beta_Release|x64.Build.0 = Release|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Stable_Debug|x64.ActiveCfg = Debug|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Stable_Debug|x64.Build.0 = Debug|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Stable_Release|x64.ActiveCfg = Release|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Stable_Release|x64.Build.0 = Release|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Beta_Debug|x64.ActiveCfg = Debug|Any CPU
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0}.Beta_Debug|x64.Build.0 = Debug|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Beta_Release|x64.ActiveCfg = Release|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Beta_Release|x64.Build.0 = Release|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Stable_Debug|x64.ActiveCfg = Debug|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Stable_Debug|x64.Build.0 = Debug|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Stable_Release|x64.ActiveCfg = Release|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Stable_Release|x64.Build.0 = Release|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Beta_Debug|x64.ActiveCfg = Debug|Any CPU
+		{20E8917D-A831-425C-B041-B21B407235EE}.Beta_Debug|x64.Build.0 = Debug|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Beta_Release|x64.ActiveCfg = Release|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Beta_Release|x64.Build.0 = Release|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Stable_Debug|x64.ActiveCfg = Debug|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Stable_Debug|x64.Build.0 = Debug|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Stable_Release|x64.ActiveCfg = Release|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Stable_Release|x64.Build.0 = Release|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Beta_Debug|x64.ActiveCfg = Debug|Any CPU
+		{459C8770-1E2A-468B-90F4-966914CF308B}.Beta_Debug|x64.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -136,6 +167,9 @@ Global
 		{395402D4-28B5-4974-943D-04B7D5F6673D} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
 		{B4D6A888-2D8F-49A4-87C5-6CD18D8F818B} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
 		{3FA98C73-903D-406D-A1C4-D22DF4C5C00B} = {8034BC17-4282-4A4B-942B-80EEC315C1C2}
+		{623103A1-ABFC-46FE-B18E-26EDC8AE37A0} = {7A221C05-991C-4552-A535-6C698C70E12B}
+		{20E8917D-A831-425C-B041-B21B407235EE} = {7A221C05-991C-4552-A535-6C698C70E12B}
+		{459C8770-1E2A-468B-90F4-966914CF308B} = {74E13D44-2846-49A3-A5AC-D432AD83C9F0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31629F18-48B4-4C3E-87C3-BDCB9BBF1BBD}

@@ -4,3 +4,5 @@
   href: Prefab.md
 - name: Interacting With Other Mods
   href: InteractingWithOtherMods.md
+- name: Analyzers
+  href: Analyzers.md

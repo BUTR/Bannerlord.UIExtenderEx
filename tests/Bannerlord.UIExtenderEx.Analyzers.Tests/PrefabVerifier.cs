@@ -1,0 +1,169 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+
+using NUnit.Framework;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
+
+/// <summary>
+/// <see cref="Verifier"/> for the prefab rules: a mod's C# and its XML files, each with <c>{|UIX0012:Name|}</c> markup, and
+/// every report checked against the markup of the file it lands in.
+/// </summary>
+internal static class PrefabVerifier
+{
+    private const string Usings = """
+        using System;
+        using System.Collections.Generic;
+        using System.Xml;
+        using Bannerlord.UIExtenderEx.Attributes;
+        using Bannerlord.UIExtenderEx.Prefabs2;
+        using Bannerlord.UIExtenderEx.ViewModels;
+        using TaleWorlds.Library;
+
+        """;
+
+    private static readonly Regex Markup = new(@"\{\|(?<id>[A-Z]+\d+):(?<text>.*?)\|\}", RegexOptions.Singleline);
+
+    public static Task VerifyAsync(string csharpMarkup, params (string Path, string XmlMarkup)[] files) =>
+        VerifyAsync(csharpMarkup, [], files);
+
+    /// <summary>With the game's GUI packages referenced: their files tagged with their package, as the analyzer targets do.</summary>
+    public static async Task VerifyAsync(string csharpMarkup, TestGame[] games, params (string Path, string XmlMarkup)[] files)
+    {
+        var expected = new HashSet<(string Id, string Path, TextSpan Span)>();
+        var (source, csharpExpected) = Parse(Usings + csharpMarkup);
+        foreach (var (id, span) in csharpExpected)
+            expected.Add((id, "Mod.cs", span));
+
+        var additional = new List<AdditionalText>();
+        foreach (var (path, xmlMarkup) in files)
+        {
+            var (xml, xmlExpected) = Parse(xmlMarkup);
+            additional.Add(new InMemoryText(path, xml));
+            foreach (var (id, span) in xmlExpected)
+                expected.Add((id, path, span));
+        }
+        var (gameFiles, options) = Game(games);
+        additional.AddRange(gameFiles);
+
+        var compilation = Verifier.WithGenerators(CSharpCompilation.Create("Mod",
+            new[] { CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest), "Mod.cs") },
+            Verifier.References,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithMetadataImportOptions(MetadataImportOptions.Public)));
+        var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.That(errors, Is.Empty, "The test's code does not compile:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
+
+        var actual = await compilation
+            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new PrefabAnalyzer(), new PrefabContentAnalyzer()), new AnalyzerOptions(additional.ToImmutableArray(), options))
+            .GetAnalyzerDiagnosticsAsync();
+
+        var found = actual.Select(d => (d.Id, Path: PathOf(d), d.Location.SourceSpan, Diagnostic: d)).ToList();
+        var missing = expected.Where(e => !found.Any(f => f.Id == e.Id && f.Path == e.Path && f.SourceSpan == e.Span)).ToList();
+        var unexpected = found.Where(f => !expected.Contains((f.Id, f.Path, f.SourceSpan))).ToList();
+        if (missing.Count == 0 && unexpected.Count == 0)
+            return;
+
+        var message = new StringBuilder();
+        foreach (var (id, path, span) in missing)
+            message.AppendLine($"Expected {id} in {path} at {span}, not reported.");
+        foreach (var (id, path, span, diagnostic) in unexpected)
+            message.AppendLine($"Unexpected {id} in {path} at {span}: {diagnostic.GetMessage()}");
+        Assert.Fail(message.ToString());
+    }
+
+    /// <summary>The messages of every report on the mod's C#, for the tests that check what a report says.</summary>
+    public static async Task<IReadOnlyList<string>> MessagesAsync(string csharp, params TestGame[] games)
+    {
+        var (gameFiles, options) = Game(games);
+        var compilation = Verifier.WithGenerators(CSharpCompilation.Create("Mod",
+            new[] { CSharpSyntaxTree.ParseText(Usings + csharp, new CSharpParseOptions(LanguageVersion.Latest)) },
+            Verifier.References,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithMetadataImportOptions(MetadataImportOptions.Public)));
+        var diagnostics = await compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new PrefabAnalyzer(), new PrefabContentAnalyzer()), new AnalyzerOptions(gameFiles.ToImmutableArray<AdditionalText>(), options)).GetAnalyzerDiagnosticsAsync();
+        return diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
+    }
+
+    private static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(TestGame[] games)
+    {
+        var files = new List<AdditionalText>();
+        var packages = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (path, text, package) in games.SelectMany(g => g.Files()))
+        {
+            files.Add(new InMemoryText(path, text));
+            packages[path] = package;
+        }
+        return (files, new MetadataOptionsProvider(packages));
+    }
+
+    /// <summary>What the analyzer targets make compiler-visible: each game file's package.</summary>
+    private sealed class MetadataOptionsProvider(Dictionary<string, string> packages) : AnalyzerConfigOptionsProvider
+    {
+        public override AnalyzerConfigOptions GlobalOptions => Options.Empty;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => Options.Empty;
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) =>
+            packages.TryGetValue(textFile.Path, out var package) ? new Options(package) : Options.Empty;
+    }
+
+    private sealed class Options(string? package) : AnalyzerConfigOptions
+    {
+        public static readonly Options Empty = new(null);
+
+        public override bool TryGetValue(string key, out string value)
+        {
+            value = package ?? "";
+            return package is not null && key == "build_metadata.AdditionalFiles.UIExtenderExGamePackage";
+        }
+    }
+
+    private static string PathOf(Diagnostic diagnostic) => diagnostic.Location.Kind switch
+    {
+        LocationKind.SourceFile => Path.GetFileName(diagnostic.Location.SourceTree!.FilePath),
+        _ => diagnostic.Location.GetLineSpan().Path,
+    };
+
+    private static (string Source, List<(string Id, TextSpan Span)> Expected) Parse(string markup)
+    {
+        var expected = new List<(string, TextSpan)>();
+        var source = new StringBuilder();
+        var last = 0;
+        foreach (Match match in Markup.Matches(markup))
+        {
+            source.Append(markup, last, match.Index - last);
+            var text = match.Groups["text"].Value;
+            expected.Add((match.Groups["id"].Value, new TextSpan(source.Length, text.Length)));
+            source.Append(text);
+            last = match.Index + match.Length;
+        }
+        source.Append(markup, last, markup.Length - last);
+        return (source.ToString(), expected);
+    }
+
+    private sealed class InMemoryText : AdditionalText
+    {
+        private readonly SourceText _text;
+
+        public InMemoryText(string path, string text)
+        {
+            Path = path;
+            _text = SourceText.From(text);
+        }
+
+        public override string Path { get; }
+
+        public override SourceText GetText(CancellationToken cancellationToken = default) => _text;
+    }
+}

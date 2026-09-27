@@ -13,6 +13,9 @@
     <BUTRSharedVersion>3.0.0.142</BUTRSharedVersion>
     <BUTRModuleManagerVersion>6.0.247</BUTRModuleManagerVersion>
     <MCMVersion>5.5.3</MCMVersion>
+    <!--The Roslyn Bannerlord.UIExtenderEx.Analyzers compiles against: the oldest compiler it has to load in, the .NET 8
+        SDK and Visual Studio 2022 17.8.-->
+    <AnalyzerRoslynVersion>4.8.0</AnalyzerRoslynVersion>
     <!--Current Bannerlord Version-->
     <GameVersion>1.0.0</GameVersion>
     <GameVersionWithPrefix>v$(GameVersion)</GameVersionWithPrefix>

@@ -1,0 +1,26 @@
+<Project>
+
+  <!--
+  The prefab XML the analyzers check, handed to the compiler as additional files: XML the project embeds, and XML under
+  any GUI folder of the project, which is where a module keeps its prefabs. Set UIExtenderExAnalyzePrefabs to false to
+  leave it out.
+  -->
+  <ItemGroup Condition="'$(UIExtenderExAnalyzePrefabs)' != 'false'">
+    <AdditionalFiles Include="@(EmbeddedResource->WithMetadataValue('Extension', '.xml'))" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\**\GUI\**\*.xml" Exclude="$(MSBuildProjectDirectory)\bin\**;$(MSBuildProjectDirectory)\obj\**" />
+  </ItemGroup>
+
+  <!--
+  The game's own prefabs, movie table and types, from the Bannerlord.ReferenceAssemblies.GUI.v2 packages the project
+  references. In their format 2 every file is JSON, exposed as BannerlordGameGuiData items; each is tagged with its
+  package, so the analyzers tell the game's files from the mod's. Format 1's BannerlordGameGuiFile items, the game's
+  XML, are not read and not passed on. Set UIExtenderExAnalyzeGamePrefabs to false to leave the packages out.
+  -->
+  <ItemGroup Condition="'$(UIExtenderExAnalyzePrefabs)' != 'false' AND '$(UIExtenderExAnalyzeGamePrefabs)' != 'false'">
+    <AdditionalFiles Include="@(BannerlordGameGuiData)" UIExtenderExGamePackage="%(Package)" />
+  </ItemGroup>
+  <ItemGroup>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="UIExtenderExGamePackage" />
+  </ItemGroup>
+
+</Project>

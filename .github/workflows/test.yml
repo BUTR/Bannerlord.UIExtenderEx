@@ -54,6 +54,16 @@ jobs:
         STABLE_VERSION: ${{vars.GAME_VERSION_STABLE}}
       shell: pwsh
 
+    - name: Analyzer Tests
+      # Needs no game: the code under test compiles against reference packages
+      run: >-
+          $game_version=$env:STABLE_VERSION;
+          $game_version=$game_version.substring(1);
+          dotnet test tests/Bannerlord.UIExtenderEx.Analyzers.Tests/Bannerlord.UIExtenderEx.Analyzers.Tests.csproj --configuration Release -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
+      env:
+        STABLE_VERSION: ${{vars.GAME_VERSION_STABLE}}
+      shell: pwsh
+
     - name: Test Coverage
       run: >-
           opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_uiextenderex_debug.xml -mergebyhash;

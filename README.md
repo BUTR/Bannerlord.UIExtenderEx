@@ -30,6 +30,9 @@
   <a href="https://www.nuget.org/packages/Bannerlord.UIExtenderEx">
     <img src="https://img.shields.io/nuget/v/Bannerlord.UIExtenderEx.svg?label=NuGet%20Bannerlord.UIExtenderEx&colorB=blue" alt="NuGet Bannerlord.UIExtenderEx"/>
   </a>
+  <a href="https://www.nuget.org/packages/Bannerlord.UIExtenderEx.Analyzers">
+    <img src="https://img.shields.io/nuget/v/Bannerlord.UIExtenderEx.Analyzers.svg?label=NuGet%20Bannerlord.UIExtenderEx.Analyzers&colorB=blue" alt="NuGet Bannerlord.UIExtenderEx.Analyzers"/>
+  </a>
   <br/>
   <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102">
     <img src="https://img.shields.io/badge/NexusMods-UIExtenderEx-yellow.svg" alt="NexusMods UIExtenderEx"/>
@@ -76,6 +79,8 @@ This mod is a dependency mod that does not provide anything by itself. You need 
 
 ## Usage
 Check the [``Articles``](https://butr.github.io/Bannerlord.UIExtenderEx/articles/v2/Overview.html) section of our documentation!
+
+Add ``Bannerlord.UIExtenderEx.Analyzers`` to your mod to have your mixins and prefab XML checked while you build: members that replace the game's, names two mixins both add, refresh methods that do not exist, mixins that would never run or would crash the screen, and in your XML misspelled attributes, values the loader cannot convert, and bindings to members the ViewModel does not have. Most of them come with a code fix. See [Analyzers](https://butr.github.io/Bannerlord.UIExtenderEx/articles/general/Analyzers.html).
 
 ## Current State of AutoGens
 The game uses two Prefab systems - static (pre-compiled XML) C# prefabs and dynamically serialized XML prefabs.  
