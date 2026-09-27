@@ -1,4 +1,4 @@
-<!--EXTERNAL_PROPERTIES: AnalyzerRoslynVersion-->
+<!--EXTERNAL_PROPERTIES: AnalyzerRoslynVersion;Version;GITHUB_RUN_NUMBER-->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -16,6 +16,15 @@
   IncludeAssets="compile", which leaves analyzers out, and new warnings arriving with an update would fail every build
   that treats warnings as errors. See docs/design-records/build-time-checks.md.
   -->
+  <!--
+  Published on its own, by the Publish Analyzers workflow: the UIExtenderEx version it is built with, and the CI build
+  number of that workflow after it, so each push gets a version of its own without a UIExtenderEx release. 0 locally.
+  -->
+  <PropertyGroup>
+    <AnalyzerBuildNumber Condition="'$(AnalyzerBuildNumber)' == ''">$(GITHUB_RUN_NUMBER)</AnalyzerBuildNumber>
+    <AnalyzerBuildNumber Condition="'$(AnalyzerBuildNumber)' == ''">0</AnalyzerBuildNumber>
+    <Version>$(Version).$(AnalyzerBuildNumber)</Version>
+  </PropertyGroup>
   <PropertyGroup>
     <PackageId>Bannerlord.UIExtenderEx.Analyzers</PackageId>
     <PackageDescription>Build-time checks for UIExtenderEx ViewModel mixins and prefab XML: members that replace the game's, names two mixins both add, refresh methods that do not exist, mixins that can never run or cannot be created, widget attributes that do not exist or cannot be converted, and bindings to members the ViewModel does not have. With code fixes for most of them.</PackageDescription>

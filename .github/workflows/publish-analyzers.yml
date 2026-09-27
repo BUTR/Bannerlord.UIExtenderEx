@@ -1,0 +1,51 @@
+name: Publish Analyzers
+
+# Bannerlord.UIExtenderEx.Analyzers ships on its own, independently of UIExtenderEx: its version is the UIExtenderEx
+# version it is built with and this workflow's run number (2.13.3.<run>), so every run publishes a version of its own.
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/publish-analyzers.yml'
+      - 'src/Bannerlord.UIExtenderEx.Analyzers/**'
+      - 'src/Bannerlord.UIExtenderEx.Analyzers.CodeFixes/**'
+      - 'build/**'
+  workflow_dispatch:
+
+env:
+  # Disable the .NET logo in the console output.
+  DOTNET_NOLOGO: true
+  # Disable the .NET first time experience to skip caching NuGet packages and speed up the build.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Disable sending .NET CLI telemetry to Microsoft.
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  test:
+    name: Analyzer Tests
+    # net472 is what Visual Studio runs analyzers on
+    runs-on: windows-latest
+    steps:
+      - name: Setup
+        uses: butr/actions-common-setup@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Test
+        # Needs no game: the code under test compiles against reference packages
+        run: >-
+          mkdir bannerlord;
+          dotnet test tests/Bannerlord.UIExtenderEx.Analyzers.Tests/Bannerlord.UIExtenderEx.Analyzers.Tests.csproj --configuration Release -p:GameFolder="$PWD/bannerlord";
+        shell: pwsh
+
+  ###########################
+  #        NUGET/GPR        #
+  ###########################
+  publish-on-nuget:
+    needs: ["test"]
+    uses: BUTR/workflows/.github/workflows/release-nuget.yml@master
+    with:
+      project_path: src/Bannerlord.UIExtenderEx.Analyzers/Bannerlord.UIExtenderEx.Analyzers.csproj
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}

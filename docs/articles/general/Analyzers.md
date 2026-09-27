@@ -15,8 +15,12 @@ Add the package next to your UIExtenderEx reference. It is a separate package, s
 UIExtenderEx, including with `IncludeAssets="compile"`:
 
 ```xml
-<PackageReference Include="Bannerlord.UIExtenderEx.Analyzers" Version="$(UIExtenderExVersion)" PrivateAssets="all" />
+<PackageReference Include="Bannerlord.UIExtenderEx.Analyzers" Version="$(UIExtenderExVersion).*" PrivateAssets="all" />
 ```
+
+The package is released on its own, whenever the analyzers change. Its version is the UIExtenderEx version it was built
+with, followed by its own build number: `2.13.3.17`. `$(UIExtenderExVersion).*` takes the newest build for the
+UIExtenderEx you reference.
 
 It needs the .NET 8 SDK or Visual Studio 2022 17.8 or later. It adds nothing to your mod's output. It checks nothing in a
 project that does not reference UIExtenderEx.
@@ -26,8 +30,8 @@ versions behave differently, the rule says so below. The rules for `[BUTRViewMod
 (UIX0008 to UIX0010) need UIExtenderEx 3.0, which has those attributes. [`[PrefabLink]`](../v2/PrefabLink.md) comes with
 this package when your UIExtenderEx does not have it.
 
-A new version of the package can bring new rules. If you build with warnings as errors, update it when you choose to,
-not together with UIExtenderEx.
+A new version of the package can bring new rules. If you build with warnings as errors, pin a build, such as
+`Version="2.13.3.17"`, and update it when you choose to, not together with UIExtenderEx.
 
 The prefab rules read the XML your project embeds and any XML under a `GUI` folder of the project; the package hands
 those to the compiler. Set `<UIExtenderExAnalyzePrefabs>false</UIExtenderExAnalyzePrefabs>` to leave them out.
