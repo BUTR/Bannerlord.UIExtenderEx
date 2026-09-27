@@ -1,0 +1,49 @@
+<!--EXTERNAL_PROPERTIES: GameVersion;AnalyzerRoslynVersion-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- net472 is what Visual Studio runs analyzers on; net6.0 is what the dotnet CLI does -->
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.14.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(AnalyzerRoslynVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(AnalyzerRoslynVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.Analyzers\Bannerlord.UIExtenderEx.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.Analyzers.CodeFixes\Bannerlord.UIExtenderEx.Analyzers.CodeFixes.csproj" />
+    <!-- Not used by the tests' own code: its output is a reference of the code the tests compile -->
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx\Bannerlord.UIExtenderEx.csproj" />
+  </ItemGroup>
+
+  <!-- The analyzer targets, for TargetsTests to run through MSBuild as a mod's build would -->
+  <ItemGroup>
+    <None Include="..\..\src\Bannerlord.UIExtenderEx.Analyzers\build\Bannerlord.UIExtenderEx.Analyzers.targets" Link="Packaging\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+  What the code under test compiles against, copied next to the tests: .NET Framework 4.7.2 as the game's modules
+  target it, and the game's reference assemblies. From packages rather than a game install, so the tests run anywhere.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net472)\build\.NETFramework\v4.7.2\mscorlib.dll;$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net472)\build\.NETFramework\v4.7.2\System.dll;$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net472)\build\.NETFramework\v4.7.2\System.Core.dll;$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net472)\build\.NETFramework\v4.7.2\System.Xml.dll;$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net472)\build\.NETFramework\v4.7.2\Facades\netstandard.dll;$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net472)\build\.NETFramework\v4.7.2\Facades\System.Runtime.dll"
+          Link="References\Framework\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(PkgBannerlord_ReferenceAssemblies_Core)\ref\netstandard2.0\TaleWorlds.*.dll"
+          Link="References\Game\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>

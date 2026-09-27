@@ -6,5 +6,7 @@
   href: PrefabExtensionInsertPatch.md
 - name: ViewModel Mixin
   href: ViewModelMixin.md
+- name: Prefab Links
+  href: PrefabLink.md
 - name: Examples
   href: Examples.md

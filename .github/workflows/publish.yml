@@ -61,6 +61,14 @@ jobs:
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
+  publish-analyzers-on-nuget:
+    needs: ["build-module"]
+    uses: BUTR/workflows/.github/workflows/release-nuget.yml@master
+    with:
+      project_path: src/Bannerlord.UIExtenderEx.Analyzers/Bannerlord.UIExtenderEx.Analyzers.csproj
+    secrets:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
   ###########################
   #        NEXUSMODS        #
   ###########################
