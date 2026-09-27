@@ -8,7 +8,7 @@ namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
 /// UIX0020 to UIX0023, and the binding rules against the game's scope: patches applied to the game's own prefabs, from
-/// GUI packages in the layout of <c>Bannerlord.ReferenceAssemblies.GUI</c>.
+/// GUI packages in the layout of <c>Bannerlord.ReferenceAssemblies.GUI.v2</c>.
 /// </summary>
 public class GamePrefabRuleTests
 {
@@ -164,6 +164,26 @@ public class GamePrefabRuleTests
             }));
         }
 
+        /// <summary>Format 1 carried the game's XML; this analyzer reads format 2 only, and leaves the package out.</summary>
+        [Test]
+        public async Task APackageOfAnotherFormat_IsNotRead()
+        {
+            await VerifyAsync(Mod + Insert("Page", "HostMovie", "\"descendant::ListPanel[@Id='Pannel']\"", "Child", "<Widget />"), [Game().Format(1)]);
+        }
+
+        /// <summary>
+        /// The game loads a prefab without its comments, so a position counts the nodes the game counts: in the game's
+        /// trees, which carry none, and in the mod's own prefab, whose comments the check leaves out.
+        /// </summary>
+        [Test]
+        public async Task CommentsDoNotCountForPositions()
+        {
+            const string prefab = "<Prefab><Window><Widget Id=\"Root\"><Children><!-- first --><TextWidget Id=\"A\" /><TextWidget Id=\"B\" /></Children></Widget></Window></Prefab>";
+            const string xpath = "\"descendant::Widget[@Id='Root']/Children/node()[2][@Id='B']\"";
+            await VerifyAsync(Mod + Insert("Page", "HostMovie", xpath, "Append", "<Widget />"), [TestGame.Base().Prefab("HostMovie", prefab)]);
+            await VerifyAsync(Mod + Insert("Page", "HostMovie", xpath, "Append", "<Widget />"), [], ("GUI/Prefabs/HostMovie.xml", prefab));
+        }
+
         [Test]
         public async Task WithoutAGamePackage_TheGamesPrefabsAreNotChecked()
         {
@@ -280,6 +300,23 @@ public class GamePrefabRuleTests
             {
                 "UIX0020: 'descendant::ListPanel[@Id='Panel']' matches no node of 'HostMovie' (with NavalDLC); the patch is not applied",
             }));
+        }
+
+        /// <summary>
+        /// An entry in the DLC package whose class is a base module's adds a ViewModel to a base screen; it replaces
+        /// nothing. Replaced, the base screen's HostVM would be gone with the DLC, and @Title would be reported against
+        /// OtherVM alone.
+        /// </summary>
+        [Test]
+        public async Task ADlcEntryOfABaseClass_AddsToTheBaseEntries()
+        {
+            const string other = "public class OtherVM : ViewModel { }\n";
+            var game = TestGame.Base()
+                .Movie("HostMovie", "HostVM", overrideView: "View.Overlay")
+                .ViewModel("HostVM", null, ("Title", "System.String"))
+                .Prefab("HostMovie", HostMovie);
+            var naval = TestGame.NavalDlc().Movie("HostMovie", "OtherVM", overrideView: "View.Overlay", module: "SandBox").ViewModel("OtherVM", null);
+            await VerifyAsync(Mod + other + Insert("Page", "HostMovie", "\"descendant::Widget[@Id='Root']\"", "Child", "<TextWidget Text=\\\"@Title\\\" />"), [game, naval]);
         }
 
         [Test]

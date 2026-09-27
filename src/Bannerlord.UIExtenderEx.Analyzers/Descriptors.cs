@@ -240,7 +240,7 @@ internal static class Descriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "UIExtenderEx applies a patch at the first node its XPath selects in the prefab the patch names. When it selects nothing, the patch is skipped and a message is shown in game. Checked against the game's prefabs from a Bannerlord.ReferenceAssemblies.GUI package, in the game without and with each DLC package referenced, and against the mod's own prefab of that name.",
+        description: "UIExtenderEx applies a patch at the first node its XPath selects in the prefab the patch names. When it selects nothing, the patch is skipped and a message is shown in game. Checked against the game's prefabs from a Bannerlord.ReferenceAssemblies.GUI.v2 package, in the game without and with each DLC package referenced, and against the mod's own prefab of that name.",
         helpLinkUri: HelpBase + "uix0020",
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 

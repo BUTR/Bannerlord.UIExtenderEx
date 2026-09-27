@@ -137,12 +137,17 @@ internal sealed class GamePatchChecker
 
     private static int Count(XmlDocument document, string xpath) => document.SelectNodes(xpath)?.Count ?? 0;
 
+    /// <summary>
+    /// A document loaded as <c>WidgetPrefab.LoadFrom</c> loads a prefab: without comments, and, as a default
+    /// <see cref="XmlDocument"/> does, without whitespace-only text. So an XPath counts the nodes the game counts.
+    /// </summary>
     private static XmlDocument? Load(string text)
     {
         try
         {
             var document = new XmlDocument();
-            document.LoadXml(text);
+            using var reader = XmlReader.Create(new System.IO.StringReader(text), new XmlReaderSettings { IgnoreComments = true });
+            document.Load(reader);
             return document;
         }
         catch (XmlException)

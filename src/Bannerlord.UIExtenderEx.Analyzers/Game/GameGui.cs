@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Xml;
@@ -12,35 +11,44 @@ using System.Xml;
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
 /// <summary>A movie the game loads, with the ViewModel it binds; see movies.json in the GUI package contract.</summary>
-internal sealed record MovieEntry(string Movie, string? ViewModel, bool Paired, string? OverrideView, string? GameStateScreen);
+internal sealed record MovieEntry(string Movie, string? ViewModel, bool Paired, string? OverrideView, string? GameStateScreen, string? Module);
 
-/// <summary>A game prefab file, the module that ships it, and its document once read.</summary>
+/// <summary>A prefab of the game as the package's index lists it: its tree file and the element names it uses.</summary>
+internal sealed record GamePrefabEntry(AdditionalText File, IReadOnlyCollection<string> Tags);
+
+/// <summary>A game prefab, the module that ships it, and its document once rebuilt.</summary>
 internal sealed class GamePrefab
 {
-    private readonly AdditionalText _file;
+    private readonly GamePrefabEntry _entry;
     private readonly DocumentCache _documents;
 
     public string Name { get; }
     public string Module { get; }
-    public string Path => _file.Path;
+    public string Path => _entry.File.Path;
 
-    public GamePrefab(string name, string module, AdditionalText file, DocumentCache documents)
+    /// <summary>Every element name in the prefab, from the index: where it could use another prefab by tag.</summary>
+    public IReadOnlyCollection<string> Tags => _entry.Tags;
+
+    public GamePrefab(string name, string module, GamePrefabEntry entry, DocumentCache documents)
     {
         Name = name;
         Module = module;
-        _file = file;
+        _entry = entry;
         _documents = documents;
     }
 
-    public string Text(CancellationToken cancellation) => _file.GetText(cancellation)?.ToString() ?? "";
-
-    /// <summary>The document, as UIExtenderEx loads it before applying a patch; null when it is not well-formed.</summary>
-    public XmlDocument? Document(CancellationToken cancellation) => _documents.Get(_file, cancellation);
+    /// <summary>The document UIExtenderEx applies patches to, rebuilt from the prefab's tree; null when the tree is broken.</summary>
+    public XmlDocument? Document(CancellationToken cancellation) => _documents.Get(_entry.File, cancellation);
 }
 
 /// <summary>
-/// Game documents parsed during one analysis, shared by its configurations. Not shared across analyses: an
+/// Game documents rebuilt during one analysis, shared by its configurations. Not shared across analyses: an
 /// <see cref="XmlDocument"/> is not safe to read from two threads, and the IDE can analyse two compilations at once.
+/// <para>
+/// A tree holds what <c>WidgetPrefab.LoadFrom</c> loads: every element, attribute and text, without comments
+/// (<c>IgnoreComments</c>) or whitespace-only text (a default <see cref="XmlDocument"/> drops it). So the rebuilt document
+/// is the one the patches run against, and an XPath selects the same nodes in both.
+/// </para>
 /// </summary>
 internal sealed class DocumentCache
 {
@@ -50,23 +58,57 @@ internal sealed class DocumentCache
     {
         if (_documents.TryGetValue(file, out var cached))
             return cached;
-        XmlDocument? document = new();
+        XmlDocument? document;
         try
         {
-            document.LoadXml(file.GetText(cancellation)?.ToString() ?? "");
+            document = Json.Parse(file.GetText(cancellation)?.ToString() ?? "") is IReadOnlyDictionary<string, object?> tree
+                       && tree.TryGetValue("root", out var root) && root is IReadOnlyDictionary<string, object?> node
+                ? Build(node)
+                : null;
         }
-        catch (XmlException)
+        catch (Exception exception) when (exception is FormatException or XmlException or InvalidCastException or ArgumentException)
         {
             document = null;
         }
         _documents[file] = document;
         return document;
     }
+
+    private static XmlDocument Build(IReadOnlyDictionary<string, object?> root)
+    {
+        var document = new XmlDocument();
+        document.AppendChild(Element(document, root));
+        return document;
+    }
+
+    /// <summary>A node: <c>n</c> its name, <c>a</c> its attributes, <c>c</c> its children, each a node or a text.</summary>
+    private static XmlElement Element(XmlDocument document, IReadOnlyDictionary<string, object?> node)
+    {
+        var element = document.CreateElement(node.String("n") ?? throw new FormatException("A node has no name"));
+        if (node.TryGetValue("a", out var a) && a is IReadOnlyDictionary<string, object?> attributes)
+        {
+            foreach (var pair in attributes)
+                element.SetAttribute(pair.Key, pair.Value as string ?? "");
+        }
+        if (node.TryGetValue("c", out var c) && c is List<object?> children)
+        {
+            foreach (var child in children)
+            {
+                element.AppendChild(child switch
+                {
+                    string text => document.CreateTextNode(text),
+                    IReadOnlyDictionary<string, object?> childNode => Element(document, childNode),
+                    _ => throw new FormatException("A child is neither a node nor a text"),
+                });
+            }
+        }
+        return element;
+    }
 }
 
 /// <summary>
-/// One GUI package: <c>Bannerlord.ReferenceAssemblies.GUI</c> for the game's own modules, or one per DLC. Its files come
-/// in as additional files that the analyzer targets tag with the package id.
+/// One GUI package: the game's own modules, or one DLC. Its files come in as additional files that the analyzer targets
+/// tag with the package id. Only format 2 is read, which carries no game file: prefabs as trees, with an index.
 /// </summary>
 internal sealed class GamePackage
 {
@@ -76,15 +118,15 @@ internal sealed class GamePackage
     /// <summary>Module folders in the manifest's order, which is load order.</summary>
     public IReadOnlyList<string> Modules { get; }
 
-    /// <summary>Prefab files by module folder, then by prefab name.</summary>
-    public IReadOnlyDictionary<string, Dictionary<string, AdditionalText>> Prefabs { get; }
+    /// <summary>Prefabs by module folder, then by prefab name.</summary>
+    public IReadOnlyDictionary<string, Dictionary<string, GamePrefabEntry>> Prefabs { get; }
 
     public IReadOnlyList<MovieEntry> Movies { get; }
 
     /// <summary>ViewModels by type name: base type and property types.</summary>
     public IReadOnlyDictionary<string, GameViewModel> ViewModels { get; }
 
-    public GamePackage(string id, bool isDlc, IReadOnlyList<string> modules, IReadOnlyDictionary<string, Dictionary<string, AdditionalText>> prefabs,
+    public GamePackage(string id, bool isDlc, IReadOnlyList<string> modules, IReadOnlyDictionary<string, Dictionary<string, GamePrefabEntry>> prefabs,
         IReadOnlyList<MovieEntry> movies, IReadOnlyDictionary<string, GameViewModel> viewModels)
     {
         Id = id;
@@ -134,8 +176,10 @@ internal sealed class GameConfiguration
             Add(entry);
         if (dlc is null)
             return;
-        // A DLC entry replaces the base entries of the view or game state it stands in for
-        foreach (var entry in dlc.Movies)
+        // A DLC's own class replaces the base entries of the view or game state it stands in for. An entry in the DLC's
+        // package whose class is a base module's adds to them instead: the DLC supplies a ViewModel that a base screen
+        // loads, as War Sails' NavalSettlementMenuOverlayVM reaches the base game menu overlay.
+        foreach (var entry in dlc.Movies.Where(x => x.Module is not null && dlc.Modules.Contains(x.Module)))
         {
             foreach (var list in _movies.Values)
             {
@@ -213,40 +257,46 @@ internal static class GameGui
         return result;
     }
 
+    /// <summary>The package format this analyzer reads.</summary>
+    private const int FormatVersion = 2;
+
     private static GamePackage? Read(string id, List<AdditionalText> files, CancellationToken cancellation)
     {
-        IReadOnlyDictionary<string, object?>? manifest = null, movies = null, types = null;
-        var prefabs = new Dictionary<string, Dictionary<string, AdditionalText>>(StringComparer.Ordinal);
+        // Every file by its path under gui/; the data files sit at its root, the prefab trees below it
+        var byPath = new Dictionary<string, AdditionalText>(StringComparer.Ordinal);
         foreach (var file in files)
         {
-            var (module, isData) = Locate(file.Path);
-            if (isData)
-            {
-                var parsed = ParseJson(file, cancellation);
-                switch (Path.GetFileName(file.Path).ToLowerInvariant())
-                {
-                    case "manifest.json": manifest = parsed; break;
-                    case "movies.json": movies = parsed; break;
-                    case "types.json": types = parsed; break;
-                }
-                continue;
-            }
-            // Only prefabs: the brush files next to them are not prefabs a patch or a tag can name
-            if (module is null || !file.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) || !IsPrefabPath(file.Path))
-                continue;
-            if (!prefabs.TryGetValue(module, out var byName))
-                prefabs[module] = byName = new Dictionary<string, AdditionalText>(StringComparer.Ordinal);
-            byName[Path.GetFileNameWithoutExtension(file.Path)] = file;
+            if (RelativePath(file.Path) is { } relative)
+                byPath[relative] = file;
         }
-        if (manifest is null)
+        IReadOnlyDictionary<string, object?>? Data(string name) => byPath.TryGetValue(name, out var file) ? ParseJson(file, cancellation) : null;
+
+        // A package of another format is left out whole: its prefabs would be read wrong
+        if (Data("manifest.json") is not { } manifest || !manifest.TryGetValue("formatVersion", out var version) || version is not double number || (int) number != FormatVersion)
             return null;
+        var movies = Data("movies.json");
+        var types = Data("types.json");
+
+        var prefabs = new Dictionary<string, Dictionary<string, GamePrefabEntry>>(StringComparer.Ordinal);
+        foreach (var entry in Data("prefabs.json")?.Objects("prefabs") ?? [])
+        {
+            if (entry.String("name") is not { } name || entry.String("module") is not { } module || entry.String("file") is not { } path
+                || !byPath.TryGetValue(path, out var tree))
+                continue;
+            var tags = new HashSet<string>(StringComparer.Ordinal);
+            if (entry.TryGetValue("tags", out var list) && list is List<object?> values)
+                tags.UnionWith(values.OfType<string>());
+            if (!prefabs.TryGetValue(module, out var byName))
+                prefabs[module] = byName = new Dictionary<string, GamePrefabEntry>(StringComparer.Ordinal);
+            byName[name] = new GamePrefabEntry(tree, tags);
+        }
 
         var modules = manifest.Objects("modules").Select(x => x.String("folder")).OfType<string>().ToList();
         var isDlc = manifest.Objects("modules").Any(x => x.Bool("dlc", false));
 
         var movieEntries = movies?.Objects("calls")
             .Where(x => x.String("movie") is not null)
-            .Select(x => new MovieEntry(x.String("movie")!, x.String("viewModel"), x.Bool("paired", true), x.String("overrideView"), x.String("gameStateScreen")))
+            .Select(x => new MovieEntry(x.String("movie")!, x.String("viewModel"), x.Bool("paired", true), x.String("overrideView"), x.String("gameStateScreen"), x.String("module")))
             .ToList() ?? [];
 
         var viewModels = new Dictionary<string, GameViewModel>(StringComparer.Ordinal);
@@ -267,24 +317,15 @@ internal static class GameGui
     }
 
     /// <summary>
-    /// Where a file sits in the package: <c>…/gui/&lt;Module&gt;/GUI/…</c> for XML, <c>…/gui/&lt;name&gt;.json</c> for data.
+    /// A file's path under the package's <c>gui/</c> folder, as <c>prefabs.json</c> names it: <c>movies.json</c>, or
+    /// <c>Native/GUI/Prefabs/…/Options.json</c>. The folder is lower case; a module's own is <c>GUI</c>.
     /// </summary>
-    private static (string? Module, bool IsData) Locate(string path)
+    private static string? RelativePath(string path)
     {
-        var segments = path.Replace('\\', '/').Split('/');
-        for (var i = segments.Length - 2; i >= 0; i--)
-        {
-            if (segments[i] != "gui")
-                continue;
-            if (i == segments.Length - 2)
-                return (null, segments[i + 1].EndsWith(".json", StringComparison.OrdinalIgnoreCase));
-            if (i + 2 < segments.Length && segments[i + 2] == "GUI")
-                return (segments[i + 1], false);
-        }
-        return (null, false);
+        var normalized = path.Replace('\\', '/');
+        var index = normalized.LastIndexOf("/gui/", StringComparison.Ordinal);
+        return index < 0 ? null : normalized.Substring(index + "/gui/".Length);
     }
-
-    private static bool IsPrefabPath(string path) => path.Replace('\\', '/').IndexOf("/GUI/Prefabs/", StringComparison.Ordinal) >= 0;
 
     private static IReadOnlyDictionary<string, object?>? ParseJson(AdditionalText file, CancellationToken cancellation)
     {

@@ -194,6 +194,17 @@ public class PrefabRuleTests
                 """));
         }
 
+        /// <summary>A prefab may be rooted at Window, without Prefab around it, as 36 of the game's are.</summary>
+        [Test]
+        public async Task APrefabRootedAtWindow_IsChecked()
+        {
+            await VerifyAsync(Mod, ("GUI/Prefabs/Page.xml", """
+                <Window>
+                  <Widget {|UIX0012:HorizontalAlightment|}="Left" />
+                </Window>
+                """));
+        }
+
         [Test]
         public async Task LiteralValuesTheLoaderCannotConvert_AreReported()
         {
@@ -250,6 +261,28 @@ public class PrefabRuleTests
               </Window>
             </Prefab>
             """;
+
+        /// <summary>The loader takes every child of Parameters, whatever its tag; the game's own prefabs misspell it.</summary>
+        [Test]
+        public async Task EveryChildOfParameters_IsAParameter()
+        {
+            await VerifyAsync(Mod, ("GUI/Prefabs/Page.xml", """
+                <Prefab>
+                  <Window>
+                    <ModCounter Parameter.Step="2" />
+                  </Window>
+                </Prefab>
+                """), ("GUI/Prefabs/ModCounter.xml", """
+                <Prefab>
+                  <Parameters>
+                    <Paramter Name="Step" DefaultValue="1" />
+                  </Parameters>
+                  <Window>
+                    <Widget />
+                  </Window>
+                </Prefab>
+                """));
+        }
 
         [Test]
         public async Task AParameterThePrefabDoesNotUse_IsReported()

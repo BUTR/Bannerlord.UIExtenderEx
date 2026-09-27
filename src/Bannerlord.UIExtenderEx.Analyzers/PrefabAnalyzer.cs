@@ -22,7 +22,7 @@ namespace Bannerlord.UIExtenderEx.Analyzers;
 /// <c>DataSource</c> paths, list item templates, and into the mod's own prefabs.
 /// </para>
 /// <para>
-/// With a <c>Bannerlord.ReferenceAssemblies.GUI</c> package referenced (layer 3), a patch is also applied to the game's
+/// With a <c>Bannerlord.ReferenceAssemblies.GUI.v2</c> package referenced (layer 3), a patch is also applied to the game's
 /// own prefab: its XPath has to select a node there, in the game without and with each DLC package referenced, and the
 /// game's scope at that node replaces the one taken from the mixins.
 /// </para>

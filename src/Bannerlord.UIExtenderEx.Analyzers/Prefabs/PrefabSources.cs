@@ -110,7 +110,11 @@ internal sealed class PrefabSources
         return sources;
     }
 
-    public static bool IsPrefab(PrefabXml xml) => xml.Document?.Root?.Name.LocalName == "Prefab";
+    /// <summary>
+    /// A prefab file as <c>WidgetPrefab.LoadFrom</c> takes one: rooted at <c>&lt;Prefab&gt;</c>, or at <c>&lt;Window&gt;</c> when
+    /// it has no parameters, constants or visual definitions to declare.
+    /// </summary>
+    public static bool IsPrefab(PrefabXml xml) => xml.Document?.Root?.Name.LocalName is "Prefab" or "Window";
 
     /// <summary>
     /// <c>WidgetFactoryManager.CreateAndRegister("Name", Load("Mod.GUI.Prefabs.File.xml"))</c> and the like: the first

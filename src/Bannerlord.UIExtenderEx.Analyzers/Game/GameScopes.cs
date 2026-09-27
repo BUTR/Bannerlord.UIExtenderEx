@@ -74,13 +74,13 @@ internal sealed class GameScopeResolver
             Add(result, new PrefabContext(ImmutableList.Create(root), defaults));
         }
 
-        // Wherever another game prefab uses this one by tag; a quick look at the text first spares parsing the rest
+        // Wherever another game prefab uses this one by tag; the index says which do, so only those are rebuilt
         foreach (var user in _configuration.Prefabs)
         {
             _cancellation.ThrowIfCancellationRequested();
             if (result.Count >= MaxContexts)
                 break;
-            if (user.Name == name || !Mentions(user.Text(_cancellation), name) || user.Document(_cancellation) is not { } userDocument)
+            if (user.Name == name || !user.Tags.Contains(name) || user.Document(_cancellation) is not { } userDocument)
                 continue;
             foreach (XmlElement tag in userDocument.GetElementsByTagName(name))
             {
@@ -112,23 +112,13 @@ internal sealed class GameScopeResolver
     private static bool SameParameters(IReadOnlyDictionary<string, string> a, IReadOnlyDictionary<string, string> b) =>
         a.Count == b.Count && a.All(x => b.TryGetValue(x.Key, out var value) && value == x.Value);
 
-    private static bool Mentions(string text, string name)
-    {
-        for (var index = text.IndexOf("<" + name, StringComparison.Ordinal); index >= 0; index = text.IndexOf("<" + name, index + 1, StringComparison.Ordinal))
-        {
-            var next = index + 1 + name.Length;
-            if (next < text.Length && (char.IsWhiteSpace(text[next]) || text[next] is '/' or '>'))
-                return true;
-        }
-        return false;
-    }
-
     private static IReadOnlyDictionary<string, string> Defaults(XmlDocument document)
     {
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (document.DocumentElement?["Parameters"] is { } parameters)
+        // Every child of <Parameters>, whatever its tag, as WidgetPrefab.LoadParameters reads them
+        if (document.DocumentElement is { Name: "Prefab" } prefab && prefab["Parameters"] is { } parameters)
         {
-            foreach (XmlElement parameter in parameters.GetElementsByTagName("Parameter"))
+            foreach (var parameter in parameters.ChildNodes.OfType<XmlElement>())
             {
                 if (parameter.GetAttribute("Name") is { Length: > 0 } name)
                     result[name] = parameter.GetAttribute("DefaultValue");

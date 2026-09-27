@@ -23,17 +23,17 @@ public class TargetsTests
         var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "uix-targets-" + Guid.NewGuid().ToString("N"))).FullName;
         try
         {
-            // The package as the contract lays it out: build/<id>.props exposing gui/ as items
+            // The package as format 2 lays it out: build/<id>.props exposing everything under gui/, the prefab trees
+            // below it, as one item type
             Write(root, "pkg/build/Fake.GUI.props", $"""
                 <Project>
                   <ItemGroup>
-                    <BannerlordGameGuiFile Include="$(MSBuildThisFileDirectory)../gui/**/*.xml" Visible="false" Package="{Package}" />
-                    <BannerlordGameGuiData Include="$(MSBuildThisFileDirectory)../gui/*.json" Visible="false" Package="{Package}" />
+                    <BannerlordGameGuiData Include="$(MSBuildThisFileDirectory)../gui/**/*.json" Visible="false" Package="{Package}" />
                   </ItemGroup>
                 </Project>
                 """);
             Write(root, "pkg/gui/manifest.json", "{}");
-            Write(root, "pkg/gui/Native/GUI/Prefabs/GameMovie.xml", "<Prefab />");
+            Write(root, "pkg/gui/Native/GUI/Prefabs/GameMovie.json", "{}");
 
             // The mod: its own prefab under GUI, and the package's props imported before the analyzer targets, as NuGet orders them
             Write(root, "mod/GUI/Prefabs/ModMovie.xml", "<Prefab />");
@@ -52,7 +52,7 @@ public class TargetsTests
             Run(Path.Combine(root, "mod"), "msbuild Mod.csproj -restore -t:GenerateMSBuildEditorConfigFile -nologo -v:q");
 
             var sections = Sections(File.ReadAllLines(Path.Combine(root, "mod", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig")));
-            Assert.That(PackageOf(sections, "GameMovie.xml"), Is.EqualTo(Package), "The game's prefab");
+            Assert.That(PackageOf(sections, "GameMovie.json"), Is.EqualTo(Package), "The game's prefab tree");
             Assert.That(PackageOf(sections, "manifest.json"), Is.EqualTo(Package), "The game's data");
             Assert.That(sections.Keys.Any(k => k.EndsWith("ModMovie.xml", StringComparison.Ordinal)), Is.True, "The mod's prefab is an additional file");
             Assert.That(PackageOf(sections, "ModMovie.xml"), Is.Empty, "The mod's prefab is not the game's");

@@ -11,13 +11,12 @@
   </ItemGroup>
 
   <!--
-  The game's own prefabs, movie table and types, from the Bannerlord.ReferenceAssemblies.GUI packages the project
-  references: the packages expose them as BannerlordGameGuiFile and BannerlordGameGuiData items. Each is tagged with
-  its package, so the analyzers tell the game's files from the mod's. Set UIExtenderExAnalyzeGamePrefabs to false to
-  leave them out.
+  The game's own prefabs, movie table and types, from the Bannerlord.ReferenceAssemblies.GUI.v2 packages the project
+  references. In their format 2 every file is JSON, exposed as BannerlordGameGuiData items; each is tagged with its
+  package, so the analyzers tell the game's files from the mod's. Format 1's BannerlordGameGuiFile items, the game's
+  XML, are not read and not passed on. Set UIExtenderExAnalyzeGamePrefabs to false to leave the packages out.
   -->
   <ItemGroup Condition="'$(UIExtenderExAnalyzePrefabs)' != 'false' AND '$(UIExtenderExAnalyzeGamePrefabs)' != 'false'">
-    <AdditionalFiles Include="@(BannerlordGameGuiFile)" UIExtenderExGamePackage="%(Package)" />
     <AdditionalFiles Include="@(BannerlordGameGuiData)" UIExtenderExGamePackage="%(Package)" />
   </ItemGroup>
   <ItemGroup>

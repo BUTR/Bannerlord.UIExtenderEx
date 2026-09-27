@@ -107,7 +107,21 @@ internal sealed class PrefabWalker
             CheckWidgetAttribute(widget, key, value, literal: !value.StartsWith("*", StringComparison.Ordinal), location);
     }
 
-    private static XElement? RootWidget(PrefabXml prefab) => prefab.Document?.Root?.Element("Window")?.Elements().FirstOrDefault();
+    /// <summary>The root widget: the first element under <c>&lt;Window&gt;</c>, which is the file's root or sits under <c>&lt;Prefab&gt;</c>.</summary>
+    private static XElement? RootWidget(PrefabXml prefab)
+    {
+        var root = prefab.Document?.Root;
+        var window = root?.Name.LocalName == "Window" ? root : root?.Element("Window");
+        return window?.Elements().FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The prefab's declared parameters, as <c>WidgetPrefab.LoadParameters</c> reads them: every child of
+    /// <c>&lt;Parameters&gt;</c>, whatever its tag, and only under <c>&lt;Prefab&gt;</c>. The game's own prefabs spell the child
+    /// <c>Paramter</c> and <c>Parameters</c> in places, and those parameters work.
+    /// </summary>
+    private static IEnumerable<XElement> DeclaredParameters(PrefabXml prefab) =>
+        prefab.Document?.Root is { Name.LocalName: "Prefab" } root ? root.Elements("Parameters").Elements() : [];
 
     private void Walk(XElement element, PrefabXml xml, ImmutableList<Scope> chain, Parameters parameters, int depth)
     {
@@ -200,7 +214,7 @@ internal sealed class PrefabWalker
         var names = new HashSet<string>(StringComparer.Ordinal);
         if (prefab.Document?.Root is not { } root)
             return names;
-        foreach (var parameter in root.Elements("Parameters").Elements("Parameter"))
+        foreach (var parameter in DeclaredParameters(prefab))
         {
             if (parameter.Attribute("Name")?.Value is { } name)
                 names.Add(name);
@@ -216,7 +230,7 @@ internal sealed class PrefabWalker
     private static Parameters WithDefaults(PrefabXml prefab, Parameters passed)
     {
         var values = passed.Values.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal);
-        foreach (var parameter in prefab.Document?.Root?.Elements("Parameters").Elements("Parameter") ?? [])
+        foreach (var parameter in DeclaredParameters(prefab))
         {
             if (parameter.Attribute("Name")?.Value is { } name && !values.ContainsKey(name) && parameter.Attribute("DefaultValue") is { } value)
                 values[name] = (value.Value, prefab.Locate(value));

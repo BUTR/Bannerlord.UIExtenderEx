@@ -302,19 +302,27 @@ not checked inside, and a scope that runs through one is lost.
 
 ## Checking against the game's prefabs
 
-A patch lands in the game's own XML, which your project does not contain. The `Bannerlord.ReferenceAssemblies.GUI`
-packages carry it, one per game version, generated from each Steam build next to the reference assemblies: the
-prefab XML of every module, the ViewModel each movie is loaded with, and the game's ViewModel types. Reference them
-next to the analyzers, at the version you build against:
+A patch lands in the game's own XML, which your project does not contain. The `Bannerlord.ReferenceAssemblies.GUI.v2`
+packages describe it, one per game version from v1.0.0 on, generated from each Steam build next to the reference assemblies: every
+module's prefabs, the ViewModel each movie is loaded with, and the game's ViewModel types. They carry no file of the
+game's: each prefab is a tree of its elements and attributes, from which the analyzer rebuilds the document the game
+loads. Reference them next to the analyzers, at the version you build against:
 
 ```xml
-<PackageReference Include="Bannerlord.ReferenceAssemblies.GUI" Version="$(GameVersion).*" PrivateAssets="all" />
-<PackageReference Include="Bannerlord.ReferenceAssemblies.GUI.NavalDLC" Version="$(GameVersion).*" PrivateAssets="all" />
+<PackageReference Include="Bannerlord.ReferenceAssemblies.GUI.v2" Version="$(GameVersion).*" PrivateAssets="all" />
+<PackageReference Include="Bannerlord.ReferenceAssemblies.GUI.v2.NavalDLC" Version="$(GameVersion).*" PrivateAssets="all" />
 ```
 
+For an early access version (`e1.x`), reference `Bannerlord.ReferenceAssemblies.GUI.v2.EarlyAccess` instead; the DLC came
+later and has no early access package. A beta is published with a `-beta` suffix, which `$(GameVersion).*` does not
+match: use `$(GameVersion).*-*` to build against one.
+
 They add nothing to your compilation or output. The DLC package is optional: reference it to have your patches
-checked for players who own War Sails as well as for those who do not. Set
+checked for players who own War Sails as well as for those who do not; it exists from v1.3.4 on. Set
 `<UIExtenderExAnalyzeGamePrefabs>false</UIExtenderExAnalyzeGamePrefabs>` to leave them out without removing them.
+
+The analyzer reads the packages' format 2, which the `.v2` ids carry. A package in another format is left out: the
+checks against the game's prefabs stay silent.
 
 With them, each patch is applied to the prefab it names the way UIExtenderEx applies it, with `SelectSingleNode` on
 the prefab's document:
