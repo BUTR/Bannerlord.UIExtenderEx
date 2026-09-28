@@ -52,13 +52,16 @@ internal static class CodeFixVerifier
     public static Task VerifyAsync(string id, string before, string after, string title, string? gameSource = null, bool usings = true) =>
         VerifyAsync(id, before, after, [], title, gameSource, usings);
 
-    /// <summary>A fix to the mod's C# or one of its XML files, each given as it reads before and after.</summary>
+    /// <summary>
+    /// A fix to the mod's C# or one of its XML files, each given as it reads before and after. With
+    /// <paramref name="gameVersion"/>, the project builds against that game version, as the analyzer targets pass it on.
+    /// </summary>
     public static async Task VerifyAsync(string id, string before, string after, (string Path, string Before, string After)[] files, string title,
-        string? gameSource = null, bool usings = true)
+        string? gameSource = null, bool usings = true, string? gameVersion = null)
     {
         var header = usings ? Usings : "";
-        var (solution, documentId, fileIds) = CreateSolution(header + before, files.Select(f => (f.Path, f.Before)), gameSource);
-        var actions = await FixesAsync(solution, id);
+        var (solution, documentId, fileIds) = CreateSolution(header + before, files.Select(f => (f.Path, f.Before)), gameSource, gameVersion);
+        var actions = await FixesAsync(solution, id, gameVersion);
         var action = actions.FirstOrDefault(a => a.Title == title);
         Assert.That(action, Is.Not.Null, $"No fix titled '{title}' for {id}; offered: {string.Join(", ", actions.Select(a => $"'{a.Title}'"))}");
 
@@ -81,11 +84,11 @@ internal static class CodeFixVerifier
     /// <summary>The titles of the fixes offered for the first report of a rule; empty when there is none.</summary>
     public static async Task<IReadOnlyList<string>> TitlesAsync(string id, string before, params (string Path, string Text)[] files)
     {
-        var (solution, _, _) = CreateSolution(Usings + before, files, null);
+        var (solution, _, _) = CreateSolution(Usings + before, files, null, null);
         return (await FixesAsync(solution, id)).Select(a => a.Title).ToList();
     }
 
-    private static async Task<List<CodeAction>> FixesAsync(Solution solution, string id)
+    private static async Task<List<CodeAction>> FixesAsync(Solution solution, string id, string? gameVersion = null)
     {
         var project = solution.Projects.Single();
         var compilation = (await project.GetCompilationAsync())!;
@@ -99,6 +102,8 @@ internal static class CodeFixVerifier
             .ThenBy(d => d.Location.SourceSpan.Start)
             .FirstOrDefault();
         Assert.That(diagnostic, Is.Not.Null, $"{id} is not reported; reported: {string.Join(", ", diagnostics.Select(d => d.Id))}");
+        if (gameVersion is not null)
+            Assert.That(diagnostic!.GetMessage(), Does.StartWith($"[v{gameVersion}] "), "The report names the game version");
 
         TextDocument document = diagnostic!.Location.IsInSource
             ? solution.GetDocument(diagnostic.Location.SourceTree)!
@@ -113,7 +118,8 @@ internal static class CodeFixVerifier
         return actions;
     }
 
-    private static (Solution Solution, DocumentId Document, List<DocumentId> Files) CreateSolution(string source, IEnumerable<(string Path, string Text)> files, string? gameSource)
+    private static (Solution Solution, DocumentId Document, List<DocumentId> Files) CreateSolution(string source, IEnumerable<(string Path, string Text)> files,
+        string? gameSource, string? gameVersion)
     {
         var references = Verifier.References;
         if (gameSource is not null)
@@ -135,6 +141,12 @@ internal static class CodeFixVerifier
             var fileId = DocumentId.CreateNewId(projectId);
             solution = solution.AddAdditionalDocument(fileId, Path.GetFileName(path), SourceText.From(text), filePath: path);
             fileIds.Add(fileId);
+        }
+        // The property as the generated editorconfig carries it: a global section of build properties
+        if (gameVersion is not null)
+        {
+            solution = solution.AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".globalconfig",
+                SourceText.From($"is_global = true\nbuild_property.GameVersion = {gameVersion}\n"), filePath: Path.Combine(Path.GetTempPath(), ".globalconfig"));
         }
         return (solution, documentId, fileIds);
     }

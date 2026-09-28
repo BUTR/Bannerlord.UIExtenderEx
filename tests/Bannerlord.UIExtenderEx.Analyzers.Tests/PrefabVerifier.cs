@@ -84,9 +84,13 @@ internal static class PrefabVerifier
     }
 
     /// <summary>The messages of every report on the mod's C#, for the tests that check what a report says.</summary>
-    public static async Task<IReadOnlyList<string>> MessagesAsync(string csharp, params TestGame[] games)
+    public static Task<IReadOnlyList<string>> MessagesAsync(string csharp, params TestGame[] games) =>
+        MessagesAsync(csharp, new Dictionary<string, string>(), games);
+
+    /// <summary>The same, with build properties as the analyzer targets make them compiler-visible, by name.</summary>
+    public static async Task<IReadOnlyList<string>> MessagesAsync(string csharp, IReadOnlyDictionary<string, string> properties, params TestGame[] games)
     {
-        var (gameFiles, options) = Game(games);
+        var (gameFiles, options) = Game(games, properties);
         var compilation = Verifier.WithGenerators(CSharpCompilation.Create("Mod",
             new[] { CSharpSyntaxTree.ParseText(Usings + csharp, new CSharpParseOptions(LanguageVersion.Latest)) },
             Verifier.References,
@@ -95,7 +99,7 @@ internal static class PrefabVerifier
         return diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
     }
 
-    private static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(TestGame[] games)
+    private static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(TestGame[] games, IReadOnlyDictionary<string, string>? properties = null)
     {
         var files = new List<AdditionalText>();
         var packages = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -104,13 +108,13 @@ internal static class PrefabVerifier
             files.Add(new InMemoryText(path, text));
             packages[path] = package;
         }
-        return (files, new MetadataOptionsProvider(packages));
+        return (files, new MetadataOptionsProvider(packages, properties ?? new Dictionary<string, string>()));
     }
 
-    /// <summary>What the analyzer targets make compiler-visible: each game file's package.</summary>
-    private sealed class MetadataOptionsProvider(Dictionary<string, string> packages) : AnalyzerConfigOptionsProvider
+    /// <summary>What the analyzer targets make compiler-visible: each game file's package, and the build properties.</summary>
+    private sealed class MetadataOptionsProvider(Dictionary<string, string> packages, IReadOnlyDictionary<string, string> properties) : AnalyzerConfigOptionsProvider
     {
-        public override AnalyzerConfigOptions GlobalOptions => Options.Empty;
+        public override AnalyzerConfigOptions GlobalOptions { get; } = new BuildProperties(properties);
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => Options.Empty;
 
@@ -126,6 +130,16 @@ internal static class PrefabVerifier
         {
             value = package ?? "";
             return package is not null && key == "build_metadata.AdditionalFiles.UIExtenderExGamePackage";
+        }
+    }
+
+    private sealed class BuildProperties(IReadOnlyDictionary<string, string> properties) : AnalyzerConfigOptions
+    {
+        public override bool TryGetValue(string key, out string value)
+        {
+            const string prefix = "build_property.";
+            value = "";
+            return key.StartsWith(prefix, StringComparison.Ordinal) && properties.TryGetValue(key.Substring(prefix.Length), out value!);
         }
     }
 

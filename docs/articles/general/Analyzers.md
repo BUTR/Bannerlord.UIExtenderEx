@@ -36,6 +36,24 @@ A new version of the package can bring new rules. If you build with warnings as 
 The prefab rules read the XML your project embeds and any XML under a `GUI` folder of the project; the package hands
 those to the compiler. Set `<UIExtenderExAnalyzePrefabs>false</UIExtenderExAnalyzePrefabs>` to leave them out.
 
+### Building for several game versions
+
+Every message starts with the game version your project builds against:
+
+```text
+ModOptionsView.xml(44,139): warning UIX0012: [v1.4.8] 'ScrollablePanel' has no attribute 'HorizontalAlightment'; the loader drops it without a message
+```
+
+A module that `Bannerlord.BUTRModule.Sdk` builds for several game versions is compiled once per version, each time
+against that version's game. The same warning can come from several of those builds, and one only some of them give
+holds for those versions only: a patch whose node a version does not have is not applied there, and the player sees
+UIExtenderEx's message that it failed. Keep such a patch out of those versions with the SDK's version symbols, such as
+`#if !v129`. Your XML is shared by every version, so a binding one version's ViewModel lacks has to be supplied there,
+by a mixin, or left to show nothing.
+
+The version is `$(GameVersion)`, which the SDK and `Bannerlord.BuildResources` set. Set
+`<UIExtenderExGameVersion>` to name another; with neither set, messages carry no version.
+
 ## Rules
 
 | Rule | Severity | What it finds | Code fix |

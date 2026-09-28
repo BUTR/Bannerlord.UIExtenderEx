@@ -61,7 +61,7 @@ public sealed class PrefabContentAnalyzer : DiagnosticAnalyzer
         {
             var location = context.Symbol.Locations.FirstOrDefault() ?? Location.None;
             var fitting = reason == FixData.ReasonType ? FittingAttributes(context.Symbol, types.String, types.XmlNode, types.XmlNodes, context.Compilation) : [];
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.ContentMemberCannotSupplyContent, location,
+            context.Report(Diagnostic.Create(Descriptors.ContentMemberCannotSupplyContent, location,
                 FixData.Of((FixData.Reason, reason), (FixData.Attributes, FixData.Join(fitting))), context.Symbol.Name, why));
         }
     }

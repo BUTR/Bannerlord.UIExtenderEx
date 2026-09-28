@@ -23,4 +23,15 @@
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="UIExtenderExGamePackage" />
   </ItemGroup>
 
+  <!--
+  The game version the project builds against, put in front of every message as [v1.3.4]: Bannerlord.BUTRModule.Sdk
+  builds a module once per supported version, and the warnings of those builds would read alike. GameVersion is what the
+  SDK and Bannerlord.BuildResources set; set UIExtenderExGameVersion to name another. The values are read when the
+  editorconfig is generated, after the project is evaluated, so the order of imports does not matter.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="UIExtenderExGameVersion" />
+    <CompilerVisibleProperty Include="GameVersion" />
+  </ItemGroup>
+
 </Project>

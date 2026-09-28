@@ -64,22 +64,22 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
             var reason = mixin.ViewModelArgument is null
                 ? "it does not derive from BaseViewModelMixin<TViewModel>"
                 : $"the ViewModel UIExtenderEx takes from its base types is '{mixin.ViewModelArgument.ToDisplayString()}', which is not a ViewModel; derive from BaseViewModelMixin<TViewModel>";
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.MixinHasNoViewModel, mixin.Location, mixin.Type.Name, reason));
+            context.Report(Diagnostic.Create(Descriptors.MixinHasNoViewModel, mixin.Location, mixin.Type.Name, reason));
             return;
         }
 
         var host = hosts.Complete(mixin.Host);
 
         if (WhyCannotBeCreated(context.Compilation, mixin) is var (whyNot, creationFix))
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.MixinCannotBeCreated, mixin.Location, FixData.Of((FixData.Reason, creationFix)), mixin.Type.Name, mixin.Host.Name, whyNot));
+            context.Report(Diagnostic.Create(Descriptors.MixinCannotBeCreated, mixin.Location, FixData.Of((FixData.Reason, creationFix)), mixin.Type.Name, mixin.Host.Name, whyNot));
 
         if (host.IsAbstract && !mixin.HandleDerived)
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.MixinHostNeverInstantiated, mixin.Location, mixin.Host.Name, mixin.Type.Name));
+            context.Report(Diagnostic.Create(Descriptors.MixinHostNeverInstantiated, mixin.Location, mixin.Host.Name, mixin.Type.Name));
 
         if (mixin.RefreshMethodName is { } refresh && Hosts.WhyRefreshMethodIsNotFound(host, refresh) is { } whyMissing)
         {
             var suggestions = Suggestions.Closest(refresh, Hosts.RefreshMethodNames(host));
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.RefreshMethodNotFound, mixin.AttributeLocation,
+            context.Report(Diagnostic.Create(Descriptors.RefreshMethodNotFound, mixin.AttributeLocation,
                 FixData.Of((FixData.Suggestions, FixData.Join(suggestions))), refresh, mixin.Host.Name, whyMissing,
                 known.IsV2 ? "UIExtender.Register throws here, and the mod's types after this one are not registered" : "the mixin's OnRefresh is never called"));
         }
@@ -112,7 +112,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
 
                 var targetName = attribute.ConstructorArguments.FirstOrDefault().Value as string ?? "";
                 if (WhyOverrideDoesNotMatch(method, host, targetName) is { } why)
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptors.OverrideDoesNotMatch, method.Locations.FirstOrDefault(l => l.IsInSource) ?? mixin.Location, method.Name, why));
+                    context.Report(Diagnostic.Create(Descriptors.OverrideDoesNotMatch, method.Locations.FirstOrDefault(l => l.IsInSource) ?? mixin.Location, method.Name, why));
             }
         }
     }
@@ -183,7 +183,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
                 Accessibility.ProtectedAndInternal => "private protected",
                 var other => other.ToString().ToLowerInvariant(),
             };
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.MixinMemberReplacesHostMember, location,
+            context.Report(Diagnostic.Create(Descriptors.MixinMemberReplacesHostMember, location,
                 member.Name, mixin.Type.Name, $"{accessibility} {kind}", hostMember.ContainingType.Name));
         }
     }
@@ -205,7 +205,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
                 _ => null,
             };
             if (attributeName is not null)
-                context.ReportDiagnostic(Diagnostic.Create(Descriptors.MixinMemberNotPublic, member.Locations.FirstOrDefault(), member.Name, attributeName));
+                context.Report(Diagnostic.Create(Descriptors.MixinMemberNotPublic, member.Locations.FirstOrDefault(), member.Name, attributeName));
         }
     }
 
@@ -255,7 +255,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
                     .OrderBy(n => n, StringComparer.Ordinal);
                 foreach (var name in names)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptors.DuplicateMixinMember, second.Location,
+                    context.Report(Diagnostic.Create(Descriptors.DuplicateMixinMember, second.Location,
                         additionalLocations: new[] { first.Location }, name, host.Name, first.Type.Name, second.Type.Name));
                 }
             }

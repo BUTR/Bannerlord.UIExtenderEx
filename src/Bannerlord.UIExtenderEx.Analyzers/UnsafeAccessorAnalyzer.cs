@@ -44,11 +44,11 @@ public sealed class UnsafeAccessorAnalyzer : DiagnosticAnalyzer
         var location = stub.Locations.FirstOrDefault() ?? Location.None;
         if (WhyNotResolved(stub, attribute, hosts) is { } why)
         {
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.AccessorNotResolved, location, stub.Name, why));
+            context.Report(Diagnostic.Create(Descriptors.AccessorNotResolved, location, stub.Name, why));
             return;
         }
         if ((stub.MethodImplementationFlags & MethodImplAttributes.NoInlining) == 0)
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.AccessorInlinable, location, stub.Name));
+            context.Report(Diagnostic.Create(Descriptors.AccessorInlinable, location, stub.Name));
     }
 
     private static string? WhyNotResolved(IMethodSymbol stub, AttributeData attribute, Hosts hosts)

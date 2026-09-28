@@ -18,7 +18,7 @@ public class TargetsTests
     private const string Package = "Fake.GUI";
 
     [Test]
-    public void TheGamesFiles_ReachTheCompilerTaggedWithTheirPackage_AndTheModsDoNot()
+    public void TheGamesFiles_ReachTheCompilerTaggedWithTheirPackage_AndTheModsDoNot_AndTheGameVersionReachesIt()
     {
         var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "uix-targets-" + Guid.NewGuid().ToString("N"))).FullName;
         try
@@ -46,12 +46,19 @@ public class TargetsTests
                     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
                   </PropertyGroup>
                   <Import Project="{targets}" />
+                  <!-- After the targets, as Bannerlord.BUTRModule.Sdk sets it in its Sdk.targets -->
+                  <PropertyGroup>
+                    <GameVersion>1.4.8</GameVersion>
+                  </PropertyGroup>
                 </Project>
                 """);
 
             Run(Path.Combine(root, "mod"), "msbuild Mod.csproj -restore -t:GenerateMSBuildEditorConfigFile -nologo -v:q");
 
-            var sections = Sections(File.ReadAllLines(Path.Combine(root, "mod", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig")));
+            var editorconfig = File.ReadAllLines(Path.Combine(root, "mod", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig"));
+            Assert.That(editorconfig.TakeWhile(l => !l.StartsWith("[", StringComparison.Ordinal)).Select(l => l.Trim()),
+                Has.Member("build_property.GameVersion = 1.4.8"), "The game version, set after the targets");
+            var sections = Sections(editorconfig);
             Assert.That(PackageOf(sections, "GameMovie.json"), Is.EqualTo(Package), "The game's prefab tree");
             Assert.That(PackageOf(sections, "manifest.json"), Is.EqualTo(Package), "The game's data");
             Assert.That(sections.Keys.Any(k => k.EndsWith("ModMovie.xml", StringComparison.Ordinal)), Is.True, "The mod's prefab is an additional file");

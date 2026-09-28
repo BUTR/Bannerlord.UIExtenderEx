@@ -60,10 +60,12 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
     {
         // The game's files come from its GUI packages, tagged by the analyzer targets; the rest are the mod's
         var (gameFiles, modFiles) = GameGui.Split(context.Options);
+        // Every report names the game version the compilation is built against, when the project sets one
+        var report = GameVersionTag.Reporter(context.Options, context.ReportDiagnostic);
         var sources = PrefabSources.Collect(context.Compilation, modFiles, context.CancellationToken);
         foreach (var malformed in sources.MalformedFiles)
-            context.ReportDiagnostic(Diagnostic.Create(Descriptors.XmlNotWellFormed, malformed.Error!.Value.Location, malformed.Error.Value.Message));
-        var links = PrefabLinks.Collect(context.Compilation, known, sources, context.ReportDiagnostic);
+            report(Diagnostic.Create(Descriptors.XmlNotWellFormed, malformed.Error!.Value.Location, malformed.Error.Value.Message));
+        var links = PrefabLinks.Collect(context.Compilation, known, sources, report);
         if (sources.Patches.Count == 0 && sources.PrefabsByTag.Count == 0)
             return;
 
@@ -74,7 +76,7 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
             .Select(m => m!)
             .ToList();
         var resolver = new ScopeResolver(hosts, mixins);
-        var walker = new PrefabWalker(sources, resolver, hosts, context.ReportDiagnostic);
+        var walker = new PrefabWalker(sources, resolver, hosts, report);
         var configurations = gameFiles.Count > 0 ? GameGui.Configurations(gameFiles, context.CancellationToken) : [];
         var checker = new GamePatchChecker(configurations, sources, context.CancellationToken);
 
@@ -93,7 +95,7 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
             if (whyInvalid is not null)
                 walker.Report(Descriptors.XPathInvalid, patch.XPathLocation, patch.XPath is { } written ? $" '{written}'" : "", whyInvalid);
 
-            var targets = checker.Check(patch, context.ReportDiagnostic);
+            var targets = checker.Check(patch, report);
             foreach (var target in targets ?? [])
             {
                 foreach (var (name, value, nameLocation, _) in patch.SetAttributes)
