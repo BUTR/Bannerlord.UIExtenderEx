@@ -28,3 +28,4 @@ UIX0020 | UIExtenderEx | Warning | PrefabAnalyzer
 UIX0021 | UIExtenderEx | Warning | PrefabAnalyzer
 UIX0022 | UIExtenderEx | Warning | PrefabAnalyzer
 UIX0023 | UIExtenderEx | Error | PrefabAnalyzer
+UIX0024 | UIExtenderEx | Warning | PrefabAnalyzer

@@ -54,6 +54,10 @@ by a mixin, or left to show nothing.
 The version is `$(GameVersion)`, which the SDK and `Bannerlord.BuildResources` set. Set
 `<UIExtenderExGameVersion>` to name another; with neither set, messages carry no version.
 
+With [`Bannerlord.ReferenceAssemblies.GUI.v2.All`](#every-supported-version-at-once) referenced, each build checks your
+patches against every version you support, and a patch that fails in some of them is reported once, naming them
+(UIX0024).
+
 ## Rules
 
 | Rule | Severity | What it finds | Code fix |
@@ -81,8 +85,9 @@ The version is `$(GameVersion)`, which the SDK and `Bannerlord.BuildResources` s
 | [UIX0021](#uix0021) | Warning | A patch XPath that matches several nodes | |
 | [UIX0022](#uix0022) | Warning | A `[PrefabLink]` that disagrees with the game | |
 | [UIX0023](#uix0023) | Error | A patch XPath that is not valid | |
+| [UIX0024](#uix0024) | Warning | A patch XPath that fails in some of the supported game versions | |
 
-UIX0002 and the prefab rules UIX0011 to UIX0016 and UIX0018 to UIX0023 are reported on a full build, not while you type:
+UIX0002 and the prefab rules UIX0011 to UIX0016 and UIX0018 to UIX0024 are reported on a full build, not while you type:
 they need the whole mod at once. In Visual Studio they show in the Error List after a build, or while you type with full
 solution analysis turned on.
 
@@ -113,8 +118,8 @@ Error List after a build, with no fix to click.
 
 Rules without a fix leave a choice to you: UIX0001 a new name, which your XML has to use too, or an override of the
 method; UIX0002 a new name; UIX0005,
-UIX0008, UIX0009, UIX0018 and UIX0022 what the code was meant to reach; UIX0011, UIX0020, UIX0021 and UIX0023 where
-the XML or the XPath went wrong.
+UIX0008, UIX0009, UIX0018 and UIX0022 what the code was meant to reach; UIX0011, UIX0020, UIX0021, UIX0023 and UIX0024
+where the XML or the XPath went wrong.
 
 ## UIX0001
 
@@ -366,6 +371,40 @@ Mods built with `Bannerlord.BUTRModule.Sdk` compile once per game version in the
 restore packages at `$(GameVersion).*` for each. With the references above, every patch is checked against every
 supported version, and a version where an XPath no longer holds shows as a warning in that version's build.
 
+### Every supported version at once
+
+The per-version packages hold one game version each, and NuGet restores one version of a package per project, so a
+build sees only the version it compiles against. `Bannerlord.ReferenceAssemblies.GUI.v2.All` holds the newest build of
+every release version, base game and War Sails, in one package of about 1.3 MB: each distinct piece of the data is
+stored once. Reference it next to, or instead of, the per-version packages:
+
+```xml
+<PackageReference Include="Bannerlord.ReferenceAssemblies.GUI.v2.All" Version="*" PrivateAssets="all" />
+```
+
+Its version is the date it was built, `2026.9.28.57`; `*` takes the newest.
+
+**Which versions are checked.** Those in `supported-game-versions.txt`, which `Bannerlord.BUTRModule.Sdk` reads. Set
+`<UIExtenderExGameVersions>v1.2.12;v1.3.4;v1.4.8</UIExtenderExGameVersions>` to name them otherwise. With neither, the
+version you build against. A supported version the package does not have is skipped. For a version a per-version
+package you reference also has, that package is used: it is the build you compile against.
+
+**What is checked in each.** Where the XPath lands: UIX0020 and UIX0021, in every configuration of every version. A
+finding that holds for all of them is reported under its own rule; one that holds for some only is UIX0024, naming them,
+and versions in a row read as a range:
+
+```text
+Page.cs(12,33): warning UIX0024: [v1.4.8] In v1.0.0 to v1.3.15 only: 'descendant::*[@Id='CurrentOptionExtraInformationWidget']' matches no node of 'Options'; the patch is not applied
+```
+
+The rest is checked against the version you build against: your patch's bindings (UIX0015), the `[PrefabLink]`
+(UIX0022), and a set-attribute patch's attributes (UIX0012, UIX0013). These read the game's types from your
+compilation, which references that version's assemblies.
+
+**Once across the SDK's builds.** Each of the SDK's builds per version sees every version, so each would report the
+same finding. Only the build of the newest version the finding holds for reports it. A build outside the SDK's loop,
+such as the one in your IDE, reports everything.
+
 What it does not do:
 
 * **A prefab neither the game nor your mod has,** another mod's, is not checked.
@@ -561,3 +600,23 @@ ViewModel, so you can tell which is right.
 UIExtenderEx selects the node with `SelectSingleNode`, which throws for an XPath that does not parse, or that does not
 select nodes (`count(//Widget)`). It throws too for a patch whose XPath is `null`, `[PrefabExtension("Options", null)]`: the
 patch is handed an empty one. The patch then fails when the movie loads. This needs no GUI package.
+
+## UIX0024
+
+**A patch's XPath fails in some of the game versions you support.**
+
+With [`GUI.v2.All`](#every-supported-version-at-once) referenced, each patch is applied to the game's prefab in every
+version you support. When the XPath matches no node (UIX0020), or several (UIX0021), in some of those versions only,
+it is reported here, naming them:
+
+```text
+In v1.0.0 to v1.3.15 only: 'descendant::*[@Id='CurrentOptionExtraInformationWidget']' matches no node of 'Options'; the patch is not applied
+```
+
+In those versions the patch is not applied, and the player sees UIExtenderEx's message that it failed. Leave the patch
+out of those versions' builds with the SDK's version symbols (`v1315` is defined in the build for v1.3.15), or target
+a node every version has.
+
+It is a rule of its own so that you can weigh it apart from the ones that hold everywhere: a patch meant for newer
+versions only is not a mistake. `dotnet_diagnostic.UIX0024.severity = suggestion` in `.editorconfig` lowers it to a
+suggestion, and `none` turns it off, without touching UIX0020 and UIX0021.

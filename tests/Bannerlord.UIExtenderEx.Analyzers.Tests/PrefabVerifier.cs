@@ -40,7 +40,11 @@ internal static class PrefabVerifier
         VerifyAsync(csharpMarkup, [], files);
 
     /// <summary>With the game's GUI packages referenced: their files tagged with their package, as the analyzer targets do.</summary>
-    public static async Task VerifyAsync(string csharpMarkup, TestGame[] games, params (string Path, string XmlMarkup)[] files)
+    public static Task VerifyAsync(string csharpMarkup, ITestPackage[] games, params (string Path, string XmlMarkup)[] files) =>
+        VerifyAsync(csharpMarkup, games, new Dictionary<string, string>(), files);
+
+    /// <summary>The same, with build properties as the analyzer targets make them compiler-visible, by name.</summary>
+    public static async Task VerifyAsync(string csharpMarkup, ITestPackage[] games, IReadOnlyDictionary<string, string> properties, params (string Path, string XmlMarkup)[] files)
     {
         var expected = new HashSet<(string Id, string Path, TextSpan Span)>();
         var (source, csharpExpected) = Parse(Usings + csharpMarkup);
@@ -55,7 +59,7 @@ internal static class PrefabVerifier
             foreach (var (id, span) in xmlExpected)
                 expected.Add((id, path, span));
         }
-        var (gameFiles, options) = Game(games);
+        var (gameFiles, options) = Game(games, properties);
         additional.AddRange(gameFiles);
 
         var compilation = Verifier.WithGenerators(CSharpCompilation.Create("Mod",
@@ -84,11 +88,11 @@ internal static class PrefabVerifier
     }
 
     /// <summary>The messages of every report on the mod's C#, for the tests that check what a report says.</summary>
-    public static Task<IReadOnlyList<string>> MessagesAsync(string csharp, params TestGame[] games) =>
+    public static Task<IReadOnlyList<string>> MessagesAsync(string csharp, params ITestPackage[] games) =>
         MessagesAsync(csharp, new Dictionary<string, string>(), games);
 
     /// <summary>The same, with build properties as the analyzer targets make them compiler-visible, by name.</summary>
-    public static async Task<IReadOnlyList<string>> MessagesAsync(string csharp, IReadOnlyDictionary<string, string> properties, params TestGame[] games)
+    public static async Task<IReadOnlyList<string>> MessagesAsync(string csharp, IReadOnlyDictionary<string, string> properties, params ITestPackage[] games)
     {
         var (gameFiles, options) = Game(games, properties);
         var compilation = Verifier.WithGenerators(CSharpCompilation.Create("Mod",
@@ -99,7 +103,7 @@ internal static class PrefabVerifier
         return diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
     }
 
-    private static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(TestGame[] games, IReadOnlyDictionary<string, string>? properties = null)
+    private static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(ITestPackage[] games, IReadOnlyDictionary<string, string>? properties = null)
     {
         var files = new List<AdditionalText>();
         var packages = new Dictionary<string, string>(StringComparer.Ordinal);

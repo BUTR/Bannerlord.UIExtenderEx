@@ -39,6 +39,9 @@ internal static class FixData
     /// <summary>For UIX0017: the content attributes the member's type fits, separated by <see cref="Separator"/>.</summary>
     public const string Attributes = "Attributes";
 
+    /// <summary>UIX0024: the rule whose finding holds for some versions only, <c>UIX0020</c> or <c>UIX0021</c>.</summary>
+    public const string Rule = "Rule";
+
     public const char Separator = ';';
 
     public static ImmutableDictionary<string, string?> Of(params (string Key, string? Value)[] entries) =>

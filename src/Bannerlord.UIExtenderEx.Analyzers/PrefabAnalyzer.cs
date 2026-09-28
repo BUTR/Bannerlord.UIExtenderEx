@@ -42,7 +42,8 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
         Descriptors.XPathMatchesNothing,
         Descriptors.XPathMatchesSeveral,
         Descriptors.PrefabLinkDisagreesWithGame,
-        Descriptors.XPathInvalid);
+        Descriptors.XPathInvalid,
+        Descriptors.HoldsForSomeVersions);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -77,8 +78,9 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
             .ToList();
         var resolver = new ScopeResolver(hosts, mixins);
         var walker = new PrefabWalker(sources, resolver, hosts, report);
-        var configurations = gameFiles.Count > 0 ? GameGui.Configurations(gameFiles, context.CancellationToken) : [];
-        var checker = new GamePatchChecker(configurations, sources, context.CancellationToken);
+        var gameVersions = GameVersions.Of(context.Options);
+        var game = gameFiles.Count > 0 ? GameGui.Load(gameFiles, gameVersions, context.CancellationToken) : GameSet.Empty(gameVersions);
+        var checker = new GamePatchChecker(game, sources, context.CancellationToken);
 
         foreach (var patch in sources.Patches)
         {

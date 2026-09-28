@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 using NUnit.Framework;
 
 using System;
@@ -18,7 +20,7 @@ public class TargetsTests
     private const string Package = "Fake.GUI";
 
     [Test]
-    public void TheGamesFiles_ReachTheCompilerTaggedWithTheirPackage_AndTheModsDoNot_AndTheGameVersionReachesIt()
+    public void TheGamesFiles_ReachTheCompilerTaggedWithTheirPackage_AndTheModsDoNot_AndTheGameVersionsReachIt()
     {
         var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "uix-targets-" + Guid.NewGuid().ToString("N"))).FullName;
         try
@@ -46,19 +48,24 @@ public class TargetsTests
                     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
                   </PropertyGroup>
                   <Import Project="{targets}" />
-                  <!-- After the targets, as Bannerlord.BUTRModule.Sdk sets it in its Sdk.targets -->
+                  <!-- After the targets, as Bannerlord.BUTRModule.Sdk sets them in its Sdk.targets, from supported-game-versions.txt -->
                   <PropertyGroup>
                     <GameVersion>1.4.8</GameVersion>
                   </PropertyGroup>
+                  <ItemGroup>
+                    <SGVItem Include="v1.4.8" />
+                    <SGVItem Include="v1.3.4" />
+                  </ItemGroup>
                 </Project>
                 """);
 
             Run(Path.Combine(root, "mod"), "msbuild Mod.csproj -restore -t:GenerateMSBuildEditorConfigFile -nologo -v:q");
 
-            var editorconfig = File.ReadAllLines(Path.Combine(root, "mod", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig"));
-            Assert.That(editorconfig.TakeWhile(l => !l.StartsWith("[", StringComparison.Ordinal)).Select(l => l.Trim()),
-                Has.Member("build_property.GameVersion = 1.4.8"), "The game version, set after the targets");
-            var sections = Sections(editorconfig);
+            var path = Path.Combine(root, "mod", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig");
+            var global = GlobalOptions(path);
+            Assert.That(global["build_property.GameVersion"], Is.EqualTo("1.4.8"), "The game version, set after the targets");
+            Assert.That(global["build_property.UIExtenderExGameVersions"], Is.EqualTo("v1.4.8,v1.3.4"), "The supported versions, from the SDK's items");
+            var sections = Sections(File.ReadAllLines(path));
             Assert.That(PackageOf(sections, "GameMovie.json"), Is.EqualTo(Package), "The game's prefab tree");
             Assert.That(PackageOf(sections, "manifest.json"), Is.EqualTo(Package), "The game's data");
             Assert.That(sections.Keys.Any(k => k.EndsWith("ModMovie.xml", StringComparison.Ordinal)), Is.True, "The mod's prefab is an additional file");
@@ -75,6 +82,51 @@ public class TargetsTests
                 // A build server may still hold a file; the folder is under the temp path
             }
         }
+    }
+
+    /// <summary>
+    /// A list of versions set by hand with semicolons, as MSBuild lists are written, reaches the compiler whole: in an
+    /// editorconfig a ; starts a comment, and the compiler read the first version alone before the targets wrote commas.
+    /// </summary>
+    [Test]
+    public void SupportedVersionsSetByHand_ReachTheCompilerWhole()
+    {
+        var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "uix-targets-" + Guid.NewGuid().ToString("N"))).FullName;
+        try
+        {
+            var targets = Path.Combine(TestContext.CurrentContext.TestDirectory, "Packaging", "Bannerlord.UIExtenderEx.Analyzers.targets");
+            Write(root, "mod/Mod.csproj", $"""
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <TargetFramework>netstandard2.0</TargetFramework>
+                    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+                    <UIExtenderExGameVersions>v1.2.12;v1.3.4;v1.4.8</UIExtenderExGameVersions>
+                  </PropertyGroup>
+                  <Import Project="{targets}" />
+                </Project>
+                """);
+            Run(Path.Combine(root, "mod"), "msbuild Mod.csproj -restore -t:GenerateMSBuildEditorConfigFile -nologo -v:q");
+            var global = GlobalOptions(Path.Combine(root, "mod", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig"));
+            Assert.That(global["build_property.UIExtenderExGameVersions"], Is.EqualTo("v1.2.12,v1.3.4,v1.4.8"));
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(root, true);
+            }
+            catch (IOException)
+            {
+                // A build server may still hold a file; the folder is under the temp path
+            }
+        }
+    }
+
+    /// <summary>The build properties as the compiler reads them: through Roslyn's own editorconfig parser.</summary>
+    private static IReadOnlyDictionary<string, string> GlobalOptions(string path)
+    {
+        var config = AnalyzerConfig.Parse(File.ReadAllText(path), path);
+        return AnalyzerConfigSet.Create(new[] { config }).GlobalConfigOptions.AnalyzerOptions;
     }
 
     private static void Write(string root, string relative, string text)

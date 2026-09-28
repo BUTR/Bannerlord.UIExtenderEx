@@ -283,6 +283,21 @@ internal static class Descriptors
         helpLinkUri: HelpBase + "uix0023",
         customTags: WellKnownDiagnosticTags.CompilationEnd);
 
+    /// <summary>
+    /// UIX0020 or UIX0021 for some of the game versions checked only. A rule of its own, so that a mod can set how much a
+    /// finding that holds for one version weighs apart from one that holds for all.
+    /// </summary>
+    public static readonly DiagnosticDescriptor HoldsForSomeVersions = new(
+        id: "UIX0024",
+        title: "Patch fails in some of the supported game versions",
+        messageFormat: "In {0} only: {1}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "With the Bannerlord.ReferenceAssemblies.GUI.v2.All package referenced, every patch is applied to the game's prefab in each game version the mod supports. A finding of UIX0020 or UIX0021 that holds for some of those versions only is reported under this rule, naming them: in those versions the patch is not applied, or lands on the first of several nodes. Leave the patch out of those versions' builds with the SDK's version symbols, or change it to fit them.",
+        helpLinkUri: HelpBase + "uix0024",
+        customTags: WellKnownDiagnosticTags.CompilationEnd);
+
     // ---------------------------------------------------------------- [assembly: PrefabLink]
 
     /// <summary>Nothing at runtime reads the link; one that does not hold together would check the XML against the wrong ViewModel.</summary>

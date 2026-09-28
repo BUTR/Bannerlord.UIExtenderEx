@@ -34,4 +34,24 @@
     <CompilerVisibleProperty Include="GameVersion" />
   </ItemGroup>
 
+  <!--
+  The game versions the mod supports, for the Bannerlord.ReferenceAssemblies.GUI.v2.All package, which holds every
+  version: each patch is checked against each of them. Bannerlord.BUTRModule.Sdk reads supported-game-versions.txt into
+  SGVItem items; set UIExtenderExGameVersions (v1.2.12;v1.3.4) to name them otherwise. An item cannot become a property
+  while the project is evaluated, so the target copies it just before the editorconfig is written. The list is written
+  with commas: in an editorconfig a ; starts a comment, so the compiler would read the first version alone.
+  OverrideGameVersion is set in the SDK's build per version, which the analyzer uses to report a finding in one of those
+  builds only.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="UIExtenderExGameVersions" />
+    <CompilerVisibleProperty Include="OverrideGameVersion" />
+  </ItemGroup>
+  <Target Name="_UIExtenderExGameVersions" BeforeTargets="GenerateMSBuildEditorConfigFileCore">
+    <PropertyGroup>
+      <UIExtenderExGameVersions Condition="'$(UIExtenderExGameVersions)' == '' AND '@(SGVItem)' != ''">@(SGVItem, ',')</UIExtenderExGameVersions>
+      <UIExtenderExGameVersions>$(UIExtenderExGameVersions.Replace(';', ','))</UIExtenderExGameVersions>
+    </PropertyGroup>
+  </Target>
+
 </Project>

@@ -10,7 +10,7 @@ namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 /// UIX0020 to UIX0023, and the binding rules against the game's scope: patches applied to the game's own prefabs, from
 /// GUI packages in the layout of <c>Bannerlord.ReferenceAssemblies.GUI.v2</c>.
 /// </summary>
-public class GamePrefabRuleTests
+public partial class GamePrefabRuleTests
 {
     /// <summary>The game's ViewModels, in the mod's compilation as the reference assemblies put them there.</summary>
     private const string Mod = """
