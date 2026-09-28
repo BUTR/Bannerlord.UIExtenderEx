@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Prefab Links | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Prefab Links | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/PrefabLink.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="prefab-links">Prefab Links</h1>
+
+<p>Extending a game screen usually takes two pieces: a <a href="ViewModelMixin.html">ViewModel Mixin</a> that adds members to the game's
+ViewModel, and a <a href="PrefabExtensionInsertPatch.html">prefab patch</a> that inserts the XML binding them. Nothing in either says
+they belong together. <code>[assembly: PrefabLink]</code> does: it names the patch, the ViewModel its XML binds, and the mixin whose
+members it binds.</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+
+[assembly: PrefabLink(typeof(ModOptionsPagePatch), typeof(OptionsVM), typeof(OptionsVMMixin))]
+[assembly: PrefabLink(&quot;ModOptionsView_MCM&quot;, typeof(ModOptionsVM))]
+
+[ViewModelMixin]
+internal sealed class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+{
+    public OptionsVMMixin(OptionsVM vm) : base(vm) { }
+
+    [DataSourceProperty] public ModOptionsVM ModOptions { get; } = new();
+    [DataSourceProperty] public int DescriptionWidth { get; set; }
+}
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::Widget[@Id='OptionsPanel']&quot;)]
+internal sealed class ModOptionsPagePatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Child;
+
+    [PrefabExtensionText]
+    public string GetContent() =&gt; &quot;&lt;ModOptionsView_MCM DataSource=\&quot;{ModOptions}\&quot; /&gt;&quot;;
+}
+</code></pre>
+<p>The attribute comes with <a href="../general/Analyzers.html">Bannerlord.UIExtenderEx.Analyzers</a>: with the package referenced,
+<code>[assembly: PrefabLink]</code> compiles against any UIExtenderEx 2.x. The package adds it to your project as an internal type
+when your UIExtenderEx does not have one, and leaves no trace of your links in the built assembly. UIExtenderEx 3.0
+declares it itself; your links compile unchanged against either.</p>
+<p>Assembly attributes can go in any file of the project. Keeping all of a mod's links in one file, such as <code>UILinks.cs</code>,
+gives a single list of every screen the mod changes and what drives each change.</p>
+<h2 id="what-it-links">What it links</h2>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First</td>
+<td>The prefab patch: a class marked <code>[PrefabExtension]</code> deriving from <code>PrefabExtensionInsertPatch</code> or <code>PrefabExtensionSetAttributePatch</code>, or from one of the v1 patches in <code>Bannerlord.UIExtenderEx.Prefabs</code>. Or, as a string, a prefab of your own: the name you register it under with <code>WidgetFactoryManager.CreateAndRegister</code>, or its file name when you do not register it.</td>
+</tr>
+<tr>
+<td>Second</td>
+<td>The ViewModel the XML binds where it goes in. For a patch, the one at the node the XPath selects. For your own prefab, the one at its root.</td>
+</tr>
+<tr>
+<td>Third (optional)</td>
+<td>The mixin whose members the XML binds. It has to be attached to that ViewModel: it extends it, or it extends a base of it and has <code>handleDerived: true</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>A patch can have several links, one per mixin it binds, as long as they all name the same ViewModel. The XML binds one
+ViewModel where it goes in.</p>
+<h2 id="what-reads-it">What reads it</h2>
+<p><a href="../general/Analyzers.html">Bannerlord.UIExtenderEx.Analyzers</a> reads it while you build. UIExtenderEx does not read it at
+runtime: a link changes nothing about how your UI is registered or applied.</p>
+<p>Without a link, the analyzer works out a patch's ViewModel from your mixins: the ViewModel one of them extends that has
+the names the patch binds, with at least one name added by a mixin. With a link, it takes the ViewModel you name, and:</p>
+<ul>
+<li>checks every binding and command in the patch, and in the prefabs it reaches, against that ViewModel and your mixins
+on it (UIX0015)</li>
+<li>checks that the link holds together: the patch or prefab exists, the ViewModel is one, and the mixin is attached to it
+(UIX0018)</li>
+<li>checks that the XML binds at least one member of the mixin where it goes in, so a link cannot outlive the bindings it
+was written for (UIX0019)</li>
+</ul>
+<h2 id="when-to-write-one">When to write one</h2>
+<p>Inference covers the common case, a patch binding what your mixin adds. Link the patch when:</p>
+<ul>
+<li><strong>It binds only members of a game ViewModel.</strong> No mixin adds any of its names, so there is nothing to infer from, and
+each name is reported as UIX0016.</li>
+<li><strong>Several of your mixins could answer.</strong> Inference takes the ViewModel that has the most of the patch's names, which
+may not be the one you meant.</li>
+<li><strong>It is your own prefab, reached from nowhere the build can follow.</strong> A replacement for a game prefab, such as
+Diplomacy's <code>ClansPanel.xml</code>, is loaded by the game's code. Without a link the analyzer checks it only when every name
+at its root resolves on one of your mixins' ViewModels, one of them added by a mixin.</li>
+<li><strong>You want the pairing checked.</strong> A link with a mixin is reported when the patch stops binding that mixin's members,
+after a rename or a move of the patch to another screen.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 09/27/2026 15:16:35 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    dcae903b8663f01000f38a880380434ceef20a2e
+</code></pre><pre><code>Bannerlord.UIExtenderEx.Analyzers and its code fixes for the v1/v2 API
+</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/PrefabLink.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2024 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
