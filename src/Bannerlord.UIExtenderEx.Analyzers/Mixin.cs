@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,9 +7,9 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
 /// <summary>
-/// A type marked <c>[ViewModelMixin]</c>, read the way the runtime reads it: <c>UIExtenderRuntime.Register</c> for the
-/// attribute, <c>ViewModelComponent.GetViewModelType</c> for the ViewModel, and
-/// <c>ViewModelComponent.InitializeMixinsForVMInstance</c> for the members it adds.
+/// Represents a type annotated with <c>[ViewModelMixin]</c>, evaluated according to UIExtenderEx runtime semantics:
+/// attribute configuration from <c>UIExtenderRuntime.Register</c>, target ViewModel discovery from <c>ViewModelComponent.GetViewModelType</c>,
+/// and member injection from <c>ViewModelComponent.InitializeMixinsForVMInstance</c>.
 /// </summary>
 internal sealed class Mixin
 {
@@ -17,22 +17,21 @@ internal sealed class Mixin
     public AttributeData Attribute { get; }
 
     /// <summary>
-    /// What <c>GetViewModelType</c> answers: the argument of the closed <c>BaseViewModelMixin&lt;TViewModel&gt;</c> among the
-    /// base types; for a mixin implementing <c>IViewModelMixin</c> some other way, the first type argument of the first
-    /// type from the mixin up that implements it.
+    /// The target ViewModel type argument resolved by <c>ViewModelComponent.GetViewModelType</c> (from
+    /// <c>BaseViewModelMixin&lt;TViewModel&gt;</c> or the primary type argument of an <c>IViewModelMixin</c> interface implementation).
     /// </summary>
     public ITypeSymbol? ViewModelArgument { get; }
 
-    /// <summary><see cref="ViewModelArgument"/> when it is a ViewModel type the rules can check against.</summary>
+    /// <summary>The resolved host ViewModel symbol, or <see langword="null"/> if the type argument is invalid or cannot be verified.</summary>
     public INamedTypeSymbol? Host { get; }
 
     public string? RefreshMethodName { get; }
     public bool HandleDerived { get; }
 
-    /// <summary>Public properties carrying <c>[DataSourceProperty]</c>, inherited ones included, as <c>Type.GetProperties()</c> returns them.</summary>
+    /// <summary>Public instance properties annotated with <c>[DataSourceProperty]</c> (including inherited properties).</summary>
     public ImmutableArray<IPropertySymbol> Properties { get; }
 
-    /// <summary>Public methods carrying <c>[DataSourceMethod]</c>, inherited ones included, as <c>Type.GetMethods()</c> returns them.</summary>
+    /// <summary>Public instance methods annotated with <c>[DataSourceMethod]</c> (including inherited methods).</summary>
     public ImmutableArray<IMethodSymbol> Methods { get; }
 
     public Location Location => Type.Locations.FirstOrDefault() ?? Location.None;
@@ -61,7 +60,7 @@ internal sealed class Mixin
         if (attribute is null)
             return null;
 
-        // Every constructor of the attribute takes the refresh method name as a string, handleDerived as a bool, or both
+        // Parses constructor arguments for optional refresh method names (string) and handleDerived flags (bool)
         string? refreshMethodName = null;
         var handleDerived = false;
         foreach (var argument in attribute.ConstructorArguments)
@@ -101,9 +100,8 @@ internal sealed class Mixin
     }
 
     /// <summary>
-    /// Public members up the chain, the most derived declaration of a name winning. An override hides what it overrides,
-    /// and carries only its own attributes, as a <c>PropertyInfo</c> or <c>MethodInfo</c> does; so an override without the
-    /// attribute adds nothing even when the member it overrides has it.
+    /// Collects public members annotated with the specified attribute across the inheritance hierarchy, prioritizing
+    /// the most derived declaration and respecting reflection behavior (overrides without explicit attributes are not registered).
     /// </summary>
     private static ImmutableArray<T> CollectMarked<T>(INamedTypeSymbol type, INamedTypeSymbol? attribute) where T : class, ISymbol
     {
@@ -136,7 +134,7 @@ internal sealed class Mixin
 
     private static bool IsViewModel(INamedTypeSymbol type, KnownTypes known)
     {
-        // Without the game's ViewModel referenced there is nothing to tell a ViewModel by; take the argument as given
+        // When TaleWorlds.Library.ViewModel is not referenced in compilation, accepts any class symbol as potential ViewModel
         if (known.ViewModel is null)
             return type.TypeKind == TypeKind.Class;
         for (var node = type; node is not null; node = node.BaseType)

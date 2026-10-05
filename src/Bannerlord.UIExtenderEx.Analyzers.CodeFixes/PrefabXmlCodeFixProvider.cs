@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -11,21 +11,24 @@ using System.Threading.Tasks;
 namespace Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
 /// <summary>
-/// UIX0012 to UIX0016: a misspelled attribute, value, parameter or binding replaced by one of the names the analyzer
-/// found close to it. The XML is a prefab file or a string literal in a patch, so the fix edits either.
-/// <para>
-/// The report points at the attribute's name. The text to replace is that name, or is in the attribute's value after it,
-/// as the report says; a report the analyzer could only place on a whole literal gets no fix, as the text in it cannot be
-/// told apart from the same text elsewhere in the literal.
-/// </para>
+/// Provides code fixes for Gauntlet XML diagnostics (<c>UIX0012</c> through <c>UIX0016</c> and multi-version variant <c>UIX0024</c>):
+/// corrects misspelled widget attributes, enum/boolean values, prefab parameters, and ViewModel binding paths in both
+/// standalone XML files and C# XML string literals.
 /// </summary>
+/// <remarks>
+/// Targets either the attribute name itself or occurrences within the attribute value, as specified by diagnostic properties.
+/// Diagnostics attached to raw string literals without granular span mapping omit fixes when multiple occurrences are ambiguous.
+/// Multi-version diagnostics (<c>UIX0024</c>) offer fixes only when suggestions remain valid across all evaluated game versions.
+/// </remarks>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PrefabXmlCodeFixProvider),
     DocumentKinds = new[] { nameof(TextDocumentKind.Document), nameof(TextDocumentKind.AdditionalDocument) }), Shared]
 public sealed class PrefabXmlCodeFixProvider : CodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create("UIX0012", "UIX0013", "UIX0014", "UIX0015", "UIX0016");
+    private static readonly ImmutableHashSet<string> FixedForSomeVersions = ImmutableHashSet.Create("UIX0012", "UIX0013", "UIX0015");
 
-    // Each fix names the text it puts in, so fixing all at once has nothing to apply everywhere
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create("UIX0012", "UIX0013", "UIX0014", "UIX0015", "UIX0016", "UIX0024");
+
+    // Fix-all is not supported because each suggestion offers specific replacement text tailored to that diagnostic
     public override FixAllProvider? GetFixAllProvider() => null;
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -36,6 +39,8 @@ public sealed class PrefabXmlCodeFixProvider : CodeFixProvider
         foreach (var diagnostic in context.Diagnostics)
         {
             var properties = diagnostic.Properties;
+            if (diagnostic.Id == "UIX0024" && (!properties.TryGetValue(FixData.Rule, out var rule) || !FixedForSomeVersions.Contains(rule!)))
+                continue;
             if (!properties.TryGetValue(FixData.Replace, out var replace) || string.IsNullOrEmpty(replace)
                 || !properties.TryGetValue(FixData.Where, out var where))
             {
@@ -64,8 +69,8 @@ public sealed class PrefabXmlCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Where <paramref name="word"/> is written, as a whole word: in the span, or after it on the same line. In a span that
-    /// is a literal, only when the word is there once.
+    /// Locates whole-word occurrences of <paramref name="word"/> within <paramref name="span"/> or immediately following
+    /// it on the same line, resolving string literal matches only when single non-ambiguous occurrences exist.
     /// </summary>
     private static TextSpan? Find(SourceText text, TextSpan span, string word, bool inSpan)
     {

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -7,17 +7,23 @@ using System.Linq;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
-/// <summary>What more than one fix needs.</summary>
+/// <summary>
+/// Common syntax manipulation and symbol inspection helpers shared across analyzer code fix providers.
+/// </summary>
 internal static class Fixes
 {
-    /// <summary>The line break the document uses, so an inserted line matches the lines around it.</summary>
+    /// <summary>
+    /// Detects the line break sequence utilized by the source document to match surrounding indentation and line endings.
+    /// </summary>
     public static string EndOfLine(SourceText text)
     {
         var line = text.Lines.FirstOrDefault(l => l.EndIncludingLineBreak > l.End);
         return line.EndIncludingLineBreak - line.End == 2 ? "\r\n" : "\n";
     }
 
-    /// <summary>The whitespace before a node's first token on its line.</summary>
+    /// <summary>
+    /// Retrieves the leading whitespace trivia preceding the first token on the line containing the specified syntax node.
+    /// </summary>
     public static string IndentationOf(SyntaxNode node)
     {
         var trivia = node.GetLeadingTrivia().LastOrDefault();
@@ -25,8 +31,8 @@ internal static class Fixes
     }
 
     /// <summary>
-    /// The member with its accessibility changed to public: every accessibility keyword it has replaced by one
-    /// <c>public</c>, in the place of the first, or put in front when it had none.
+    /// Adjusts member accessibility modifiers to <c>public</c>, replacing existing accessibility keywords or inserting
+    /// <c>public</c> when modifiers are absent.
     /// </summary>
     public static MemberDeclarationSyntax MakePublic(MemberDeclarationSyntax member)
     {
@@ -40,7 +46,7 @@ internal static class Fixes
             return member.WithModifiers(SyntaxFactory.TokenList(result));
         }
 
-        // No modifier: the leading trivia of the token after the attributes moves onto the new keyword
+        // Moves leading trivia from the post-attribute token onto the newly inserted public modifier
         var start = member.AttributeLists.Count > 0 ? member.AttributeLists.Last().Span.End : member.SpanStart;
         var next = member.DescendantTokens().First(t => t.SpanStart >= start);
         var keyword = SyntaxFactory.Token(next.LeadingTrivia, SyntaxKind.PublicKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space));
@@ -51,7 +57,10 @@ internal static class Fixes
     private static bool IsAccessibility(SyntaxToken token) => token.Kind() is
         SyntaxKind.PublicKeyword or SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword;
 
-    /// <summary>The type argument of <c>BaseViewModelMixin&lt;TViewModel&gt;</c> among the type's base types.</summary>
+    /// <summary>
+    /// Resolves the generic type argument <c>TViewModel</c> from the mixin's base type hierarchy implementing
+    /// <c>BaseViewModelMixin&lt;TViewModel&gt;</c>.
+    /// </summary>
     public static INamedTypeSymbol? ViewModelOf(INamedTypeSymbol mixin)
     {
         for (var type = mixin.BaseType; type is not null; type = type.BaseType)

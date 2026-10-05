@@ -4,6 +4,7 @@ using BUTR.MessageBoxPInvoke.Helpers;
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using TaleWorlds.Localization;
@@ -13,23 +14,26 @@ namespace Bannerlord.UIExtenderEx;
 
 public class SubModule : MBSubModuleBase
 {
-#if !ENABLE_PARTIAL_AUTOGEN
     static SubModule()
     {
-        // Disable AutoGens as early as possible
-        try
+        // Fallback: disables native pre-compiled prefab resolution if requested via DisableGeneratedPrefabs.
+        // Synchronized with UIConfig.DoNotUseGeneratedPrefabs via UIConfigPatch.
+        if (UIExtenderExSettings.Instance.DisableGeneratedPrefabs)
         {
-            // Force load TaleWorlds.Engine.GauntletUI as it might not be loaded yet!
-            System.Reflection.Assembly.Load("TaleWorlds.Engine.GauntletUI");
-        }
-        catch (Exception e)
-        {
-            Utils.MessageUtils.Fail($"Failed to load 'TaleWorlds.Engine.GauntletUI'! Exception: {e}");
-        }
+            // Disable pre-compiled prefabs as early as possible.
+            try
+            {
+                // Force load TaleWorlds.Engine.GauntletUI to ensure UIConfig is available.
+                System.Reflection.Assembly.Load("TaleWorlds.Engine.GauntletUI");
+            }
+            catch (Exception e)
+            {
+                Utils.MessageUtils.Fail($"Failed to load 'TaleWorlds.Engine.GauntletUI'! Exception: {e}");
+            }
 
-        TaleWorlds.Engine.GauntletUI.UIConfig.DoNotUseGeneratedPrefabs = true;
+            TaleWorlds.Engine.GauntletUI.UIConfig.DoNotUseGeneratedPrefabs = true;
+        }
     }
-#endif
 
     // We can't rely on EN since the game assumes that the default locale is always English
     private const string SWarningTitle =
@@ -40,6 +44,25 @@ public class SubModule : MBSubModuleBase
     public SubModule()
     {
         ValidateLoadOrder();
+    }
+
+    protected override void OnSubModuleLoad()
+    {
+        base.OnSubModuleLoad();
+
+        if (!UIExtenderExSettings.Instance.DisableGeneratedPrefabs)
+        {
+            // Execute UIExtender's static constructor eagerly to initialize core Harmony patches.
+            // Ensures movie patches are installed before dependent runtimes initialize during OnSubModuleLoad.
+            try
+            {
+                RuntimeHelpers.RunClassConstructor(typeof(UIExtender).TypeHandle);
+            }
+            catch (Exception e)
+            {
+                Utils.MessageUtils.DisplayUserError("Failed to apply UIExtenderEx patches! Exception: {0}", e);
+            }
+        }
     }
 
     private static void ValidateLoadOrder()

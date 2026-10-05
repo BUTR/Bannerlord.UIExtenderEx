@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using System.Threading.Tasks;
 
@@ -6,7 +6,10 @@ using static Bannerlord.UIExtenderEx.Analyzers.Tests.CodeFixVerifier;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
-/// <summary>The code fixes, each applied to a report of its rule and compared with the code it should leave.</summary>
+/// <summary>
+/// Tests Roslyn code fix providers by applying registered fixes to diagnostic reports and asserting the resulting
+/// document text against expected outputs.
+/// </summary>
 public class CodeFixTests
 {
     private const string HostVM = """
@@ -40,7 +43,9 @@ public class CodeFixTests
                 """, "Use 'RefreshValues'");
         }
 
-        /// <summary>A private method of a ViewModel in another assembly: nameof cannot reach it, the string can.</summary>
+        /// <summary>
+        /// Verifies that private methods in referenced external assemblies remain string literals rather than <c>nameof</c> expressions.
+        /// </summary>
         [Test]
         public async Task UIX0003_AMethodTheMixinCannotSee_StaysAString()
         {
@@ -449,7 +454,9 @@ public class CodeFixTests
                 "Change to 'Text'");
         }
 
-        /// <summary>A raw literal is reported on as a whole: fixed only when the name is in it once.</summary>
+        /// <summary>
+        /// Verifies that ambiguous occurrences in raw string literals do not offer automated replacements when exact source mapping is unavailable.
+        /// </summary>
         [Test]
         public async Task UIX0012_ANameTwiceInALiteralTheAnalyzerCannotMap_HasNoFix()
         {
@@ -520,7 +527,9 @@ public class CodeFixTests
                 "Change to 'Items'");
         }
 
-        /// <summary>The binding is named in the attribute's value, not in its name: the attribute keeps its name.</summary>
+        /// <summary>
+        /// Verifies that when a binding path matches the target attribute name, the code fix updates the attribute value rather than the attribute name.
+        /// </summary>
         [Test]
         public async Task UIX0015_ABindingNamedLikeItsAttribute_ReplacesTheValue()
         {

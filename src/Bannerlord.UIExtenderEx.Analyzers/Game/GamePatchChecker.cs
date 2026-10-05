@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Analyzers.Prefabs;
+﻿using Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
 using Microsoft.CodeAnalysis;
 
@@ -11,18 +11,15 @@ using System.Xml.XPath;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
-/// <summary>Where a patch lands in one configuration: the tag of the node its XPath selects, and what binds there.</summary>
+/// <summary>Represents the resolution target of a patch within a specific game configuration, including selected node tag and active scopes.</summary>
 internal sealed record PatchTarget(GameConfiguration Configuration, string Tag, IReadOnlyList<GameScope> Scopes);
 
 /// <summary>
-/// Applies a patch's XPath the way <c>PrefabComponent.RegisterPatch</c> does: <c>SelectSingleNode</c> on the document
-/// of the prefab the patch names, which takes the first match. Reports an XPath that selects nothing (UIX0020) or more
-/// than one node (UIX0021), in every configuration of every game version checked, and hands back where the patch
-/// lands in the version the compilation builds against, so its XML can be checked against the game's scope there.
+/// Evaluates patch XPath expressions against target prefab documents, mirroring the runtime resolution of <c>PrefabComponent.RegisterPatch</c>.
+/// Detects and reports XPath expressions that match zero nodes (UIX0020) or multiple nodes (UIX0021) across all evaluated game configurations.
 /// <para>
-/// A finding is reported once. When it holds for every version checked, under its own rule; when it holds for some of
-/// them only, as UIX0024, naming those versions. In one of <c>Bannerlord.BUTRModule.Sdk</c>'s builds per version, only
-/// the build of the newest version it holds for reports it.
+/// When a diagnostic applies across all evaluated game versions, it is reported under its primary rule ID.
+/// When it applies only to a subset of versions, it is reported under UIX0024 with the affected version range specified.
 /// </para>
 /// </summary>
 internal sealed class GamePatchChecker
@@ -47,8 +44,8 @@ internal sealed class GamePatchChecker
     }
 
     /// <summary>
-    /// The XPath is compiled as <c>SelectSingleNode</c> compiles it; null when that throws, or when it evaluates to
-    /// something other than nodes, which throws too.
+    /// Validates an XPath expression for syntax errors and return type, verifying that it evaluates to a node set.
+    /// Returns an error message if invalid, or <see langword="null"/> if compilation succeeds.
     /// </summary>
     public static string? WhyXPathIsInvalid(string xpath)
     {
@@ -63,9 +60,8 @@ internal sealed class GamePatchChecker
     }
 
     /// <summary>
-    /// Checks the patch's XPath in the prefab it names: the mod's own prefab when it has one by that name, which is the
-    /// one the game loads; otherwise the game's, in each configuration that has it. Null when the prefab is neither,
-    /// as another mod's is.
+    /// Evaluates a patch's XPath across the target prefab: resolves against the mod's own prefab if present,
+    /// or against vanilla game prefabs across all configured game versions. Returns the resolved patch targets.
     /// </summary>
     public IReadOnlyList<PatchTarget>? Check(PrefabPatch patch, Action<Diagnostic> report)
     {
@@ -98,8 +94,8 @@ internal sealed class GamePatchChecker
             }
             if (nodes.Count > 1)
                 several.Add((configuration, nodes.Count));
-            // The scope at the node is read against the compilation's types, which are the primary version's
-            if (_game.IsPrimary(configuration) && nodes[0] is XmlElement target)
+            // Evaluates target node in each configuration to resolve active scopes from types.json.
+            if (nodes[0] is XmlElement target)
             {
                 var inside = patch.InsertType is null or "Child" || patch.IsSetAttribute;
                 targets.Add(new PatchTarget(configuration, target.Name, Resolver(configuration).ScopesAt(prefab, target, inside)));
@@ -116,9 +112,8 @@ internal sealed class GamePatchChecker
     }
 
     /// <summary>
-    /// Reports a finding that holds in <paramref name="holds"/> of the configurations that have the prefab. Where it
-    /// holds is named only as far as it is not everywhere: the DLC configurations of a version, the versions of the
-    /// set. Holding for some versions only, it is UIX0024, carrying the rule's message and the rule in its properties.
+    /// Emits a diagnostic for a finding that occurs in <paramref name="holds"/> configurations out of <paramref name="present"/>.
+    /// If the finding affects only a subset of versions, it is emitted as UIX0024 specifying the applicable version range.
     /// </summary>
     private void Report(Action<Diagnostic> report, DiagnosticDescriptor descriptor, Location location,
         IReadOnlyList<GameConfiguration> present, IReadOnlyList<GameConfiguration> holds, Func<string, object[]> arguments)
@@ -128,7 +123,7 @@ internal sealed class GamePatchChecker
         if (!_game.Versions.Reports(holdVersions))
             return;
 
-        // Each version it holds for: alone when it holds in all of that version's configurations, else with which
+        // Formats each affected version: standalone if all configurations are affected, otherwise annotated with DLC details.
         string Part(string version)
         {
             var inVersion = present.Count(x => Same(x.Version, version));
@@ -150,10 +145,9 @@ internal sealed class GamePatchChecker
     }
 
     /// <summary>
-    /// The versions a finding holds for, each as <paramref name="part"/> names it. Three or more that follow each other
-    /// among the versions checked, each holding in all its configurations, read as a range: v1.0.0 to v1.3.15.
+    /// Formats a list of game versions into a readable string, collapsing contiguous sequences of three or more versions into ranges (e.g. "v1.0.0 to v1.3.15").
     /// </summary>
-    private static string Join(IReadOnlyList<string> holds, IReadOnlyList<string> checkedVersions, Func<string, string> part)
+    internal static string Join(IReadOnlyList<string> holds, IReadOnlyList<string> checkedVersions, Func<string, string> part)
     {
         var parts = new List<string>();
         for (var i = 0; i < holds.Count;)
@@ -189,9 +183,8 @@ internal sealed class GamePatchChecker
     private const System.Xml.Linq.SaveOptions SaveOptionsNone = System.Xml.Linq.SaveOptions.None;
 
     /// <summary>
-    /// Whether the XPath selects a node in the XML one of this mod's patches inserts into the same prefab: a patch can
-    /// build on what another inserted before it. Another patch changing the prefab in a way the build cannot read may have
-    /// inserted it too.
+    /// Determines whether the XPath targets a node introduced by another patch within the same mod,
+    /// accounting for chained prefab modifications.
     /// </summary>
     private bool InsertedByTheMod(PrefabPatch patch, string xpath)
     {
@@ -214,8 +207,7 @@ internal sealed class GamePatchChecker
     private static int Count(XmlDocument document, string xpath) => document.SelectNodes(xpath)?.Count ?? 0;
 
     /// <summary>
-    /// A document loaded as <c>WidgetPrefab.LoadFrom</c> loads a prefab: without comments, and, as a default
-    /// <see cref="XmlDocument"/> does, without whitespace-only text. So an XPath counts the nodes the game counts.
+    /// Parses XML text into an <see cref="XmlDocument"/> with whitespace and comment settings identical to <c>WidgetPrefab.LoadFrom</c>.
     /// </summary>
     private static XmlDocument? Load(string text)
     {

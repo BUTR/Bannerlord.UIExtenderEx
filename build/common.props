@@ -1,28 +1,31 @@
-<!--EXTERNAL_PROPERTIES: BANNERLORD_GAME_DIR;BANNERLORD_STABLE_DIR;BANNERLORD_BETA_DIR-->
+<!--EXTERNAL_PROPERTIES: BANNERLORD_GAME_DIR-->
 <Project>
 
   <!--Development Variables-->
   <PropertyGroup>
     <!--Module Version-->
-    <Version>2.13.3</Version>
+    <Version>3.0.0</Version>
     <!--Harmony Version-->
-    <HarmonyVersion>2.2.2</HarmonyVersion>
+    <HarmonyVersion>2.3.3</HarmonyVersion>
     <HarmonyExtensionsVersion>3.2.0.77</HarmonyExtensionsVersion>
     <HarmonyAnalyzerVersion>1.0.1.50</HarmonyAnalyzerVersion>
     <BuildResourcesVersion>1.1.0.129</BuildResourcesVersion>
     <BUTRSharedVersion>3.0.0.142</BUTRSharedVersion>
     <BUTRModuleManagerVersion>6.0.247</BUTRModuleManagerVersion>
     <MCMVersion>5.5.3</MCMVersion>
+    <!--The C# compiler UIExtenderEx bundles. ILRepacked and internalized into Bannerlord.UIExtenderEx.Compiler,
+        so no copy of Roslyn or of its support assemblies ever enters the process under a shared name.-->
+    <RoslynVersion>5.9.0</RoslynVersion>
     <!--The Roslyn Bannerlord.UIExtenderEx.Analyzers compiles against: the oldest compiler it has to load in, the .NET 8
-        SDK and Visual Studio 2022 17.8.-->
+        SDK and Visual Studio 2022 17.8. Unrelated to RoslynVersion above.-->
     <AnalyzerRoslynVersion>4.8.0</AnalyzerRoslynVersion>
+    <!--The game's GUI data the analyzer package depends on: the newest bundle when it is packed.-->
+    <GuiBundleVersion>*</GuiBundleVersion>
     <!--Current Bannerlord Version-->
-    <GameVersion>1.0.0</GameVersion>
+    <GameVersion>1.3.4</GameVersion>
     <GameVersionWithPrefix>v$(GameVersion)</GameVersionWithPrefix>
     <!--Bannerlord's Root Folder. Leave empty if you want it to be tried to be autoresolved.-->
-    <GameFolder Condition="$(Configuration) == 'Stable_Debug' OR $(Configuration) == 'Stable_Release'">$(BANNERLORD_STABLE_DIR)</GameFolder>
-    <GameFolder Condition="$(Configuration) == 'Beta_Debug' OR $(Configuration) == 'Beta_Release'">$(BANNERLORD_BETA_DIR)</GameFolder>
-    <GameFolder Condition="$(BANNERLORD_STABLE_DIR) == '' AND $(BANNERLORD_BETA_DIR) == ''">$(BANNERLORD_GAME_DIR)</GameFolder>
+    <GameFolder>$(BANNERLORD_GAME_DIR)</GameFolder>
   </PropertyGroup>
 
   <!--Automatic Path Resolution-->

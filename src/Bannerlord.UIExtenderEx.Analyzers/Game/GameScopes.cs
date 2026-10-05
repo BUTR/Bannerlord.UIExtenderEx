@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
-/// <summary>What a point of a game prefab binds, by type name as types.json writes it.</summary>
+/// <summary>Represents the data-binding scope at a node in a game prefab, identified by type name from <c>types.json</c>.</summary>
 internal abstract record GameScope;
 
 internal sealed record ViewModelGameScope(string Type) : GameScope;
@@ -19,13 +19,13 @@ internal sealed record UnknownGameScope : GameScope
     public static readonly UnknownGameScope Instance = new();
 }
 
-/// <summary>A prefab as it is used: the scopes around its root widget, and the parameters it was handed.</summary>
+/// <summary>Represents the evaluation context of a prefab usage, including outer scope chain and passed parameters.</summary>
 internal sealed record PrefabContext(ImmutableList<GameScope> Chain, IReadOnlyDictionary<string, string> Parameters);
 
 /// <summary>
-/// The scope at a node of a game prefab, the way the loader binds it (see PrefabWalker for the rules): a movie's root
-/// binds the ViewModel it is loaded with, a <c>DataSource</c> path steps into a property, an <c>ItemTemplate</c> binds
-/// the elements of its list, and a prefab used by tag starts where the tag stands, with the parameters it passes.
+/// Resolves the data-binding scope at any element within a game prefab DOM, mirroring the loader's binding traversal:
+/// movie roots bind to paired ViewModels, <c>DataSource</c> attributes traverse property paths,
+/// <c>ItemTemplate</c> elements bind list item types, and tag-instantiated child prefabs inherit context and parameters.
 /// </summary>
 internal sealed class GameScopeResolver
 {
@@ -43,8 +43,9 @@ internal sealed class GameScopeResolver
     }
 
     /// <summary>
-    /// The scopes that bind at <paramref name="element"/> of <paramref name="prefab"/>: inside it, after its own
-    /// <c>DataSource</c>, or around it, where content placed next to it or in its stead binds.
+    /// Resolves active data-binding scopes at <paramref name="element"/> within <paramref name="prefab"/>.
+    /// If <paramref name="inside"/> is <see langword="true"/>, evaluates scopes within the element (following its own <c>DataSource</c>);
+    /// otherwise evaluates scopes surrounding the element.
     /// </summary>
     public IReadOnlyList<GameScope> ScopesAt(GamePrefab prefab, XmlElement element, bool inside)
     {
@@ -74,7 +75,7 @@ internal sealed class GameScopeResolver
             Add(result, new PrefabContext(ImmutableList.Create(root), defaults));
         }
 
-        // Wherever another game prefab uses this one by tag; the index says which do, so only those are rebuilt
+        // Evaluates tag usages in referencing prefabs, using the prefab index to filter candidates.
         foreach (var user in _configuration.Prefabs)
         {
             _cancellation.ThrowIfCancellationRequested();
@@ -115,7 +116,7 @@ internal sealed class GameScopeResolver
     private static IReadOnlyDictionary<string, string> Defaults(XmlDocument document)
     {
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        // Every child of <Parameters>, whatever its tag, as WidgetPrefab.LoadParameters reads them
+        // Parses child elements under <Parameters>, matching WidgetPrefab.LoadParameters behavior.
         if (document.DocumentElement is { Name: "Prefab" } prefab && prefab["Parameters"] is { } parameters)
         {
             foreach (var parameter in parameters.ChildNodes.OfType<XmlElement>())
@@ -127,7 +128,7 @@ internal sealed class GameScopeResolver
         return result;
     }
 
-    /// <summary>The scope chain at <paramref name="target"/>, walking down from the prefab's root widget.</summary>
+    /// <summary>Walks the hierarchy downward from the root widget to compute the scope chain at <paramref name="target"/>.</summary>
     private ImmutableList<GameScope> Walk(XmlElement target, PrefabContext context, bool inside)
     {
         // From the target up to the root widget, the element under Window
@@ -201,7 +202,7 @@ internal sealed class GameScopeResolver
         return _configuration.ViewModel(type) is not null ? new ViewModelGameScope(type) : UnknownGameScope.Instance;
     }
 
-    /// <summary><c>*Name</c> replaced by what the prefab was handed; null when it was handed nothing.</summary>
+    /// <summary>Substitutes prefab parameter references of the form <c>*Name</c> with passed parameter values.</summary>
     private static string? Substitute(string value, IReadOnlyDictionary<string, string> parameters) =>
         !value.StartsWith("*", StringComparison.Ordinal) ? value : parameters.TryGetValue(value.Substring(1), out var passed) ? passed : null;
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -6,9 +6,9 @@ using System.Text;
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
 /// <summary>
-/// Just enough JSON for the GUI packages' three files. An analyzer cannot carry System.Text.Json: the compiler that
-/// loads it may already have another version loaded. Objects come back as dictionaries, arrays as lists, numbers as
-/// doubles.
+/// Lightweight standalone JSON parser tailored for GUI package manifests and metadata tables.
+/// Avoids external dependencies such as <c>System.Text.Json</c> to prevent assembly loading conflicts in Roslyn analyzer hosts.
+/// Deserializes JSON objects as <see cref="IReadOnlyDictionary{TKey,TValue}"/>, arrays as <see cref="List{T}"/>, and numbers as <see cref="double"/>.
 /// </summary>
 internal static class Json
 {

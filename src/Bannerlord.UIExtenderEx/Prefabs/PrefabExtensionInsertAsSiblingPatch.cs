@@ -3,25 +3,33 @@
 namespace Bannerlord.UIExtenderEx.Prefabs;
 
 /// <summary>
-/// Patch that inserts prefab extension as a sibling to node specified by Xpath.
-/// Order is controlled by `Type` property.
+/// Inserts an extension snippet as a sibling to the node selected via XPath.
 /// </summary>
 public abstract class PrefabExtensionInsertAsSiblingPatch : IPrefabPatch
 {
     /// <summary>
-    /// Insert type enum - Prepend inserts snippet before sibling, Append - after
+    /// Defines sibling placement relative to the target node.
     /// </summary>
-    public enum InsertType { Prepend, Append }
+    public enum InsertType
+    {
+        /// <summary>Places snippet before the target sibling node.</summary>
+        Prepend,
+        /// <summary>Places snippet after the target sibling node.</summary>
+        Append
+    }
 
     /// <summary>
-    /// Type of the insert
+    /// Gets the sibling insertion placement.
     /// </summary>
     public virtual InsertType Type => InsertType.Append;
 
     /// <summary>
-    /// Name of the extension snippet, without `.xml`
+    /// Gets the name of the extension snippet without the file extension.
     /// </summary>
     public abstract string Id { get; }
 
+    /// <summary>
+    /// Retrieves the XML document containing the extension snippet.
+    /// </summary>
     public abstract XmlDocument GetPrefabExtension();
 }

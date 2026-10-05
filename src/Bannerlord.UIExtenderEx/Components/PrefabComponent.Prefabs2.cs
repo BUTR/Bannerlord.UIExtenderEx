@@ -4,6 +4,7 @@ using Bannerlord.UIExtenderEx.Utils;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,14 +13,14 @@ using System.Xml;
 namespace Bannerlord.UIExtenderEx.Components;
 
 /// <summary>
-/// Component that deals with Gauntlet prefab XML files
+/// Manages registration, filtering, and execution of Gauntlet prefab XML patches.
 /// </summary>
 internal partial class PrefabComponent
 {
     private readonly Lazy<IReadOnlyList<Type>> _contentAttributeTypes = new(() =>
     {
         var contentAttributeType = typeof(PrefabExtensionInsertPatch.PrefabExtensionContentAttribute);
-        return contentAttributeType.Assembly.GetTypes().Where(t => !t.IsAbstract && contentAttributeType.IsAssignableFrom(t)).ToList();
+        return [.. contentAttributeType.Assembly.GetTypes().Where(t => !t.IsAbstract && contentAttributeType.IsAssignableFrom(t))];
     });
 
     private delegate string StringSignature();
@@ -28,16 +29,23 @@ internal partial class PrefabComponent
     private delegate IEnumerable<XmlNode> IEnumerableXmlNodeSignature();
 
     /// <summary>
-    /// Register snippet insert patch
+    /// Registers a v2 snippet insert patch targeting the node selected via <paramref name="xpath"/>.
     /// </summary>
-    /// <param name="movie"></param>
-    /// <param name="xpath"></param>
-    /// <param name="patch"></param>
+    /// <param name="movie">The target movie name.</param>
+    /// <param name="xpath">The XPath expression selecting the target node.</param>
+    /// <param name="patch">The insert patch definition.</param>
     public void RegisterPatch(string movie, string? xpath, PrefabExtensionInsertPatch patch) => RegisterPatch(movie, xpath, patch.GetType(), node =>
     {
-        if (node.OwnerDocument is not { } ownerDocument)
+        // Remove patches do not require content; earlier versions required a dummy content member.
+        if (patch.Type == InsertType.Remove)
         {
-            MessageUtils.Fail($"XML original document for {movie} is null!");
+            if (node.ParentNode is not { } parentNode)
+            {
+                MessageUtils.Fail($"Trying to remove the root node of {movie}!");
+                return;
+            }
+
+            parentNode.RemoveChild(node);
             return;
         }
 
@@ -47,7 +55,21 @@ internal partial class PrefabComponent
             return;
         }
 
-        if (patch.Type != InsertType.Child && node.ParentNode is null)
+        PlaceNodes(movie, node, [.. nodes], patch.Type, patch.Index);
+    });
+
+    /// <summary>
+    /// Inserts <paramref name="nodes"/> relative to <paramref name="node"/> based on the specified <see cref="InsertType"/> and <paramref name="index"/>.
+    /// </summary>
+    private static void PlaceNodes(string movie, XmlNode node, IReadOnlyList<XmlNode> nodes, InsertType type, int index)
+    {
+        if (node.OwnerDocument is not { } ownerDocument)
+        {
+            MessageUtils.Fail($"XML original document for {movie} is null!");
+            return;
+        }
+
+        if (type != InsertType.Child && node.ParentNode is null)
         {
             MessageUtils.Fail($"Trying to place multiple root nodes into {movie}!");
             return;
@@ -55,11 +77,10 @@ internal partial class PrefabComponent
 
         var lastPlacedNode = default(XmlNode);
         var oldChildNodes = default(XmlNodeList);
-        var nodesArray = nodes!.ToArray();
         var firstNodeInserted = false;
-        for (var i = 0; i < nodesArray.Length; ++i)
+        for (var i = 0; i < nodes.Count; ++i)
         {
-            var currentNode = nodesArray[i];
+            var currentNode = nodes[i];
             if (!TryRemoveComments(currentNode))
             {
                 continue;
@@ -71,22 +92,28 @@ internal partial class PrefabComponent
             {
                 firstNodeInserted = true;
                 // Insert initial node.
-                lastPlacedNode = patch.Type switch
+                lastPlacedNode = type switch
                 {
-                    InsertType.Prepend => node.ParentNode!.InsertBefore(importedNode, node),
-                    InsertType.ReplaceKeepChildren => ReplaceKeepChildren(node, importedNode, patch.Index == 0 || nodesArray.Length == 1, out oldChildNodes),
+                    InsertType.Prepend => node.ParentNode?.InsertBefore(importedNode, node),
+                    InsertType.ReplaceKeepChildren => ReplaceKeepChildren(node, importedNode, index == 0 || nodes.Count == 1, out oldChildNodes),
                     InsertType.Replace => ReplaceNode(node, importedNode),
-                    InsertType.Child => InsertAsChild(node, importedNode, patch.Index),
-                    InsertType.Append => node.ParentNode!.InsertAfter(importedNode, node),
-                    InsertType.Remove => node.ParentNode!.RemoveChild(node),
+                    InsertType.Child => InsertAsChild(node, importedNode, index),
+                    InsertType.Append => node.ParentNode?.InsertAfter(importedNode, node),
+                    InsertType.Remove => node.ParentNode?.RemoveChild(node),
                     _ => throw new ArgumentOutOfRangeException()
                 };
             }
             else
             {
                 // Append successive nodes after the current node.
-                var insertedNode = lastPlacedNode!.ParentNode!.InsertAfter(importedNode, lastPlacedNode);
-                if (patch.Type == InsertType.ReplaceKeepChildren && oldChildNodes != null && patch.Index == i)
+                if (lastPlacedNode?.ParentNode is not { } lastPlacedParentNode)
+                {
+                    MessageUtils.Fail($"Failed to place the nodes of the patch into {movie}!");
+                    return;
+                }
+
+                var insertedNode = lastPlacedParentNode.InsertAfter(importedNode, lastPlacedNode);
+                if (type == InsertType.ReplaceKeepChildren && oldChildNodes != null && index == i)
                 {
                     foreach (XmlNode childNode in oldChildNodes)
                     {
@@ -96,23 +123,33 @@ internal partial class PrefabComponent
                 lastPlacedNode = insertedNode;
             }
         }
-    });
+    }
 
-    private static XmlNode ReplaceNode(XmlNode targetNode, XmlNode importedNode)
+    private static XmlNode? ReplaceNode(XmlNode targetNode, XmlNode importedNode)
     {
-        targetNode.ParentNode!.ReplaceChild(importedNode, targetNode);
+        if (targetNode.ParentNode is not { } parentNode)
+        {
+            return null;
+        }
+
+        parentNode.ReplaceChild(importedNode, targetNode);
         return importedNode;
     }
 
-    private static XmlNode ReplaceKeepChildren(XmlNode targetNode, XmlNode importedNode, bool appendChildren, out XmlNodeList oldChildNodes)
+    private static XmlNode? ReplaceKeepChildren(XmlNode targetNode, XmlNode importedNode, bool appendChildren, out XmlNodeList oldChildNodes)
     {
         oldChildNodes = targetNode.ChildNodes;
-        targetNode.ParentNode!.ReplaceChild(importedNode, targetNode);
+        if (targetNode.ParentNode is not { } parentNode)
+        {
+            return null;
+        }
+
+        parentNode.ReplaceChild(importedNode, targetNode);
         if (appendChildren)
         {
-            while (oldChildNodes.Count > 0)
+            while (oldChildNodes.Count > 0 && oldChildNodes.Item(0) is { } oldChildNode)
             {
-                importedNode.AppendChild(oldChildNodes.Item(0)!);
+                importedNode.AppendChild(oldChildNode);
             }
         }
 
@@ -122,13 +159,13 @@ internal partial class PrefabComponent
     {
         if (targetNode.ChildNodes.Count == 0)
         {
-            // Fixes issue in original API where you could not insert a node as a child if the target node had no pre-existing children.
+            // Appends child if target element has no pre-existing children.
             return targetNode.AppendChild(importedNode);
         }
 
         if (index >= targetNode.ChildNodes.Count)
         {
-            // Fixes issue in original API where you could not insert a node as the last child of the target node.
+            // Appends child after the last existing child if index equals or exceeds child count.
             return targetNode.InsertAfter(importedNode, targetNode.ChildNodes[targetNode.ChildNodes.Count - 1]);
         }
 
@@ -136,9 +173,9 @@ internal partial class PrefabComponent
     }
 
     /// <summary>
-    /// Performs validation on <paramref name="patch"/> class, and returns true if everything is okay.
+    /// Validates the structure and content annotations of <paramref name="patch"/>, extracting its XML nodes.
     /// </summary>
-    private bool TryGetNodes(PrefabExtensionInsertPatch patch, out IEnumerable<XmlNode>? nodes, out string errorMessage)
+    private bool TryGetNodes(PrefabExtensionInsertPatch patch, [NotNullWhen(true)] out IEnumerable<XmlNode>? nodes, out string errorMessage)
     {
         nodes = null;
 
@@ -166,8 +203,10 @@ internal partial class PrefabComponent
         errorMessage = $"{contentMembers[0].Name} in {patch.GetType().Name} ";
         nodes = contentAttributes[0] switch
         {
-            PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute attribute => GetNodes(contentMembers[0], attribute, patch, ref errorMessage),
-            PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute attribute => GetNodes(contentMembers[0], attribute, patch, ref errorMessage),
+#pragma warning disable CS0618 // Still honoured for existing patches
+            PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute attribute => GetXmlNodeNodes(contentMembers[0], attribute, patch, ref errorMessage),
+#pragma warning restore CS0618
+            PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute attribute => GetXmlNodeNodes(contentMembers[0], attribute, patch, ref errorMessage),
             PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute attribute => GetNodes(contentMembers[0], attribute, patch, ref errorMessage),
             PrefabExtensionInsertPatch.PrefabExtensionTextAttribute attribute => GetNodes(contentMembers[0], attribute, patch, ref errorMessage),
             PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute attribute => GetNodes(contentMembers[0], attribute, patch, ref errorMessage),
@@ -184,28 +223,11 @@ internal partial class PrefabComponent
     }
 
     /// <summary>
-    /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute"/>
-    /// is of type <see cref="XmlDocument"/>, then retrieves its nodes if everything is okay.
+    /// Extracts XML nodes from a member annotated with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute"/>
+    /// or <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute"/>.
     /// </summary>
-    private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo,
-        PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute attribute,
-        PrefabExtensionInsertPatch instance,
-        ref string errorMessage)
-    {
-        if (!TryGetContent(contentMemberInfo, instance, ref errorMessage, out XmlDocument? xmlDocument) || xmlDocument is null)
-        {
-            return null;
-        }
-
-        return attribute.RemoveRootNode ? xmlDocument.DocumentElement!.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { xmlDocument.DocumentElement };
-    }
-
-    /// <summary>
-    /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute"/>
-    /// is of type <see cref="XmlNode"/>, then retrieves its nodes if everything is okay.
-    /// </summary>
-    private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo,
-        PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute attribute,
+    private static IEnumerable<XmlNode>? GetXmlNodeNodes(MemberInfo contentMemberInfo,
+        PrefabExtensionInsertPatch.PrefabExtensionSingleContentAttribute attribute,
         PrefabExtensionInsertPatch instance,
         ref string errorMessage)
     {
@@ -217,15 +239,20 @@ internal partial class PrefabComponent
         // Catches potential issue where XmlDocuments cannot be imported into other documents.
         if (xmlNode is XmlDocument document)
         {
-            xmlNode = document.DocumentElement;
+            if (document.DocumentElement is not { } documentElement)
+            {
+                errorMessage += "is an XML document without a root element.";
+                return null;
+            }
+
+            xmlNode = documentElement;
         }
 
-        return attribute.RemoveRootNode ? xmlNode!.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { xmlNode };
+        return attribute.RemoveRootNode ? xmlNode.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { xmlNode };
     }
 
     /// <summary>
-    /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute"/>
-    /// is an <see cref="IEnumerable{T}"/> of type <see cref="XmlNode"/>, then retrieves its nodes if everything is okay.
+    /// Extracts XML nodes from a member annotated with <see cref="PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute"/>.
     /// </summary>
     // ReSharper disable once UnusedParameter.Local
     private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo,
@@ -233,26 +260,35 @@ internal partial class PrefabComponent
         PrefabExtensionInsertPatch instance,
         ref string errorMessage)
     {
-        var result = !TryGetContent(contentMemberInfo, instance, ref errorMessage, out IEnumerable<XmlNode>? xmlNodes) ? null : xmlNodes!.ToArray();
+        if (!TryGetContent(contentMemberInfo, instance, ref errorMessage, out IEnumerable<XmlNode>? xmlNodes))
+        {
+            return null;
+        }
+
+        var result = xmlNodes.ToArray();
 
         // Catches potential issue where XmlDocuments cannot be imported into other documents.
-        if (result is not null)
+        for (var i = 0; i < result.Length; i++)
         {
-            for (var i = 0; i < result.Length; i++)
+            if (result[i] is not XmlDocument document)
             {
-                if (result[i] is XmlDocument document)
-                {
-                    result[i] = document.DocumentElement!;
-                }
+                continue;
             }
+
+            if (document.DocumentElement is not { } documentElement)
+            {
+                errorMessage += "contains an XML document without a root element.";
+                return null;
+            }
+
+            result[i] = documentElement;
         }
 
         return result;
     }
 
     /// <summary>
-    /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionTextAttribute"/>
-    /// is of type <see cref="string"/>, then retrieves its nodes if everything is okay.
+    /// Parses and extracts XML nodes from a member annotated with <see cref="PrefabExtensionInsertPatch.PrefabExtensionTextAttribute"/>.
     /// </summary>
     private static IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo,
         PrefabExtensionInsertPatch.PrefabExtensionTextAttribute attribute,
@@ -275,12 +311,17 @@ internal partial class PrefabComponent
             return null;
         }
 
-        return attribute.RemoveRootNode ? document.DocumentElement!.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { document.DocumentElement };
+        if (document.DocumentElement is not { } documentElement)
+        {
+            errorMessage += "is an XML document without a root element.";
+            return null;
+        }
+
+        return attribute.RemoveRootNode ? documentElement.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { documentElement };
     }
 
     /// <summary>
-    /// Validates that a method or property flagged with <see cref="PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute"/>
-    /// is of type <see cref="string"/>, then attempts to load its nodes from file.
+    /// Loads and extracts XML nodes from a file specified by a member annotated with <see cref="PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute"/>.
     /// </summary>
     private IEnumerable<XmlNode>? GetNodes(MemberInfo contentMemberInfo,
         PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute attribute,
@@ -305,7 +346,7 @@ internal partial class PrefabComponent
             }
             var moduleDirectoryPath = Path.Combine(ModuleInfoHelper.GetModulePath(moduleInfo), "GUI");
             var files = Directory.GetFiles(moduleDirectoryPath, "*.xml", SearchOption.AllDirectories);
-            files = files.Where(x => string.Equals(Path.GetFileNameWithoutExtension(x), fileName, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+            files = [.. files.Where(x => string.Equals(Path.GetFileNameWithoutExtension(x), fileName, StringComparison.InvariantCultureIgnoreCase))];
             if (files.Length != 1)
             {
                 errorMessage += $"Found {files.Length} files matching {fileName}.";
@@ -320,17 +361,22 @@ internal partial class PrefabComponent
             return null;
         }
 
-        return attribute.RemoveRootNode ? document.DocumentElement!.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { document.DocumentElement };
+        if (document.DocumentElement is not { } documentElement)
+        {
+            errorMessage += "is an XML document without a root element.";
+            return null;
+        }
+
+        return attribute.RemoveRootNode ? documentElement.ChildNodes.Cast<XmlNode>() : new List<XmlNode> { documentElement };
     }
 
     /// <summary>
-    /// Validates that the Property/Method specified in <paramref name="memberInfo"/> is of type <typeparamref name="T"/>.
-    /// Returns true if everything is okay, and outputs the cast content in <paramref name="output"/>.
+    /// Evaluates the member specified by <paramref name="memberInfo"/>, validating that its value is assignable to <typeparamref name="T"/>.
     /// </summary>
     private static bool TryGetContent<T>(MemberInfo memberInfo,
         PrefabExtensionInsertPatch instance,
         ref string errorMessage,
-        out T? output)
+        [NotNullWhen(true)] out T? output)
     {
         output = default;
 
@@ -358,9 +404,15 @@ internal partial class PrefabComponent
     }
 
     /// <summary>
-    /// Register snippet set attribute patch
+    /// Registers an attribute modification patch for the specified movie and XPath target.
     /// </summary>
-    public void RegisterPatch(string movie, string? xpath, PrefabExtensionSetAttributePatch patch) => RegisterPatch(movie, xpath, patch.GetType(), node =>
+    public void RegisterPatch(string movie, string? xpath, PrefabExtensionSetAttributePatch patch) =>
+        RegisterPatch(movie, xpath, patch.GetType(), node => SetAttributes(node, patch.Attributes));
+
+    /// <summary>
+    /// Sets or updates the specified <paramref name="attributes"/> on the target <see cref="XmlNode"/>.
+    /// </summary>
+    private static void SetAttributes(XmlNode node, IEnumerable<PrefabExtensionSetAttributePatch.Attribute> attributes)
     {
         if (node.OwnerDocument is not { } ownerDocument)
         {
@@ -372,17 +424,17 @@ internal partial class PrefabComponent
             return;
         }
 
-        foreach (var attribute in patch.Attributes)
+        if (node.Attributes is not { } nodeAttributes)
         {
-            if (node.Attributes![attribute.Name] is null)
-            {
-                var newAttribute = ownerDocument.CreateAttribute(attribute.Name);
-                node.Attributes.Append(newAttribute);
-            }
-
-            node.Attributes![attribute.Name].Value = attribute.Value;
+            return;
         }
-    });
+
+        foreach (var attribute in attributes)
+        {
+            var nodeAttribute = nodeAttributes[attribute.Name] ?? nodeAttributes.Append(ownerDocument.CreateAttribute(attribute.Name));
+            nodeAttribute.Value = attribute.Value;
+        }
+    }
 
     private static Func<object?> GetFunction(Type returnType,
         PrefabExtensionInsertPatch instance,

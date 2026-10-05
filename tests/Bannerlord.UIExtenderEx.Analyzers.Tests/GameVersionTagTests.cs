@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// The game version in front of every message. A module built for several game versions is compiled once per version,
-/// and the reports of those builds have to say which version they are about.
+/// Tests game version prefix tagging on diagnostic messages, ensuring that multi-version builds clearly distinguish
+/// diagnostics by targeted game release.
 /// </summary>
 public class GameVersionTagTests
 {
@@ -31,7 +31,7 @@ public class GameVersionTagTests
     private static Task<IReadOnlyList<string>> MessagesAsync(Dictionary<string, string> properties) =>
         PrefabVerifier.MessagesAsync(Mod, properties, Game());
 
-    /// <summary>UIX0020 is reported by the prefab analyzer, UIX0017 by the content analyzer: both carry the version.</summary>
+    /// <summary>Verifies that both prefab and content analyzers include the configured game version tag in their diagnostics.</summary>
     [Test]
     public async Task EveryMessage_StartsWithTheGameVersion()
     {
@@ -49,7 +49,16 @@ public class GameVersionTagTests
         Assert.That(messages, Has.All.Contains(": [v1.2.12] "));
     }
 
-    /// <summary>An empty property, as a project that sets neither has in its editorconfig, leaves the messages alone.</summary>
+    /// <summary>Verifies diagnostic tagging with inferred game versions when unconfigured, preserving release prefixes such as Early Access 'e'.</summary>
+    [Test]
+    public async Task TheInferredVersion_TagsWhenNoneIsNamed()
+    {
+        Assert.That(await MessagesAsync(new() { ["UIExtenderExInferredGameVersion"] = "v1.3.4" }), Has.All.Contains(": [v1.3.4] "));
+        Assert.That(await MessagesAsync(new() { ["UIExtenderExInferredGameVersion"] = "v1.3.4", ["GameVersion"] = "1.4.8" }), Has.All.Contains(": [v1.4.8] "));
+        Assert.That(await MessagesAsync(new() { ["UIExtenderExInferredGameVersion"] = "e1.9.0" }), Has.All.Contains(": [e1.9.0] "));
+    }
+
+    /// <summary>Verifies that empty version properties produce standard untagged diagnostic messages.</summary>
     [Test]
     public async Task WithoutAVersion_TheMessagesAreUnchanged()
     {
@@ -58,7 +67,7 @@ public class GameVersionTagTests
         Assert.That(plain, Is.EqualTo(tagged.Select(m => m.Replace("[v1.4.8] ", "")).ToList()));
     }
 
-    /// <summary>The tagged diagnostic is created anew; its fix still finds what the analyzer handed it.</summary>
+    /// <summary>Verifies that re-emitting a diagnostic with a game version prefix preserves associated code fix operations.</summary>
     [Test]
     public async Task ATaggedDiagnostic_KeepsItsCodeFix()
     {

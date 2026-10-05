@@ -12,14 +12,13 @@ using Path = System.IO.Path;
 namespace Bannerlord.UIExtenderEx.Prefabs;
 
 /// <summary>
-/// Patch that inserts prefab extension (specified by `Name`) as a child in XPath specified node, at specific position (`Position` property)
+/// Legacy patch that inserts an extension snippet as a child of the node selected via XPath.
 /// </summary>
 [Obsolete("Use Prefabs2.PrefabExtensionInsertPatch instead.")]
 public abstract class PrefabExtensionInsertPatch : InsertPatch { }
 
 /// <summary>
-/// Patch that inserts prefab extension (specified by `Name`) as a child in XPath specified node, at specific position (`Position` property)
-/// Extension snippet should be named as `{Name}.xml` and located at module's `GUI/PrefabExtensions` folder.
+/// Legacy patch that loads an XML snippet from the module's GUI/PrefabExtensions folder and inserts it as a child.
 /// </summary>
 [Obsolete("Use Prefabs2.PrefabExtensionInsertPatch instead.")]
 public abstract class ModulePrefabExtensionInsertPatch : PrefabExtensionInsertPatch
@@ -40,7 +39,7 @@ public abstract class ModulePrefabExtensionInsertPatch : PrefabExtensionInsertPa
 
         if (File.Exists(path))
         {
-            using var reader = XmlReader.Create(path, new XmlReaderSettings
+            using var reader = XmlReader.Create(path, new()
             {
                 IgnoreComments = true,
                 IgnoreWhitespace = true,
@@ -59,7 +58,10 @@ public abstract class ModulePrefabExtensionInsertPatch : PrefabExtensionInsertPa
     }
 }
 
-[Obsolete("PrefabExtensionInsertPatch is obsolete")]
+/// <summary>
+/// Legacy patch that loads an embedded resource XML snippet and inserts it as a child.
+/// </summary>
+[Obsolete("Use Prefabs2.PrefabExtensionInsertPatch instead.")]
 public abstract class EmbedPrefabExtensionInsertPatch : PrefabExtensionInsertPatch
 {
     private Assembly Assembly { get; }
@@ -78,7 +80,7 @@ public abstract class EmbedPrefabExtensionInsertPatch : PrefabExtensionInsertPat
 
         if (stream is not null)
         {
-            using var reader = XmlReader.Create(stream, new XmlReaderSettings
+            using var reader = XmlReader.Create(stream, new()
             {
                 IgnoreComments = true,
                 IgnoreWhitespace = true,

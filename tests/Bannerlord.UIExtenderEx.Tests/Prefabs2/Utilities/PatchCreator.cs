@@ -64,7 +64,7 @@ public static class PatchCreator
             }
         }
 
-        patch!.Index.Returns(index);
+        patch.Index.Returns(index);
         patch.Type.Returns(insertType);
 
         return patch;

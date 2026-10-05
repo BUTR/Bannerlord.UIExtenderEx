@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using System.Threading.Tasks;
 
@@ -7,12 +7,12 @@ using static Bannerlord.UIExtenderEx.Analyzers.Tests.PrefabVerifier;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// UIX0020 to UIX0023, and the binding rules against the game's scope: patches applied to the game's own prefabs, from
-/// GUI packages in the layout of <c>Bannerlord.ReferenceAssemblies.GUI.v2</c>.
+/// Tests diagnostics UIX0020 through UIX0023 and binding rules evaluated against game prefab scopes
+/// supplied by GUI packages conforming to the <c>Bannerlord.ReferenceAssemblies.GUI.v3</c> layout.
 /// </summary>
 public partial class GamePrefabRuleTests
 {
-    /// <summary>The game's ViewModels, in the mod's compilation as the reference assemblies put them there.</summary>
+    /// <summary>Defines game ViewModel types provided by reference assemblies in the mod compilation.</summary>
     private const string Mod = """
         public class HostVM : ViewModel
         {
@@ -57,7 +57,7 @@ public partial class GamePrefabRuleTests
         </Prefab>
         """;
 
-    /// <summary>A prefab the movie uses by tag, bound to what it is handed.</summary>
+    /// <summary>Defines a child prefab instantiated by custom tag, bound to the supplied parameter dataSource.</summary>
     private const string HostRow = """
         <Prefab>
           <Parameters>
@@ -128,8 +128,8 @@ public partial class GamePrefabRuleTests
         }
 
         /// <summary>
-        /// The core passes SelectSingleNode an empty XPath for a patch that names none, which throws.
-        /// <c>[PrefabExtension("Movie")]</c> does not compile, as the constructors are ambiguous, but a null does.
+        /// Verifies that omitting an XPath expression triggers an error because Gauntlet/runtime throws when attempting
+        /// to select with an empty XPath. <c>[PrefabExtension("Movie")]</c> is ambiguous, but passing <see langword="null"/> compiles.
         /// </summary>
         [Test]
         public async Task APatchWithoutAnXPath_IsAnError()
@@ -164,16 +164,20 @@ public partial class GamePrefabRuleTests
             }));
         }
 
-        /// <summary>Format 1 carried the game's XML; this analyzer reads format 2 only, and leaves the package out.</summary>
-        [Test]
-        public async Task APackageOfAnotherFormat_IsNotRead()
+        /// <summary>
+        /// Verifies that unsupported GUI bundle formats are ignored: format 1 contained raw XML and format 2 lacks widget
+        /// announcements. The analyzer exclusively consumes format 3 packages.
+        /// </summary>
+        [TestCase(1)]
+        [TestCase(2)]
+        public async Task APackageOfAnotherFormat_IsNotRead(int format)
         {
-            await VerifyAsync(Mod + Insert("Page", "HostMovie", "\"descendant::ListPanel[@Id='Pannel']\"", "Child", "<Widget />"), [Game().Format(1)]);
+            await VerifyAsync(Mod + Insert("Page", "HostMovie", "\"descendant::ListPanel[@Id='Pannel']\"", "Child", "<Widget />"), [Game().Format(format)]);
         }
 
         /// <summary>
-        /// The game loads a prefab without its comments, so a position counts the nodes the game counts: in the game's
-        /// trees, which carry none, and in the mod's own prefab, whose comments the check leaves out.
+        /// Verifies that XML comments are ignored when evaluating XPath positional indices, matching Gauntlet prefab loading behavior
+        /// across game prefabs and mod prefabs.
         /// </summary>
         [Test]
         public async Task CommentsDoNotCountForPositions()
@@ -238,7 +242,7 @@ public partial class GamePrefabRuleTests
                 "<TextWidget Text=\\\"@Name\\\" {|UIX0015:IntText|}=\\\"@Title\\\" />"), [Game()]);
         }
 
-        /// <summary>A patch on a prefab the movie uses by tag, with its DataSource handed in as a parameter.</summary>
+        /// <summary>Verifies that patches on tag-instantiated child prefabs bind against the passed parameter dataSource scope.</summary>
         [Test]
         public async Task APrefabUsedByTag_BindsWhereItIsUsed()
         {
@@ -246,7 +250,7 @@ public partial class GamePrefabRuleTests
                 "<TextWidget Text=\\\"@Name\\\" {|UIX0015:IntText|}=\\\"@Label\\\" />"), [Game()]);
         }
 
-        /// <summary>Without the game's scope the patch's names would be taken from the mod's mixins, and it has none here.</summary>
+        /// <summary>Verifies that the game prefab scope overrides default fallback scope resolution derived from mod ViewModel mixins.</summary>
         [Test]
         public async Task TheGamesScope_ReplacesTheOneTakenFromTheMixins()
         {
@@ -290,7 +294,7 @@ public partial class GamePrefabRuleTests
     {
         private static TestGame Naval(string hostMovie) => TestGame.NavalDlc().Prefab("HostMovie", hostMovie);
 
-        /// <summary>A DLC ships its own copy of the prefab, without the node: the patch fails for players who own it.</summary>
+        /// <summary>Verifies that DLC-specific prefab overrides missing a targeted node report a diagnostic specifically for that DLC configuration.</summary>
         [Test]
         public async Task ADlcPrefabWithoutTheNode_IsReportedForTheDlcOnly()
         {
@@ -303,9 +307,8 @@ public partial class GamePrefabRuleTests
         }
 
         /// <summary>
-        /// An entry in the DLC package whose class is a base module's adds a ViewModel to a base screen; it replaces
-        /// nothing. Replaced, the base screen's HostVM would be gone with the DLC, and @Title would be reported against
-        /// OtherVM alone.
+        /// Verifies that a DLC bundle entry targeting a base module screen extends the base ViewModel mappings rather than replacing them.
+        /// If replaced, the base ViewModel would be missing and valid base bindings would be reported as errors.
         /// </summary>
         [Test]
         public async Task ADlcEntryOfABaseClass_AddsToTheBaseEntries()
@@ -332,9 +335,8 @@ public partial class GamePrefabRuleTests
     }
 
     /// <summary>
-    /// The v1 <c>Prefabs</c> patches go in at the XPath as the <c>Prefabs2</c> ones do, so their XPaths are checked the same
-    /// way. Their content is an <c>XmlDocument</c> built at runtime, read only where the class hands <c>LoadXml</c> a literal
-    /// or names a file of the mod.
+    /// Verifies legacy v1 <c>Prefabs</c> patches, which target the same XPath expressions as <c>Prefabs2</c> patches.
+    /// Their runtime <see cref="System.Xml.XmlDocument"/> content is inspected when created via <c>LoadXml</c> literals or external mod files.
     /// </summary>
     public class V1Patches
     {
@@ -375,7 +377,7 @@ public partial class GamePrefabRuleTests
                 """, [Game()]);
         }
 
-        /// <summary>It may insert anything, so it is the only patch of the movie whose XPath is reported missing.</summary>
+        /// <summary>Verifies that node-targeted custom patches report missing target XPaths without making assumptions about inserted XML structure.</summary>
         [Test]
         public async Task ACustomPatchOfANode_IsChecked()
         {
@@ -447,7 +449,7 @@ public partial class GamePrefabRuleTests
         }
     }
 
-    /// <summary>A patch whose XML the build cannot read may insert the node another patch goes into.</summary>
+    /// <summary>Verifies handling of dynamically constructed patch content where unparsed patches may supply target nodes for subsequent patches.</summary>
     public class UnreadChanges
     {
         [Test]

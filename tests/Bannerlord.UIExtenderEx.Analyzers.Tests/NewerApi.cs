@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using NUnit.Framework;
@@ -11,11 +11,14 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// The attributes of UIExtenderEx 3.0 that the analyzer has rules for, as that version declares them, for the tests of
-/// those rules to compile against a UIExtenderEx that does not have them yet. Built only when the UIExtenderEx referenced
-/// lacks them, and in an assembly of its own, as a mod sees them. <c>[PrefabLink]</c> is not here: the analyzer package
-/// supplies that one itself (<see cref="PrefabLinkAttributeGenerator"/>).
+/// Synthesizes in-memory reference metadata for UIExtenderEx 3.0 attributes analyzed by rules when compiling against earlier
+/// UIExtenderEx assemblies that lack them.
 /// </summary>
+/// <remarks>
+/// Builds a standalone in-memory assembly representing consumer-facing attributes (such as <c>[BUTRUnsafeAccessor]</c> and
+/// <c>[BUTRViewModelOverride]</c>). The analyzer package supplies <c>[PrefabLink]</c> separately via
+/// <see cref="PrefabLinkAttributeGenerator"/>.
+/// </remarks>
 internal static class NewerApi
 {
     private const string Source = """
@@ -57,7 +60,10 @@ internal static class NewerApi
         }
         """;
 
-    /// <summary>Null when <paramref name="references"/> have the attributes already.</summary>
+    /// <summary>
+    /// Creates an in-memory metadata reference containing synthetic UIExtenderEx 3.0 attributes, or returns
+    /// <see langword="null"/> if the specified compilation <paramref name="references"/> already define them.
+    /// </summary>
     public static MetadataReference? For(ImmutableArray<MetadataReference> references)
     {
         var probe = CSharpCompilation.Create("Probe", [], references);

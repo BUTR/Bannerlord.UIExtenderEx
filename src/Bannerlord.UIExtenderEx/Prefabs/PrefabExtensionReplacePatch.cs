@@ -3,14 +3,17 @@
 namespace Bannerlord.UIExtenderEx.Prefabs;
 
 /// <summary>
-/// Patch that replaces node specified by XPath with node from prefab extension
+/// Replaces the node selected via XPath with an extension snippet.
 /// </summary>
 public abstract class PrefabExtensionReplacePatch : IPrefabPatch
 {
     /// <summary>
-    /// Name of the extension snippet, without `.xml`
+    /// Gets the name of the extension snippet without the file extension.
     /// </summary>
     public abstract string Id { get; }
 
+    /// <summary>
+    /// Retrieves the XML document containing the replacement snippet.
+    /// </summary>
     public abstract XmlDocument GetPrefabExtension();
 }

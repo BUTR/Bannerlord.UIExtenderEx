@@ -1,6 +1,6 @@
 files:
-  - source: /src/Bannerlord.UIExtenderEx/_Module/ModuleData/Languages/EN/*.xml
-    translation: /src/Bannerlord.UIExtenderEx/_Module/ModuleData/Languages/%two_letters_code%/%original_file_name%
+  - source: /src/Bannerlord.UIExtenderEx.Module/_Module/ModuleData/Languages/EN/*.xml
+    translation: /src/Bannerlord.UIExtenderEx.Module/_Module/ModuleData/Languages/%two_letters_code%/%original_file_name%
     content_segmentation: 0
     translatable_elements:
       - '/base/tags/tag[@language],/base/strings/string[@text]'

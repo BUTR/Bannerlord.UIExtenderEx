@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,7 +14,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
 /// <summary>
-/// UIX0017: the content member made public, or an instance member, or given the content attribute its type fits.
+/// Provides code fixes for prefab patch content members (<c>UIX0017</c>): changes member accessibility to public,
+/// converts static members to instance members, or switches the extension attribute to one matching the member's return type.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PrefabContentCodeFixProvider)), Shared]
 public sealed class PrefabContentCodeFixProvider : CodeFixProvider
@@ -64,7 +65,7 @@ public sealed class PrefabContentCodeFixProvider : CodeFixProvider
                     foreach (var fitting in FixData.Split(diagnostic.Properties.TryGetValue(FixData.Attributes, out var attributes) ? attributes : null))
                     {
                         var replaced = attribute.WithName(Rename(attribute.Name, fitting));
-                        // [PrefabExtensionXmlNodes] takes no removeRootNode
+                        // Omits arguments because [PrefabExtensionXmlNodes] does not accept removeRootNode
                         if (fitting == "PrefabExtensionXmlNodes")
                             replaced = replaced.WithArgumentList(null);
                         context.RegisterCodeFix(CodeAction.Create(
@@ -89,7 +90,9 @@ public sealed class PrefabContentCodeFixProvider : CodeFixProvider
         return name.EndsWith("Attribute") ? name.Substring(0, name.Length - "Attribute".Length) : name;
     }
 
-    /// <summary>The attribute's name with its last part replaced, keeping how it was qualified and whether it said <c>Attribute</c>.</summary>
+    /// <summary>
+    /// Replaces the terminal identifier of an attribute name syntax while preserving namespace qualification and optional <c>Attribute</c> suffix conventions.
+    /// </summary>
     private static NameSyntax Rename(NameSyntax name, string shortName)
     {
         SimpleNameSyntax Renamed(SimpleNameSyntax simple) => IdentifierName(Identifier(

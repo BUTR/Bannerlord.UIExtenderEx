@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,8 +12,8 @@ using System.Threading;
 namespace Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
 /// <summary>
-/// A patch class: <c>[PrefabExtension(movie, xpath)]</c> on a <c>Prefabs2</c> insert or set-attribute patch, or on one of
-/// the v1 <c>Prefabs</c> patches that go in at an XPath.
+/// Represents a prefab patch class annotated with <c>[PrefabExtension(movie, xpath)]</c>, targeting either
+/// modern <c>Prefabs2</c> insertion / attribute patches or legacy <c>Prefabs</c> v1 XPath patches.
 /// </summary>
 internal sealed class PrefabPatch
 {
@@ -24,9 +24,8 @@ internal sealed class PrefabPatch
     public bool IsSetAttribute { get; }
 
     /// <summary>
-    /// The <c>InsertType</c> member an insert patch's <c>Type</c> returns, when the build can read it. A v1 patch has it
-    /// from its class: <c>Child</c> for an insert, <c>Replace</c>, <c>Prepend</c> or <c>Append</c>, <c>Custom</c> for a
-    /// <c>CustomPatch&lt;XmlNode&gt;</c>.
+    /// Gets or sets the <c>InsertType</c> specified by the patch class (e.g. <c>Child</c>, <c>Replace</c>,
+    /// <c>Prepend</c>, <c>Append</c>, or <c>Custom</c> for <c>CustomPatch&lt;XmlNode&gt;</c>).
     /// </summary>
     public string? InsertType { get; set; }
 
@@ -44,32 +43,32 @@ internal sealed class PrefabPatch
 }
 
 /// <summary>
-/// Everything of the mod's that prefab XML is made of or reaches: its prefab files, the names they are registered under,
-/// its patches and their content, and the movies it loads itself.
+/// Discovers and organizes mod prefab assets, including XML additional files, runtime registration calls,
+/// patch declarations and their embedded XML payloads, and explicit <c>LoadMovie</c> invocations.
 /// </summary>
 internal sealed class PrefabSources
 {
     private const string PatchesNamespace = "Bannerlord.UIExtenderEx.Prefabs2";
     private const string V1Namespace = "Bannerlord.UIExtenderEx.Prefabs";
 
-    /// <summary>Every well-formed XML additional file, by file name without extension.</summary>
+    /// <summary>Gets all well-formed XML additional files indexed by filename without extension.</summary>
     public Dictionary<string, PrefabXml> FilesByName { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>The XML additional files that are not well-formed.</summary>
+    /// <summary>Gets all malformed XML additional files encountered during compilation.</summary>
     public List<PrefabXml> MalformedFiles { get; } = [];
 
-    /// <summary>The prefabs a tag can name: registered names, or a prefab file's own name when nothing registers it.</summary>
+    /// <summary>Gets all prefab definitions indexed by their registered widget tag or filename.</summary>
     public Dictionary<string, PrefabXml> PrefabsByTag { get; } = new(StringComparer.Ordinal);
 
     public List<PrefabPatch> Patches { get; } = [];
 
     /// <summary>
-    /// The patches that may put into a movie XML the build cannot read: content built at runtime, a file it does not have,
-    /// a <c>CustomPatch</c>. A node such a patch could insert is not reported missing for another patch.
+    /// Patches whose XML content cannot be statically evaluated at compile time (e.g. dynamically generated nodes,
+    /// missing files, or <c>CustomPatch</c> implementations). Nodes potentially introduced by these patches are not reported as missing.
     /// </summary>
     public List<(string Movie, INamedTypeSymbol Type)> UnreadChanges { get; } = [];
 
-    /// <summary>Movies the mod loads itself with <c>LoadMovie("Name", viewModel)</c>, and the ViewModel's declared type.</summary>
+    /// <summary>Records movies explicitly loaded via <c>LoadMovie("Name", viewModel)</c> and their associated ViewModel types.</summary>
     public List<(string Movie, INamedTypeSymbol ViewModel)> LoadedMovies { get; } = [];
 
     public static PrefabSources Collect(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles, CancellationToken cancellation)
@@ -101,7 +100,7 @@ internal sealed class PrefabSources
                 sources.ReadPatch(declaration, model, cancellation);
         }
 
-        // A file no registration names is found by its own name, as a module's GUI/Prefabs folder is
+        // Prefab files without explicit registration are resolved by their filename, mirroring Gauntlet's GUI/Prefabs folder resolution.
         foreach (var pair in sources.FilesByName)
         {
             if (!registeredFiles.Contains(pair.Key) && IsPrefab(pair.Value) && !sources.PrefabsByTag.ContainsKey(pair.Key))
@@ -111,15 +110,13 @@ internal sealed class PrefabSources
     }
 
     /// <summary>
-    /// A prefab file as <c>WidgetPrefab.LoadFrom</c> takes one: rooted at <c>&lt;Prefab&gt;</c>, or at <c>&lt;Window&gt;</c> when
-    /// it has no parameters, constants or visual definitions to declare.
+    /// Determines whether the specified XML document represents a root Gauntlet prefab (rooted at <c>&lt;Prefab&gt;</c> or <c>&lt;Window&gt;</c>).
     /// </summary>
     public static bool IsPrefab(PrefabXml xml) => xml.Document?.Root?.Name.LocalName is "Prefab" or "Window";
 
     /// <summary>
-    /// <c>WidgetFactoryManager.CreateAndRegister("Name", Load("Mod.GUI.Prefabs.File.xml"))</c> and the like: the first
-    /// argument names the prefab, a string ending in <c>.xml</c> among the rest names its file. And
-    /// <c>LoadMovie("Name", viewModel)</c>.
+    /// Evaluates method invocations such as <c>WidgetFactoryManager.CreateAndRegister</c>, <c>Register</c>, and <c>LoadMovie</c>
+    /// to discover registered prefab names and explicit movie-to-ViewModel bindings.
     /// </summary>
     private void ReadInvocation(InvocationExpressionSyntax invocation, SemanticModel model, HashSet<string> registeredFiles, CancellationToken cancellation)
     {
@@ -162,7 +159,7 @@ internal sealed class PrefabSources
         }
     }
 
-    /// <summary>A resource name (<c>Mod.GUI.Prefabs.File.xml</c>) or a path (<c>GUI/Prefabs/File.xml</c>), down to <c>File</c>.</summary>
+    /// <summary>Extracts the clean filename (without directory path or <c>.xml</c> extension) from a resource string or path.</summary>
     private static string FileNameOf(string resource)
     {
         var withoutExtension = resource.Substring(0, resource.Length - ".xml".Length);
@@ -170,7 +167,7 @@ internal sealed class PrefabSources
         return cut >= 0 ? withoutExtension.Substring(cut + 1) : withoutExtension;
     }
 
-    /// <summary>The patch classes <c>UIExtenderRuntime.Register</c> tells apart, in its order.</summary>
+    /// <summary>Identifies supported prefab extension patch types recognized by UIExtenderEx.</summary>
     private enum PatchKind
     {
         None,
@@ -220,7 +217,7 @@ internal sealed class PrefabSources
             if (attribute.ConstructorArguments.FirstOrDefault().Value is not string movie)
                 continue;
 
-            // Handed the whole document, and not the XPath: nothing to check, but it changes the movie
+            // Whole-document patches receive full XmlDocument without XPath targeting; record as unread change.
             if (kind == PatchKind.V1CustomDocument)
             {
                 UnreadChanges.Add((movie, type));
@@ -266,13 +263,12 @@ internal sealed class PrefabSources
     }
 
     /// <summary>
-    /// A v1 patch's content: <c>GetPrefabExtension()</c> returns an <c>XmlDocument</c>, which the build reads when the class
-    /// hands <c>LoadXml</c> a literal, or when it is a <c>ModulePrefabExtensionInsertPatch</c> or
-    /// <c>EmbedPrefabExtensionInsertPatch</c> naming a file of the mod. The document element is what goes in.
+    /// Extracts XML content from legacy v1 patches, evaluating <c>GetPrefabExtension()</c> literal returns,
+    /// <c>ModulePrefabExtensionInsertPatch</c>, or <c>EmbedPrefabExtensionInsertPatch</c> constructors.
     /// </summary>
     private void ReadV1Content(PrefabPatch patch, INamedTypeSymbol type, ClassDeclarationSyntax declaration, SemanticModel model, CancellationToken cancellation)
     {
-        // base("Name", "Module") loads Modules/Module/GUI/PrefabExtensions/Name.xml, base(assembly, "Mod.File.xml") a resource
+        // Base constructor: ("Name", "Module") loads Modules/Module/GUI/PrefabExtensions/Name.xml, (assembly, "Mod.File.xml") loads embedded resource.
         var fileArgument = DerivesFrom(type, V1Namespace + ".ModulePrefabExtensionInsertPatch") ? 0
             : DerivesFrom(type, V1Namespace + ".EmbedPrefabExtensionInsertPatch") ? 1
             : -1;
@@ -297,7 +293,7 @@ internal sealed class PrefabSources
         }
     }
 
-    /// <summary>A v1 set-attribute patch: its <c>Attribute</c> and <c>Value</c> properties, each returning a literal.</summary>
+    /// <summary>Extracts attribute names and values from legacy v1 set-attribute patches via literal property getters.</summary>
     private static void ReadV1SetAttribute(PrefabPatch patch, ClassDeclarationSyntax declaration, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
@@ -308,7 +304,7 @@ internal sealed class PrefabSources
         }
     }
 
-    /// <summary>What a property of the class returns, as <c>=&gt; value</c> or a getter of one return statement writes it.</summary>
+    /// <summary>Extracts the expression returned by a property expression body or single-statement getter.</summary>
     private static ExpressionSyntax? ReturnedExpression(ClassDeclarationSyntax declaration, string name)
     {
         foreach (var property in declaration.Members.OfType<PropertyDeclarationSyntax>())
@@ -327,8 +323,7 @@ internal sealed class PrefabSources
     }
 
     /// <summary>
-    /// The content of an insert patch, by the attribute on the member that supplies it: a file by name, text returned as
-    /// a literal, or the literals the class hands to <c>LoadXml</c> for an <c>XmlNode</c> or <c>XmlDocument</c>.
+    /// Extracts XML content for modern <c>Prefabs2</c> insert patches from member attributes, string literals, or <c>LoadXml</c> calls.
     /// </summary>
     private void ReadInsertContent(PrefabPatch patch, ClassDeclarationSyntax declaration, SemanticModel model, CancellationToken cancellation)
     {
@@ -358,7 +353,7 @@ internal sealed class PrefabSources
         }
     }
 
-    /// <summary>The literals the class hands to <c>LoadXml</c>.</summary>
+    /// <summary>Extracts XML fragments passed as string literals to <c>LoadXml</c> calls within the patch declaration.</summary>
     private static void ReadLoadXmlLiterals(PrefabPatch patch, ClassDeclarationSyntax declaration, bool removeRootNode)
     {
         foreach (var invocation in declaration.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -372,14 +367,14 @@ internal sealed class PrefabSources
         }
     }
 
-    /// <summary>The member of <c>InsertType</c> the patch's <c>Type</c> property returns, as <c>=&gt; InsertType.Child</c> writes it.</summary>
+    /// <summary>Extracts the <c>InsertType</c> enum member returned by the patch's <c>Type</c> property getter.</summary>
     private static string? ReadInsertType(ClassDeclarationSyntax declaration, SemanticModel model, CancellationToken cancellation) =>
         ReturnedExpression(declaration, "Type") is { } expression
         && model.GetSymbolInfo(expression, cancellation).Symbol is IFieldSymbol { ContainingType.TypeKind: TypeKind.Enum } member
             ? member.Name
             : null;
 
-    /// <summary><c>new Attribute("Name", "Value")</c> in a set-attribute patch.</summary>
+    /// <summary>Extracts attribute key-value pairs instantiated via <c>new Attribute("Name", "Value")</c> in set-attribute patches.</summary>
     private static void ReadSetAttributes(PrefabPatch patch, ClassDeclarationSyntax declaration, SemanticModel model, CancellationToken cancellation)
     {
         foreach (var creation in declaration.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())

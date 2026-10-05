@@ -1,7 +1,7 @@
 - name: Overview
   href: Overview.md
-- name: Registration
-  href: Registration.md
+- name: Lifecycle
+  href: Lifecycle.md
 - name: Prefab Patching
   href: PrefabPatching.md
 - name: ViewModel Patching

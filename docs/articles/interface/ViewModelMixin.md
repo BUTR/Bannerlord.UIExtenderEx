@@ -1,3 +1,0 @@
-﻿# ViewModelMixin
-
-![image](ViewModelMixin.svg)

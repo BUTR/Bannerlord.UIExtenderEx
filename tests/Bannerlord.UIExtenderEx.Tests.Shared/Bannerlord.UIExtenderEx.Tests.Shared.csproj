@@ -1,0 +1,51 @@
+<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
+<!--
+What the test projects share: the oracles that hold a compiled prefab to the XML loader, and the start-up every test
+assembly needs. Bannerlord.UIExtenderEx.Tests runs the oracles over prefabs written for a test, and
+Bannerlord.UIExtenderEx.Corpus.Tests over every prefab a game installation ships.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+    <RootNamespace>Bannerlord.UIExtenderEx.Tests</RootNamespace>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <!-- The framework alone, for TestContext.Progress; the adapter and the test SDK are the test projects' -->
+    <PackageReference Include="nunit" Version="3.14.0" />
+    <!-- The game's own Harmony; see Bannerlord.UIExtenderEx.Tests.csproj -->
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+    <PackageReference Include="Harmony.Extensions" Version="$(HarmonyExtensionsVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="IsExternalInit" Version="1.0.3" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <!-- A widget's OnPropertyChanged has a System.Numerics.Vector2 overload, which a test widget raising a change resolves against -->
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!Exists($(GameFolder))">
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists($(GameFolder))">
+    <Reference Include="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.*.dll" Exclude="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Native.dll">
+      <HintPath>%(Identity)</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx\Bannerlord.UIExtenderEx.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.XmlPrefabs\Bannerlord.UIExtenderEx.XmlPrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.GamePrefabs\Bannerlord.UIExtenderEx.GamePrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.CodeGenerator\Bannerlord.UIExtenderEx.CodeGenerator.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.CompiledPrefabs\Bannerlord.UIExtenderEx.CompiledPrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.Compiler\Bannerlord.UIExtenderEx.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>

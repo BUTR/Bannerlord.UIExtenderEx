@@ -1,23 +1,13 @@
-﻿using Bannerlord.BUTR.Shared.Helpers;
-
-using System;
-using System.Linq;
+﻿using System;
 
 namespace Bannerlord.UIExtenderEx.Settings;
 
+/// <summary>
+/// The 2.x settings, read from the UIExtenderEx SubModule's tags. Kept so mods compiled against 2.x still load; the
+/// settings now live in the <c>&lt;Settings&gt;</c> block of <c>SubModule.xml</c>, and this forwards to them.
+/// </summary>
+[Obsolete("Settings are declared in the <Settings> block of SubModule.xml now. Use UIExtenderExSettings.Instance.")]
 public class SettingsSubModuleTags : ISettingsProvider
 {
-    public bool DumpXML { get; set; } = false;
-
-    public SettingsSubModuleTags()
-    {
-        try
-        {
-            if (ModuleInfoHelper.GetModuleByType(typeof(SettingsSubModuleTags)) is not { } module) return;
-            if (module.SubModules.FirstOrDefault(x => x.Name == "UIExtenderEx") is not { } subModule) return;
-            DumpXML = subModule.Tags.TryGetValue(nameof(DumpXML), out var dumpXmlVal) && bool.TryParse(dumpXmlVal.FirstOrDefault(), out var dumpXml) && dumpXml;
-
-        }
-        catch (Exception) { /* ignore */ }
-    }
+    public bool DumpXML { get => UIExtenderExSettings.Instance.DumpXML; set => UIExtenderExSettings.Instance.DumpXML = value; }
 }

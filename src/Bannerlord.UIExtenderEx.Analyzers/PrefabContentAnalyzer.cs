@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using System.Collections.Immutable;
@@ -7,9 +7,9 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
 /// <summary>
-/// Checks the member that supplies an insert patch's content the way <c>PrefabComponent.TryGetNodes</c> finds and binds
-/// it when the patch is registered: among the patch's public members, as a parameterless instance delegate returning the
-/// type its attribute names, which a covariant return satisfies.
+/// Validates methods and properties supplying content for insert patches (<c>PrefabExtensionInsertPatch</c>), mirroring
+/// runtime reflection in <c>PrefabComponent.TryGetNodes</c>: members must be public, non-static, parameterless, and return
+/// a type compatible with the specific extension content attribute.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class PrefabContentAnalyzer : DiagnosticAnalyzer
@@ -35,7 +35,7 @@ public sealed class PrefabContentAnalyzer : DiagnosticAnalyzer
         });
     }
 
-    /// <summary>The types a content member can have, by the attribute on it.</summary>
+    /// <summary>Encapsulates well-known content type symbols supported by prefab extension attributes.</summary>
     private sealed record ContentTypes(ITypeSymbol String, ITypeSymbol XmlNode, ITypeSymbol XmlDocument, ITypeSymbol XmlNodes);
 
     private static void Analyze(SymbolAnalysisContext context, INamedTypeSymbol contentAttribute, ContentTypes types)
@@ -44,8 +44,7 @@ public sealed class PrefabContentAnalyzer : DiagnosticAnalyzer
         if (attribute?.AttributeClass is null)
             return;
 
-        // PrefabExtensionXmlDocument reads an XmlDocument, until the UIExtenderEx that made it obsolete (3.0) sends it the
-        // XmlNode way
+        // PrefabExtensionXmlDocument expects XmlDocument until UIExtenderEx 3.0 (where it is marked Obsolete and dispatches via XmlNode)
         ITypeSymbol? expected = attribute.AttributeClass.Name switch
         {
             "PrefabExtensionFileNameAttribute" or "PrefabExtensionTextAttribute" => types.String,
@@ -66,7 +65,9 @@ public sealed class PrefabContentAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>The content attributes whose type the member's is, for a member of the right shape under the wrong one.</summary>
+    /// <summary>
+    /// Identifies alternative extension attribute names compatible with the member's return type when a mismatched attribute was used.
+    /// </summary>
     private static string[] FittingAttributes(ISymbol member, ITypeSymbol @string, ITypeSymbol xmlNode, ITypeSymbol xmlNodes, Compilation compilation)
     {
         var type = member switch

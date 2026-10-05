@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Analyzers.Game;
+﻿using Bannerlord.UIExtenderEx.Analyzers.Game;
 using Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
 using Microsoft.CodeAnalysis;
@@ -12,21 +12,17 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
 /// <summary>
-/// Checks a mod's prefab XML - its prefab files and the XML of its patches - against the widgets it names and the
-/// ViewModels it binds. Layer 2 of docs/design-records/build-time-checks.md.
-/// <para>
-/// Where a patch goes, the XML binds whatever the game's movie binds at that node, which the build cannot read. It is
-/// taken from the <c>[assembly: PrefabLink]</c> naming the patch when there is one, and otherwise from the mod's own
-/// mixins: the ViewModel they extend on which the patch's names resolve, with at least one of those names added by a
-/// mixin. A prefab of the mod's own is linked the same way, by name. From there the scope flows through
-/// <c>DataSource</c> paths, list item templates, and into the mod's own prefabs.
-/// </para>
-/// <para>
-/// With a <c>Bannerlord.ReferenceAssemblies.GUI.v2</c> package referenced (layer 3), a patch is also applied to the game's
-/// own prefab: its XPath has to select a node there, in the game without and with each DLC package referenced, and the
-/// game's scope at that node replaces the one taken from the mixins.
-/// </para>
+/// Analyzes module Gauntlet prefab XML documents and patch XML snippets against known widget definitions and bound ViewModel types.
 /// </summary>
+/// <remarks>
+/// Evaluates Gauntlet hierarchy scopes starting from explicit <c>[assembly: PrefabLink]</c> declarations, game GUI bundle
+/// target scopes, or inferred mixin host ViewModels. Propagates ViewModel and List scopes through <c>DataSource</c> paths,
+/// list item templates, and nested prefabs.
+/// <para>
+/// When referenced against game GUI bundle packages (<see cref="GameGui"/>), validates patch XPath selectors against
+/// vanilla and DLC prefab structures, ensuring target nodes exist and checking bound properties against official game scopes.
+/// </para>
+/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class PrefabAnalyzer : DiagnosticAnalyzer
 {
@@ -37,19 +33,25 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
         Descriptors.UnknownPrefabParameter,
         Descriptors.BindingNotFound,
         Descriptors.BindingOnNoMixinViewModel,
+        Descriptors.BindingThrowsBetweenWidgetAndViewModel,
+        Descriptors.DataSourceNotRefreshedWhenReplaced,
+        Descriptors.ParameterInPassedChildren,
+        Descriptors.DataSourceIntoAListByIndex,
+        Descriptors.UnknownWidgetTag,
         Descriptors.PrefabLinkDoesNotHold,
         Descriptors.LinkedMixinNotBound,
         Descriptors.XPathMatchesNothing,
         Descriptors.XPathMatchesSeveral,
         Descriptors.PrefabLinkDisagreesWithGame,
         Descriptors.XPathInvalid,
-        Descriptors.HoldsForSomeVersions);
+        Descriptors.HoldsForSomeVersions,
+        Descriptors.VersionNotInGuiPackages);
 
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        // The whole mod has to be known - every patch, mixin and prefab file - so this runs once per compilation
+        // Analyzes all patches, mixins, and prefab XML documents across the compilation in a single unified pass
         context.RegisterCompilationAction(compilation =>
         {
             if (KnownTypes.Create(compilation.Compilation) is { } known)
@@ -59,9 +61,9 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
 
     private static void Analyze(CompilationAnalysisContext context, KnownTypes known)
     {
-        // The game's files come from its GUI packages, tagged by the analyzer targets; the rest are the mod's
+        // Segregates game GUI bundle files (tagged by MSBuild analyzer targets) from module-owned prefab files
         var (gameFiles, modFiles) = GameGui.Split(context.Options);
-        // Every report names the game version the compilation is built against, when the project sets one
+        // Formats reported diagnostics with target game version tags when configured
         var report = GameVersionTag.Reporter(context.Options, context.ReportDiagnostic);
         var sources = PrefabSources.Collect(context.Compilation, modFiles, context.CancellationToken);
         foreach (var malformed in sources.MalformedFiles)
@@ -77,9 +79,15 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
             .Select(m => m!)
             .ToList();
         var resolver = new ScopeResolver(hosts, mixins);
-        var walker = new PrefabWalker(sources, resolver, hosts, report);
         var gameVersions = GameVersions.Of(context.Options);
         var game = gameFiles.Count > 0 ? GameGui.Load(gameFiles, gameVersions, context.CancellationToken) : GameSet.Empty(gameVersions);
+        // Emits UIX0025 once in multi-targeting builds on the newest supported version build
+        if (game.NotInBundle.Count > 0 && game.Versions.Reports(game.NotInBundle))
+        {
+            report(Diagnostic.Create(Descriptors.VersionNotInGuiPackages, Location.None,
+                string.Join(", ", game.NotInBundle), game.NotInBundle.Count == 1 ? "it" : "them", game.NewestBundled));
+        }
+        var walker = new PrefabWalker(sources, resolver, hosts, game, report);
         var checker = new GamePatchChecker(game, sources, context.CancellationToken);
 
         foreach (var patch in sources.Patches)
@@ -90,7 +98,7 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
                 if (xml.Error is { } error)
                     walker.Report(Descriptors.XmlNotWellFormed, error.Location, error.Message);
             }
-            // The core selects the node with SelectSingleNode(xpath ?? ""), and an empty XPath throws as a broken one does
+            // TaleWorlds runtime executes SelectSingleNode(xpath ?? ""); empty XPaths throw XPathExceptions
             var whyInvalid = patch.XPath is { } xpath
                 ? GamePatchChecker.WhyXPathIsInvalid(xpath)
                 : "the patch names none, and SelectSingleNode throws on an empty one";
@@ -98,14 +106,16 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
                 walker.Report(Descriptors.XPathInvalid, patch.XPathLocation, patch.XPath is { } written ? $" '{written}'" : "", whyInvalid);
 
             var targets = checker.Check(patch, report);
-            foreach (var target in targets ?? [])
+            if (targets is not null)
             {
                 foreach (var (name, value, nameLocation, _) in patch.SetAttributes)
-                    walker.CheckTagAttribute(target.Tag, name, value, nameLocation);
+                    walker.CheckTagAttribute(targets, name, value, nameLocation);
             }
 
             var patchLinks = links.Where(l => l.Patch is not null && SymbolEqualityComparer.Default.Equals(l.Patch, patch.Type)).ToList();
-            AnalyzePatch(patch, patchLinks, walker, resolver, hosts, targets is null ? [] : SymbolScopes(targets, context.Compilation, hosts));
+            // Evaluates patch XML in matched game configurations or across all configurations for custom prefabs
+            var landsIn = targets?.Select(x => x.Configuration).ToList();
+            AnalyzePatch(patch, patchLinks, walker, resolver, hosts, game, targets ?? [], targets is null ? [] : SymbolScopes(targets, context.Compilation, hosts), landsIn);
         }
 
         foreach (var (movie, viewModel) in sources.LoadedMovies)
@@ -129,14 +139,13 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
         foreach (var prefab in sources.PrefabsByTag.Values.Distinct())
         {
             context.CancellationToken.ThrowIfCancellationRequested();
-            // What needs no scope: attribute names, literal values, parameters
+            // Validates scope-independent constructs: widget tag names, attribute declarations, literals, and parameters
             walker.WalkPrefab(prefab, UnknownScope.Instance, Parameters.Empty);
             if (linkedPrefabs.Contains(prefab))
                 continue;
 
-            // A file reached from nowhere the build can follow - a prefab a mod puts over one of the game's - is checked
-            // further only when every name at its root resolves on one ViewModel of the mod's mixins, one of them through
-            // a mixin. That settles the scope for what lies below without reporting anything at the root on a guess.
+            // When a standalone prefab overrides a game movie without explicit links, infer its scope only when
+            // root bindings unambiguously resolve against a single mixin ViewModel with at least one member contributed by a mixin
             var probe = new ProbeScope();
             walker.WalkPrefab(prefab, probe, Parameters.Empty);
             if (Infer(probe, resolver) is { Unresolved: 0 } inferred)
@@ -145,13 +154,12 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// The game's scope where the patch lands, as the compilation sees it, one per distinct type across the
-    /// configurations. A configuration that reaches the node with several different scopes adds none, and neither does
-    /// a type the mod does not reference: it has nothing to check the patch against then.
+    /// Resolves target movie scopes where the patch lands across game configurations, grouping matching configurations
+    /// by distinct scope type. Ignores configurations where ambiguous scopes or unreferenced types are encountered.
     /// </summary>
-    private static List<Scope> SymbolScopes(IReadOnlyList<PatchTarget> targets, Compilation compilation, Hosts hosts)
+    private static List<(Scope Scope, List<GameConfiguration> Configurations)> SymbolScopes(IReadOnlyList<PatchTarget> targets, Compilation compilation, Hosts hosts)
     {
-        var result = new List<Scope>();
+        var result = new List<(Scope Scope, List<GameConfiguration> Configurations)>();
         foreach (var target in targets)
         {
             if (target.Scopes.Count != 1)
@@ -162,34 +170,38 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
                 ListGameScope list when compilation.GetTypeByMetadataName(list.ElementType) is { } element => new ListScope(hosts.Complete(element)),
                 _ => null,
             };
-            if (scope is not null && result.All(x => x.Key != scope.Key))
-                result.Add(scope);
+            if (scope is null)
+                continue;
+            if (result.FirstOrDefault(x => x.Scope.Key == scope.Key) is { Scope: not null } known)
+                known.Configurations.Add(target.Configuration);
+            else
+                result.Add((scope, [target.Configuration]));
         }
         return result;
     }
 
-    private static void AnalyzePatch(PrefabPatch patch, List<PrefabLink> links, PrefabWalker walker, ScopeResolver resolver, Hosts hosts, IReadOnlyList<Scope> gameScopes)
+    private static void AnalyzePatch(PrefabPatch patch, List<PrefabLink> links, PrefabWalker walker, ScopeResolver resolver, Hosts hosts, GameSet game,
+        IReadOnlyList<PatchTarget> targets, IReadOnlyList<(Scope Scope, List<GameConfiguration> Configurations)> gameScopes, IReadOnlyList<GameConfiguration>? landsIn)
     {
         var probe = new ProbeScope();
-        Walk(patch, walker, probe);
+        Walk(patch, walker, probe, null);
 
-        // Every link of one patch names the same ViewModel; PrefabLinks leaves out one that does not
+        // Explicit prefab links establish the canonical ViewModel scope; PrefabLinks filters invalid links
         if (links.Count > 0)
         {
             var linked = hosts.Complete(links[0].ViewModel);
-            if (gameScopes.Count > 0 && !gameScopes.Any(scope => Agrees(scope, linked)))
-                walker.Report(Descriptors.PrefabLinkDisagreesWithGame, links[0].ViewModelLocation, patch.Type.Name, linked.Name, string.Join(" or ", gameScopes.Select(Describe)));
-            Walk(patch, walker, new ViewModelScope(linked));
+            CheckLinkAgrees(patch, links[0], linked, targets, hosts, game, walker);
+            Walk(patch, walker, new ViewModelScope(linked), landsIn);
             foreach (var link in links)
                 CheckMixinBound(link, probe, walker, "where it goes in");
             return;
         }
 
-        // The game says what binds where the patch lands: nothing to infer
+        // Uses official game GUI bundle scopes at the patch target node when available without inference
         if (gameScopes.Count > 0)
         {
-            foreach (var scope in gameScopes)
-                Walk(patch, walker, scope);
+            foreach (var (scope, configurations) in gameScopes)
+                Walk(patch, walker, scope, configurations);
             return;
         }
 
@@ -198,11 +210,11 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
 
         if (Infer(probe, resolver) is { } inferred)
         {
-            Walk(patch, walker, new ViewModelScope(inferred.Host));
+            Walk(patch, walker, new ViewModelScope(inferred.Host), landsIn);
             return;
         }
 
-        // No mixin ViewModel of the mod answers the patch: each name none of them has is reported, naming them
+        // When no mixin ViewModel satisfies the patch bindings, reports missing properties/methods against all candidate mixin hosts
         var candidates = resolver.MixinHosts();
         if (candidates.Count == 0)
             return;
@@ -217,28 +229,73 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>Whether a link's ViewModel is the game's at the node, or a base or subclass of it.</summary>
-    private static bool Agrees(Scope scope, INamedTypeSymbol linked)
+    /// <summary>
+    /// Validates that the ViewModel linked by <c>[assembly: PrefabLink]</c> matches or derives from the game's actual
+    /// ViewModel at the patch target node (<c>UIX0022</c> or multi-version <c>UIX0024</c>).
+    /// </summary>
+    private static void CheckLinkAgrees(PrefabPatch patch, PrefabLink link, INamedTypeSymbol linked, IReadOnlyList<PatchTarget> targets, Hosts hosts, GameSet game, PrefabWalker walker)
     {
-        var type = scope switch
+        var linkedName = Hosts.MetadataName(linked);
+        var present = new List<GameConfiguration>();
+        var disagree = new List<GameConfiguration>();
+        var bindsInstead = new List<string>();
+        foreach (var target in targets)
         {
-            ViewModelScope vm => vm.Type,
-            ListScope { Element: INamedTypeSymbol element } => element,
-            _ => null,
-        };
-        return type is null
-               || Hosts.SelfAndBases(linked).Any(t => Hosts.SameType(t, type))
-               || Hosts.SelfAndBases(type).Any(t => Hosts.SameType(t, linked));
+            if (target.Scopes.Count != 1)
+                continue;
+            var (type, describe) = target.Scopes[0] switch
+            {
+                ViewModelGameScope vm => (vm.Type, "'" + ShortName(vm.Type) + "'"),
+                ListGameScope list => (list.ElementType, "the items of a list of '" + ShortName(list.ElementType) + "'"),
+                _ => (null, ""),
+            };
+            if (type is null)
+                continue;
+            present.Add(target.Configuration);
+            if (Bases(target.Configuration, linkedName).Contains(type) || Bases(target.Configuration, type).Contains(linkedName))
+                continue;
+            disagree.Add(target.Configuration);
+            if (!bindsInstead.Contains(describe))
+                bindsInstead.Add(describe);
+        }
+        if (disagree.Count == 0)
+            return;
+        var finding = Diagnostic.Create(Descriptors.PrefabLinkDisagreesWithGame, link.ViewModelLocation, patch.Type.Name, linked.Name, string.Join(" or ", bindsInstead));
+        if (game.ForConfigurations(finding, present, disagree) is { } diagnostic)
+            walker.Report(diagnostic);
+
+        // Collects inheritance hierarchy from types.json or compilation metadata fallback
+        HashSet<string> Bases(GameConfiguration configuration, string name)
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            for (var current = name; result.Add(current);)
+            {
+                if (configuration.ViewModel(current) is { } recorded)
+                {
+                    if (recorded.BaseType is not { } baseType)
+                        break;
+                    current = baseType;
+                    continue;
+                }
+                if (hosts.TypeByMetadataName(current) is { } compiled)
+                    result.UnionWith(Hosts.SelfAndBases(compiled).Select(Hosts.MetadataName));
+                break;
+            }
+            return result;
+        }
     }
 
-    private static string Describe(Scope scope) => scope switch
+    /// <summary>Extracts the unqualified type name without generic arguments or namespace prefixes.</summary>
+    private static string ShortName(string type)
     {
-        ViewModelScope vm => "'" + vm.Type.Name + "'",
-        ListScope list => "the items of a list of '" + list.Element.Name + "'",
-        _ => "an unknown scope",
-    };
+        var open = type.IndexOf('<');
+        var plain = open < 0 ? type : type.Substring(0, open);
+        return plain.Substring(Math.Max(plain.LastIndexOf('.'), plain.LastIndexOf('+')) + 1);
+    }
 
-    /// <summary>UIX0019: a link naming a mixin, on XML that binds none of the mixin's members at the point the link names.</summary>
+    /// <summary>
+    /// Reports linked mixins whose members are not bound within the patch XML at the insertion point (<c>UIX0019</c>).
+    /// </summary>
     private static void CheckMixinBound(PrefabLink link, ProbeScope probe, PrefabWalker walker, string where)
     {
         if (link.Mixin is not { } mixin)
@@ -250,17 +307,18 @@ public sealed class PrefabAnalyzer : DiagnosticAnalyzer
             walker.Report(Descriptors.LinkedMixinNotBound, link.MixinLocation, link.Name, mixin.Type.Name, where);
     }
 
-    private static void Walk(PrefabPatch patch, PrefabWalker walker, Scope scope)
+    /// <summary>Walks patch content and attribute nodes within the specified scope and configuration filter.</summary>
+    private static void Walk(PrefabPatch patch, PrefabWalker walker, Scope scope, IReadOnlyList<GameConfiguration>? configurations)
     {
         foreach (var (xml, removeRootNode) in patch.Contents)
-            walker.WalkContent(xml, removeRootNode, scope);
+            walker.WalkContent(xml, removeRootNode, scope, configurations);
         foreach (var (_, value, _, location) in patch.SetAttributes)
-            walker.CheckSetAttribute(value, location, scope);
+            walker.CheckSetAttribute(value, location, scope, configurations);
     }
 
     /// <summary>
-    /// The mixin ViewModel a probe's names point at: among those with at least one name added by a mixin, the one that
-    /// answers most of them. Null when no mixin adds any of the names.
+    /// Infers the target host ViewModel from probe binding names, selecting the candidate that resolves the maximum
+    /// number of bindings while requiring at least one member to originate from a mixin.
     /// </summary>
     private static (INamedTypeSymbol Host, int Unresolved)? Infer(ProbeScope probe, ScopeResolver resolver)
     {

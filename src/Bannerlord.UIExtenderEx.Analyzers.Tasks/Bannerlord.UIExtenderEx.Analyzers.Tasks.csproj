@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+  The MSBuild task the analyzer targets infer the game version with, shipped in the analyzer package's build folder
+  next to the targets, with FetchBannerlordVersion's assembly. netstandard2.0, so both the .NET Framework MSBuild of
+  Visual Studio and the dotnet CLI's load it; MSBuild, System.Reflection.Metadata and System.Collections.Immutable are
+  the host's own, and are not shipped. The analyzer project packs this one's output.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Bannerlord.UIExtenderEx.Analyzers.Tasks</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <!-- FetchBannerlordVersion's assembly next to this one's, for the analyzer project to pack -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.8.43" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="FetchBannerlordVersion" Version="1.0.7.49" />
+  </ItemGroup>
+
+</Project>

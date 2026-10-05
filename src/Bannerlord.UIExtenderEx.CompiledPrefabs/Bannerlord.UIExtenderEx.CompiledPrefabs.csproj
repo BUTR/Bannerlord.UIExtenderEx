@@ -1,0 +1,46 @@
+﻿<!--EXTERNAL_PROPERTIES: GameVersion;HarmonyVersion-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="compile" GeneratePathProperty="true" />
+
+    <!--
+    Compile-only: PrefabReferenceSet reads typeof(Vector2).Assembly to break a tie between two definitions of
+    System.Numerics.Vector2, and the copy that has to win is the game's, so none of ours may ship.
+    -->
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" PrivateAssets="all" ExcludeAssets="runtime" />
+
+    <PackageReference Include="Bannerlord.BUTR.Shared" Version="$(BUTRSharedVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Bannerlord.ModuleManager.Source" Version="$(BUTRModuleManagerVersion)" PrivateAssets="all" />
+    <PackageReference Include="Harmony.Extensions" Version="$(HarmonyExtensionsVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="IsExternalInit" Version="1.0.3" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+  </ItemGroup>
+
+  <!-- PrefabCache's archive. Part of the framework on .NET 6. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj" />
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.CodeGenerator/Bannerlord.UIExtenderEx.CodeGenerator.csproj" />
+    <!--
+    The compiler is the DLL most likely to be missing. The game enumerates this assembly's types before it builds the
+    SubModule and stops at start-up if that throws, so no type here may derive from or implement one of the compiler's.
+    CompilerMissingTests holds this on both frameworks.
+    -->
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.Compiler/Bannerlord.UIExtenderEx.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>

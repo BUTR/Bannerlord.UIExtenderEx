@@ -1,13 +1,11 @@
-<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
+﻿<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
-
-    <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -19,9 +17,22 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 
-    <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" />
+    <!--
+    The Harmony the game's own Bannerlord.Harmony module ships, not the one the product compiles against. The product
+    references HarmonyVersion (2.3.3, build/common.props) compile-only and binds to whatever that module loads at
+    runtime, which is 2.4.2 today, and the tests should patch methods the way the game does.
+    The product compiled against 2.2.2 until 2026-10-01, and the tests ran it. Harmony 2.2.2 detours through
+    MonoMod.RuntimeDetour's .NET Core JIT hook, and on net6.0 that hook dies with "Internal CLR error (0x80131506)" in
+    CompileMethodHook while patching - order-dependent, which is why the net6.0
+    suite used to stop after about 528 tests, and deterministic once the bundled compiler is built optimised in every
+    configuration. 2.4 detours through MonoMod.Core and has no such hook. Measured: 507 of 507 on net6.0 and net472
+    with 2.4.2, against an aborted run at 501 on net6.0 with 2.2.2.
+    -->
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
+    <!-- PatchInliningTests reads the game's IL from disk; net6.0 already has it -->
+    <PackageReference Include="System.Reflection.Metadata" Version="1.6.0" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 
   <ItemGroup Condition="!Exists($(GameFolder))">
@@ -36,6 +47,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx\Bannerlord.UIExtenderEx.csproj" />
+    <!-- The runtime-side projects, each with tests of their own; the core references none of them -->
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.XmlPrefabs\Bannerlord.UIExtenderEx.XmlPrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.GamePrefabs\Bannerlord.UIExtenderEx.GamePrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.CodeGenerator\Bannerlord.UIExtenderEx.CodeGenerator.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.CompiledPrefabs\Bannerlord.UIExtenderEx.CompiledPrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.Compiler\Bannerlord.UIExtenderEx.Compiler.csproj" />
+    <!-- The oracles, and the start-up HarmonyBootstrap runs -->
+    <ProjectReference Include="..\Bannerlord.UIExtenderEx.Tests.Shared\Bannerlord.UIExtenderEx.Tests.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +65,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Assets\Modules\TestModule\SubModule.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- The real module manifest, so the settings tests check the declaration that ships -->
+    <None Include="..\..\src\Bannerlord.UIExtenderEx.Module\_Module\SubModule.xml" Link="Assets\UIExtenderEx\SubModule.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

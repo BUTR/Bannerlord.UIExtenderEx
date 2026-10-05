@@ -3,33 +3,30 @@
 namespace Bannerlord.UIExtenderEx.Attributes;
 
 /// <summary>
-/// Attribute for prefab XML extensions.
-/// Extension classes should inherit from one of the `IPrefabPatch` base classes and should be marked with this attribute
+/// Marks a class as a prefab XML extension patch targeting a specific Gauntlet movie.
+/// <para>
+/// Patch classes must inherit from one of the prefab patch base types (such as <see cref="Prefabs2.PrefabExtensionInsertPatch"/>
+/// or <see cref="Prefabs2.PrefabExtensionSetAttributePatch"/>).
+/// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class PrefabExtensionAttribute : BaseUIExtenderAttribute
 {
-    /// <summary>
-    /// Gauntlet Movie name to extend
-    /// </summary>
+    /// <summary>Gets the name of the target Gauntlet movie or prefab to patch.</summary>
     public string Movie { get; }
 
-    /// <summary>
-    /// XPath of the node to operate against (optional)
-    /// </summary>
+    /// <summary>Gets the optional XPath expression selecting the target XML node within the movie.</summary>
     public string? XPath { get; }
 
-    /// <summary>
-    /// Gauntlet Movie name to prevent from loading as an auto-generated Widget (optional)
-    /// </summary>
-    [Obsolete("AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.")]
+    /// <summary>Legacy property preserved for binary backwards compatibility. Has no runtime effect.</summary>
+    [Obsolete("Legacy property, not used anymore.")]
     public string? AutoGenWidgetName { get; }
 
     /// <summary>
-    /// Constructor
+    /// Initializes a new instance of <see cref="PrefabExtensionAttribute"/> for a movie and optional target XPath.
     /// </summary>
-    /// <param name="movie">Gauntlet Movie name to extend</param>
-    /// <param name="xpath">XPath of the node to operate against (optional)</param>
+    /// <param name="movie">The target Gauntlet movie name to extend.</param>
+    /// <param name="xpath">The optional XPath expression selecting the target node.</param>
     public PrefabExtensionAttribute(string movie, string? xpath = null)
     {
         Movie = movie;
@@ -37,12 +34,12 @@ public sealed class PrefabExtensionAttribute : BaseUIExtenderAttribute
     }
 
     /// <summary>
-    /// Constructor
+    /// Initializes a new instance of <see cref="PrefabExtensionAttribute"/> with legacy widget name parameter.
     /// </summary>
-    /// <param name="movie">Gauntlet Movie name to extend</param>
-    /// <param name="xpath">XPath of the node to operate against (optional)</param>
-    /// <param name="autoGenWidgetName">Gauntlet Movie name to prevent from loading as an auto-generated Widget (optional)</param>
-    [Obsolete("AutoGens are globally disabled for now. When the game will be released on Linux/OSX we'll reuse this property again.")]
+    /// <param name="movie">The target Gauntlet movie name to extend.</param>
+    /// <param name="xpath">The optional XPath expression selecting the target node.</param>
+    /// <param name="autoGenWidgetName">Legacy widget name parameter.</param>
+    [Obsolete("Legacy constructor, not used anymore.")]
     public PrefabExtensionAttribute(string movie, string? xpath = null, string? autoGenWidgetName = null)
     {
         Movie = movie;

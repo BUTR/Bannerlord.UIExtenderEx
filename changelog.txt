@@ -1,4 +1,20 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.0
+Game Versions: v1.3.4,v1.4.x,v1.5.x
+* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderEx.Analyzers NuGet package for build-time mixin/XML diagnostics, code fixes, and multi-game-version validation
+* Added [assembly: PrefabLink] attribute for analyzer validation of prefab/mixin bindings
+* Deprecated [PrefabExtensionXmlDocument] in favor of [PrefabExtensionXmlNode]
+* Allowed InsertType.Remove patches without requiring a content member
+* Skipped mixins for missing ViewModels (e.g. uninstalled DLCs) without failing module registration
+* Added logging for member collisions and ViewModel property overrides across mixins
+* Added [BUTRViewModelOverride], [BUTRUnsafeAccessor], and OnViewModelPropertyChanged to mixins without requiring Harmony
+* Applied prefab patches to prefabs registered via WidgetFactoryManager
+* Fixed mixin lifecycle handling: finalized deregistered mixins with VM and deduplicated constructor refreshes
+---------------------------------------------------------------------------------------------------
 Version: 2.13.3
 Game Versions: v1.0.x,v1.1.x,v1.2.x,v1.3.x,v1.4.x
 * Fixed WidgetInfo.Reload/Refresh

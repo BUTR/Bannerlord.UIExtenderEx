@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
-/// <summary>UIX0019: the mixin taken out of a <c>[PrefabLink]</c>, which then links the XML to the ViewModel alone.</summary>
+/// <summary>
+/// Provides code fixes for unused linked mixin diagnostics (<c>UIX0019</c>), removing the mixin type argument from
+/// <c>[assembly: PrefabLink]</c> so the prefab links directly to the ViewModel alone.
+/// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(PrefabLinkCodeFixProvider)), Shared]
 public sealed class PrefabLinkCodeFixProvider : CodeFixProvider
 {
@@ -25,7 +28,7 @@ public sealed class PrefabLinkCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            // The report is on the third argument, the mixin
+            // The diagnostic is reported on the third attribute argument representing the mixin type
             var argument = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<AttributeArgumentSyntax>();
             if (argument?.Parent is not AttributeArgumentListSyntax list || list.Arguments.IndexOf(argument) != 2)
                 continue;

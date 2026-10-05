@@ -1,79 +1,99 @@
 # Prefab Links
 
-Extending a game screen usually takes two pieces: a [ViewModel Mixin](ViewModelMixin.md) that adds members to the game's
-ViewModel, and a [prefab patch](PrefabExtensionInsertPatch.md) that inserts the XML binding them. Nothing in either says
-they belong together. `[assembly: PrefabLink]` does: it names the patch, the ViewModel its XML binds, and the mixin whose
-members it binds.
+In UIExtenderEx, UI extensions are decoupled into two distinct layers:
+* A **[Prefab Patch](PrefabExtensionInsertPatch.md)** that injects or modifies Gauntlet XML widgets (the View).
+* A **[ViewModel Mixin](ViewModelMixin.md)** that injects properties and commands into the screen's ViewModel.
+
+Because XML files and C# classes are separate, the C# compiler cannot naturally verify whether the property names in your XML match the members declared on your ViewModel or mixin. 
+
+The `[assembly: PrefabLink]` attribute bridges this gap: it explicitly informs the [Roslyn Analyzers](../general/Analyzers.md) which ViewModel and mixin provide the data context for your prefab patch or custom prefab XML.
+
+---
+
+## Anatomy of `[assembly: PrefabLink]`
+
+Assembly-level attributes can be placed in any C# file within your project. A common best practice is to group all links into a single file (such as `UILinks.cs`), providing a centralized manifest of every screen modified by your mod.
 
 ```csharp
 using Bannerlord.UIExtenderEx.Attributes;
+using TaleWorlds.MountAndBlade.ViewModelCollection.GameOptions;
 
+// Links a prefab patch to its target ViewModel and specific Mixin
 [assembly: PrefabLink(typeof(ModOptionsPagePatch), typeof(OptionsVM), typeof(OptionsVMMixin))]
+
+// Links a standalone custom prefab to its root ViewModel data context
 [assembly: PrefabLink("ModOptionsView_MCM", typeof(ModOptionsVM))]
+
+namespace MyMod;
 
 [ViewModelMixin]
 internal sealed class OptionsVMMixin : BaseViewModelMixin<OptionsVM>
 {
     public OptionsVMMixin(OptionsVM vm) : base(vm) { }
 
-    [DataSourceProperty] public ModOptionsVM ModOptions { get; } = new();
-    [DataSourceProperty] public int DescriptionWidth { get; set; }
+    [DataSourceProperty]
+    public ModOptionsVM ModOptions { get; } = new();
+
+    [DataSourceProperty]
+    public int PanelWidth { get; set; }
 }
 
-[PrefabExtension("Options", "descendant::Widget[@Id='OptionsPanel']")]
+[PrefabExtension("Options", "descendant::Widget[@Id='OptionsPanel']/Children")]
 internal sealed class ModOptionsPagePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Child;
 
     [PrefabExtensionText]
-    public string GetContent() => "<ModOptionsView_MCM DataSource=\"{ModOptions}\" />";
+    public string Content => "<ModOptionsView_MCM DataSource=\"{ModOptions}\" Width=\"@PanelWidth\" />";
 }
 ```
 
-The attribute comes with [Bannerlord.UIExtenderEx.Analyzers](../general/Analyzers.md): with the package referenced,
-`[assembly: PrefabLink]` compiles against any UIExtenderEx 2.x. The package adds it to your project as an internal type
-when your UIExtenderEx does not have one, and leaves no trace of your links in the built assembly. UIExtenderEx 3.0
-declares it itself; your links compile unchanged against either.
+---
 
-Assembly attributes can go in any file of the project. Keeping all of a mod's links in one file, such as `UILinks.cs`,
-gives a single list of every screen the mod changes and what drives each change.
+## Attribute Parameters
 
-## What it links
+The `[assembly: PrefabLink]` attribute provides flexible overloads depending on whether you are linking a prefab patch or a custom standalone prefab:
 
-| Argument | What it is |
-| --- | --- |
-| First | The prefab patch: a class marked `[PrefabExtension]` deriving from `PrefabExtensionInsertPatch` or `PrefabExtensionSetAttributePatch`, or from one of the v1 patches in `Bannerlord.UIExtenderEx.Prefabs`. Or, as a string, a prefab of your own: the name you register it under with `WidgetFactoryManager.CreateAndRegister`, or its file name when you do not register it. |
-| Second | The ViewModel the XML binds where it goes in. For a patch, the one at the node the XPath selects. For your own prefab, the one at its root. |
-| Third (optional) | The mixin whose members the XML binds. It has to be attached to that ViewModel: it extends it, or it extends a base of it and has `handleDerived: true`. |
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| **Patch or Prefab** | `Type` or `string` | **For patches (`Type`):** The C# patch class decorated with `[PrefabExtension]` (inheriting from `PrefabExtensionInsertPatch`, `PrefabExtensionSetAttributePatch`, or a v1 patch).<br/>**For custom prefabs (`string`):** The name of your custom prefab registered via `WidgetFactoryManager.CreateAndRegister` or the XML file name. |
+| **Target ViewModel** | `Type` | The `ViewModel` type acting as the data context at the target insertion point. For prefab patches, this is the ViewModel active at the node matched by the XPath. For custom prefabs, this is the ViewModel at the prefab's root. |
+| **Target Mixin** *(Optional)* | `Type` | The specific `[ViewModelMixin]` class providing custom properties or commands to the XML. The mixin must be attached to the target ViewModel (either directly targeting it or targeting an inherited base class with `handleDerived: true`). |
 
-A patch can have several links, one per mixin it binds, as long as they all name the same ViewModel. The XML binds one
-ViewModel where it goes in.
+> [!NOTE]
+> If a single prefab patch binds members from multiple mixins attached to the same ViewModel, you can define multiple `[assembly: PrefabLink]` attributes for that patch, one for each mixin.
 
-## What reads it
+---
 
-[Bannerlord.UIExtenderEx.Analyzers](../general/Analyzers.md) reads it while you build. UIExtenderEx does not read it at
-runtime: a link changes nothing about how your UI is registered or applied.
+## How Roslyn Analyzers Use Prefab Links
 
-Without a link, the analyzer works out a patch's ViewModel from your mixins: the ViewModel one of them extends that has
-the names the patch binds, with at least one name added by a mixin. With a link, it takes the ViewModel you name, and:
+`[assembly: PrefabLink]` exists purely as compile-time metadata. It has **zero runtime overhead** and does not change how UIExtenderEx loads or executes patches in the game.
 
-* checks every binding and command in the patch, and in the prefabs it reaches, against that ViewModel and your mixins
-  on it (UIX0015)
-* checks that the link holds together: the patch or prefab exists, the ViewModel is one, and the mixin is attached to it
-  (UIX0018)
-* checks that the XML binds at least one member of the mixin where it goes in, so a link cannot outlive the bindings it
-  was written for (UIX0019)
+When you build your mod, the [Bannerlord.UIExtenderEx.Analyzers](../general/Analyzers.md) package inspects these attributes to perform comprehensive validation:
 
-## When to write one
+* **Binding Verification (`UIX0015`):** Checks every `@PropertyName` binding and command callback in the injected XML against the declared ViewModel and mixin. If a property is misspelled or missing, the build emits a warning or error.
+* **Link Integrity (`UIX0018`):** Verifies that the specified patch or prefab exists, that the ViewModel inherits from `TaleWorlds.Library.ViewModel`, and that the mixin is actually configured to attach to that ViewModel.
+* **Stale Link Detection (`UIX0019`):** Ensures that the XML actually binds at least one member from the specified mixin. If a refactor removes the bindings, the analyzer alerts you that the link is obsolete.
 
-Inference covers the common case, a patch binding what your mixin adds. Link the patch when:
+---
 
-* **It binds only members of a game ViewModel.** No mixin adds any of its names, so there is nothing to infer from, and
-  each name is reported as UIX0016.
-* **Several of your mixins could answer.** Inference takes the ViewModel that has the most of the patch's names, which
-  may not be the one you meant.
-* **It is your own prefab, reached from nowhere the build can follow.** A replacement for a game prefab, such as
-  Diplomacy's `ClansPanel.xml`, is loaded by the game's code. Without a link the analyzer checks it only when every name
-  at its root resolves on one of your mixins' ViewModels, one of them added by a mixin.
-* **You want the pairing checked.** A link with a mixin is reported when the patch stops binding that mixin's members,
-  after a rename or a move of the patch to another screen.
+## Automatic Inference vs. Explicit Links
+
+In many cases, the Roslyn analyzer can automatically infer which ViewModel a patch binds by scanning your mixins for matching property names. 
+
+However, writing explicit `[assembly: PrefabLink]` annotations is recommended in the following scenarios:
+
+1. **Patches Binding Only Native Properties:** If your injected XML binds exclusively to vanilla game properties on the base ViewModel (without using any custom mixin members), the analyzer cannot infer the ViewModel and emits `UIX0016`. An explicit link resolves this immediately.
+2. **Ambiguous Mixin Bindings:** If multiple mixins define properties with identical names (such as `IsEnabled` or `Title`), automated inference might choose the wrong ViewModel. An explicit link guarantees accurate validation.
+3. **Custom Standalone Prefabs:** Custom prefabs loaded dynamically by game code (such as custom panels or dialog windows) cannot be traced automatically by the analyzer. Adding a string-based prefab link enables full compile-time checking of the custom prefab XML.
+4. **Refactoring Safety:** Explicit links guarantee that if you rename a mixin property or move a patch to a different screen, the compiler immediately flags broken bindings rather than silently guessing.
+
+---
+
+## Version Compatibility
+
+* **UIExtenderEx 3.0+:** The `PrefabLinkAttribute` is natively declared within the core assembly (`Bannerlord.UIExtenderEx.Attributes`).
+* **UIExtenderEx 2.x:** When using the analyzer package with UIExtenderEx 2.x, the analyzer automatically injects the attribute definition as an internal type into your compilation, leaving no residual footprint in your final binary.
+
+Your `[assembly: PrefabLink]` declarations remain fully source-compatible across both versions.
+
