@@ -29,3 +29,9 @@ UIX0021 | UIExtenderEx | Warning | PrefabAnalyzer
 UIX0022 | UIExtenderEx | Warning | PrefabAnalyzer
 UIX0023 | UIExtenderEx | Error | PrefabAnalyzer
 UIX0024 | UIExtenderEx | Warning | PrefabAnalyzer
+UIX0025 | UIExtenderEx | Error | PrefabAnalyzer
+UIX0026 | UIExtenderEx | Error | PrefabAnalyzer
+UIX0027 | UIExtenderEx | Error | PrefabAnalyzer
+UIX0028 | UIExtenderEx | Error | PrefabAnalyzer
+UIX0029 | UIExtenderEx | Warning | PrefabAnalyzer
+UIX0030 | UIExtenderEx | Info | PrefabAnalyzer

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 using NUnit.Framework;
 
@@ -11,9 +11,8 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// The analyzer targets, run by MSBuild on a project that references a GUI package the way NuGet imports one. The
-/// prefab tests hand the analyzer each game file's package directly, so only this shows whether the targets do: a
-/// metadata reference the targets evaluate to nothing once let the game's XML be checked as the mod's own.
+/// Tests MSBuild integration targets (<c>Bannerlord.UIExtenderEx.Analyzers.targets</c>) by invoking MSBuild on mock projects,
+/// verifying generated <c>.editorconfig</c> metadata, package tagging, and game version property propagation.
 /// </summary>
 public class TargetsTests
 {
@@ -25,8 +24,7 @@ public class TargetsTests
         var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "uix-targets-" + Guid.NewGuid().ToString("N"))).FullName;
         try
         {
-            // The package as format 2 lays it out: build/<id>.props exposing everything under gui/, the prefab trees
-            // below it, as one item type
+            // Simulates format 3 package layout: build/<id>.props exposing all gui/ items under the BannerlordGameGuiData item type
             Write(root, "pkg/build/Fake.GUI.props", $"""
                 <Project>
                   <ItemGroup>
@@ -37,7 +35,7 @@ public class TargetsTests
             Write(root, "pkg/gui/manifest.json", "{}");
             Write(root, "pkg/gui/Native/GUI/Prefabs/GameMovie.json", "{}");
 
-            // The mod: its own prefab under GUI, and the package's props imported before the analyzer targets, as NuGet orders them
+            // Simulates mod project layout with GUI/Prefabs and package props imported ahead of analyzer targets as in NuGet restores
             Write(root, "mod/GUI/Prefabs/ModMovie.xml", "<Prefab />");
             var targets = Path.Combine(TestContext.CurrentContext.TestDirectory, "Packaging", "Bannerlord.UIExtenderEx.Analyzers.targets");
             Write(root, "mod/Mod.csproj", $"""
@@ -79,14 +77,14 @@ public class TargetsTests
             }
             catch (IOException)
             {
-                // A build server may still hold a file; the folder is under the temp path
+                // Ignore transient file locking on build servers; directory is in temp storage
             }
         }
     }
 
     /// <summary>
-    /// A list of versions set by hand with semicolons, as MSBuild lists are written, reaches the compiler whole: in an
-    /// editorconfig a ; starts a comment, and the compiler read the first version alone before the targets wrote commas.
+    /// Verifies that semicolon-separated lists of game versions configured in project files are converted to comma-separated
+    /// lists in generated <c>.editorconfig</c> files, preventing semicolons from being misinterpreted as comment delimiters.
     /// </summary>
     [Test]
     public void SupportedVersionsSetByHand_ReachTheCompilerWhole()
@@ -117,12 +115,67 @@ public class TargetsTests
             }
             catch (IOException)
             {
-                // A build server may still hold a file; the folder is under the temp path
+                // Ignore transient file locking on build servers; directory is in temp storage
             }
         }
     }
 
-    /// <summary>The build properties as the compiler reads them: through Roslyn's own editorconfig parser.</summary>
+    /// <summary>
+    /// Verifies that projects omitting explicit game versions infer the version from referenced game directory binaries,
+    /// while explicitly declared versions take precedence.
+    /// </summary>
+    [Test]
+    public void WithoutAVersion_TheGameVersionIsInferredFromTheReferences()
+    {
+        var root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "uix-targets-" + Guid.NewGuid().ToString("N"))).FullName;
+        try
+        {
+            // Simulates game installation layout with TaleWorlds.Library.dll and adjacent Version.xml
+            var binaries = Path.Combine(root, "game", "bin", "Win64_Shipping_Client");
+            Directory.CreateDirectory(binaries);
+            File.Copy(Path.Combine(TestContext.CurrentContext.TestDirectory, "References", "Game", "TaleWorlds.Library.dll"), Path.Combine(binaries, "TaleWorlds.Library.dll"));
+            Write(root, "game/bin/Win64_Shipping_Client/Version.xml", "<Version>\n\t<Singleplayer Value=\"v1.2.12.66233\"/>\n</Version>");
+
+            var targets = Path.Combine(TestContext.CurrentContext.TestDirectory, "Packaging", "Bannerlord.UIExtenderEx.Analyzers.targets");
+            string Project(string properties) => $"""
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <TargetFramework>netstandard2.0</TargetFramework>
+                    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+                    {properties}
+                  </PropertyGroup>
+                  <ItemGroup>
+                    <Reference Include="TaleWorlds.Library" HintPath="..\game\bin\Win64_Shipping_Client\TaleWorlds.Library.dll" />
+                  </ItemGroup>
+                  <Import Project="{targets}" />
+                </Project>
+                """;
+            Write(root, "inferred/Mod.csproj", Project(""));
+            Write(root, "named/Mod.csproj", Project("<GameVersion>1.4.8</GameVersion>"));
+
+            Run(Path.Combine(root, "inferred"), "msbuild Mod.csproj -restore -t:GenerateMSBuildEditorConfigFile -nologo -v:q");
+            Run(Path.Combine(root, "named"), "msbuild Mod.csproj -restore -t:GenerateMSBuildEditorConfigFile -nologo -v:q");
+
+            var inferred = GlobalOptions(Path.Combine(root, "inferred", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig"));
+            Assert.That(inferred["build_property.UIExtenderExInferredGameVersion"], Is.EqualTo("v1.2.12"), "From the game folder's Version.xml");
+            var named = GlobalOptions(Path.Combine(root, "named", "obj", "Debug", "netstandard2.0", "Mod.GeneratedMSBuildEditorConfig.editorconfig"));
+            Assert.That(named.TryGetValue("build_property.UIExtenderExInferredGameVersion", out var notInferred) ? notInferred : "", Is.Empty, "Not inferred when named");
+            Assert.That(named["build_property.GameVersion"], Is.EqualTo("1.4.8"));
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(root, true);
+            }
+            catch (IOException)
+            {
+                // Ignore transient file locking on build servers; directory is in temp storage
+            }
+        }
+    }
+
+    /// <summary>Parses generated editorconfig global properties using Roslyn's <see cref="AnalyzerConfig"/> parser.</summary>
     private static IReadOnlyDictionary<string, string> GlobalOptions(string path)
     {
         var config = AnalyzerConfig.Parse(File.ReadAllText(path), path);
@@ -145,9 +198,11 @@ public class TargetsTests
             RedirectStandardError = true,
             UseShellExecute = false,
         };
-        // The test host's own MSBuild settings would point the child build at the host's SDK internals
+        // Strip test-runner environment variables that would redirect child MSBuild execution to host SDK internals
         foreach (var name in new[] { "MSBuildExtensionsPath", "MSBuildSDKsPath", "MSBUILD_EXE_PATH", "MSBuildLoadMicrosoftTargetsReadOnly" })
             start.Environment.Remove(name);
+        // Disable MSBuild node reuse to prevent process locking on task assemblies across test runs
+        start.Environment["MSBUILDDISABLENODEREUSE"] = "1";
         using var process = Process.Start(start)!;
         var output = process.StandardOutput.ReadToEndAsync();
         var error = process.StandardError.ReadToEndAsync();
@@ -155,7 +210,7 @@ public class TargetsTests
         Assert.That(process.ExitCode, Is.Zero, $"dotnet {arguments} failed:{Environment.NewLine}{output.Result}{error.Result}");
     }
 
-    /// <summary>The editorconfig's sections, by the file path in their header.</summary>
+    /// <summary>Parses editorconfig sections into a dictionary keyed by file pattern header.</summary>
     private static Dictionary<string, List<string>> Sections(IEnumerable<string> lines)
     {
         var result = new Dictionary<string, List<string>>(StringComparer.Ordinal);

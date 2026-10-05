@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using System;
@@ -10,10 +10,13 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
 /// <summary>
-/// Checks each <c>[ViewModelMixin]</c> against the ViewModel it extends, and the mixins of one assembly against each
-/// other. The rules that concern one mixin are reported as its type is analysed, so they show while typing; the one
-/// comparing mixins waits for the end of the compilation.
+/// Analyzes <c>[ViewModelMixin]</c> declarations against their target host ViewModels, validating member collisions,
+/// inheritance compatibility, refresh hook resolutions, instantiation requirements, and cross-mixin member collisions.
 /// </summary>
+/// <remarks>
+/// Per-mixin diagnostics run incrementally on symbol analysis for immediate IDE feedback; cross-mixin collisions
+/// (<c>UIX0002</c>) evaluate during compilation end actions across the complete assembly scope.
+/// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MixinAnalyzer : DiagnosticAnalyzer
 {
@@ -29,7 +32,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        // A generated mixin is registered like any other, so it takes part in the comparison between mixins
+        // Analyzes generated mixins alongside source types to detect collisions between generated and user-defined mixins
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
         context.EnableConcurrentExecution();
         context.RegisterCompilationStartAction(OnCompilationStart);
@@ -89,9 +92,8 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// UIX0008. The runtime takes the mixin's instance methods of every accessibility, and the non-private ones it inherits,
-    /// that carry the attribute; checks the override's own shape; and looks the method up on the ViewModel by name and by
-    /// the override's parameters without the original, from the type up, whatever its accessibility.
+    /// Reports mismatched method override signatures (<c>UIX0008</c>) under <c>[BUTRViewModelOverride]</c>.
+    /// Verifies delegate parameter shapes and confirms matching target method signatures on the host ViewModel hierarchy.
     /// </summary>
     private static void ReportMismatchedOverrides(SymbolAnalysisContext context, Mixin mixin, INamedTypeSymbol host, KnownTypes known)
     {
@@ -148,8 +150,8 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// UIX0001, against every type the mixin is attached to: the ViewModel, or with <c>handleDerived</c> every type
-    /// derived from it the compilation can see. One report per host member, however many derived types inherit it.
+    /// Reports collisions where mixin members shadow existing host ViewModel properties or methods (<c>UIX0001</c>).
+    /// Evaluates across all instantiable host types (including derived subtypes when <c>handleDerived: true</c>).
     /// </summary>
     private static void ReportReplacedHostMembers(SymbolAnalysisContext context, Mixin mixin, INamedTypeSymbol host, Hosts hosts)
     {
@@ -175,7 +177,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
 
         void Report(ISymbol member, ISymbol hostMember, string kind)
         {
-            // A member inherited from a base class in another assembly has no source location; the mixin stands in
+            // Inherited members from external assemblies lack source locations; substitutes the mixin declaration location
             var location = member.Locations.FirstOrDefault(l => l.IsInSource) ?? mixin.Location;
             var accessibility = hostMember.DeclaredAccessibility switch
             {
@@ -189,8 +191,8 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// UIX0007, for members the mixin declares itself. <c>GetProperties()</c> returns a property when either accessor is
-    /// public, which is what a property declared public is.
+    /// Reports DataSource properties or methods that lack <c>public</c> accessibility (<c>UIX0007</c>),
+    /// preventing Gauntlet reflection bindings from accessing them.
     /// </summary>
     private static void ReportNonPublicMembers(SymbolAnalysisContext context, Mixin mixin, KnownTypes known)
     {
@@ -210,9 +212,8 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Why <c>Activator.CreateInstance(mixinType, instance)</c> would throw: it needs a concrete, closed type with a public
-    /// constructor whose one parameter accepts the ViewModel. With <c>handleDerived</c> the instance may be a derived
-    /// type, which a parameter accepting the ViewModel accepts too.
+    /// Evaluates whether a mixin type can be instantiated via <c>Activator.CreateInstance(mixinType, instance)</c>,
+    /// verifying that the type is concrete, non-generic, and exposes a public constructor accepting the host ViewModel.
     /// </summary>
     private static (string Why, string Reason)? WhyCannotBeCreated(Compilation compilation, Mixin mixin)
     {
@@ -234,9 +235,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// UIX0002: two mixins of this assembly putting one name on one ViewModel. They meet on a ViewModel when they extend
-    /// the same one, or when one of them has <c>handleDerived</c> and extends a base of the other's. Properties and
-    /// commands live in separate tables, so a property and a command of one name do not collide.
+    /// Reports duplicate members injected by different mixins onto the same host ViewModel hierarchy (<c>UIX0002</c>).
     /// </summary>
     private static void ReportDuplicates(CompilationAnalysisContext context, List<Mixin> mixins)
     {
@@ -262,7 +261,7 @@ public sealed class MixinAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>The ViewModel two mixins both reach, the more derived when one reaches it through <c>handleDerived</c>.</summary>
+    /// <summary>Resolves the common target host ViewModel shared by two mixins, accounting for <c>handleDerived</c> propagation.</summary>
     private static INamedTypeSymbol? Meet(Mixin a, Mixin b)
     {
         var (hostA, hostB) = (a.Host!, b.Host!);

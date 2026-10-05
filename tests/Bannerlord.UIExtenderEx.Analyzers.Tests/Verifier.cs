@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -17,15 +17,21 @@ using System.Threading.Tasks;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// Compiles a mod's source in memory and checks the analyzer's reports against the markup in it. A span written
-/// <c>{|UIX0001:Name|}</c> expects that rule on exactly that text; any report the markup does not name fails the test,
-/// and so does a compiler error, so every case is code that builds.
-/// <para>
-/// The mod compiles with public metadata only, as csc does: the analyzer has to find private members of referenced
-/// ViewModels on its own. A test that needs a ViewModel in a referenced assembly rather than in the mod passes its source
-/// as <c>gameSource</c>; it is compiled into an assembly of its own first.
-/// </para>
+/// Compiles module source in memory and validates diagnostic analyzer reports against embedded test markup spans.
 /// </summary>
+/// <remarks>
+/// Markup spans formatted as <c>{|UIX0001:Name|}</c> assert that diagnostic <c>UIX0001</c> is reported on that exact text range.
+/// Unmatched diagnostics or unexpected compiler errors fail the test, ensuring all test fixtures produce compiling code.
+/// <para>
+/// Compilations import public metadata only (matching standard <c>csc</c> behavior), requiring analyzers to inspect private
+/// members of referenced ViewModels via complete symbol compilation views. Tests requiring ViewModels in referenced assemblies
+/// pass <c>gameSource</c> to compile an independent referenced assembly first.
+/// </para>
+/// <para>
+/// Does not depend on <c>Microsoft.CodeAnalysis.Testing</c>, avoiding runtime NuGet assembly downloads in favor of static
+/// reference assemblies copied at build time.
+/// </para>
+/// </remarks>
 internal static class Verifier
 {
     private const string Usings = """
@@ -49,17 +55,17 @@ internal static class Verifier
     });
 
     /// <summary>
-    /// What the code under test compiles against: .NET Framework 4.7.2, the game, UIExtenderEx, and the attributes of a
-    /// newer UIExtenderEx that this one does not have (<see cref="NewerApi"/>).
+    /// Gets the base metadata references required by test compilations (.NET Framework 4.7.2, Bannerlord game libraries,
+    /// UIExtenderEx, and synthetic attributes from <see cref="NewerApi"/>).
     /// </summary>
     public static ImmutableArray<MetadataReference> References => BaseReferences.Value;
 
-    /// <summary>The version of the UIExtenderEx the tests compile against, which some reports depend on.</summary>
+    /// <summary>Gets the assembly version of the referenced UIExtenderEx instance used by test compilations.</summary>
     public static Version UIExtenderExVersion { get; } =
         System.Reflection.AssemblyName.GetAssemblyName(Path.Combine(TestContext.CurrentContext.TestDirectory, "Bannerlord.UIExtenderEx.dll")).Version!;
 
     /// <summary>
-    /// The compilation after the analyzer package's generators have run, as the compiler runs them before the analyzers.
+    /// Executes source generators (e.g. <see cref="PrefabLinkAttributeGenerator"/>) against the compilation, matching compiler execution order.
     /// </summary>
     public static CSharpCompilation WithGenerators(CSharpCompilation compilation)
     {
@@ -104,7 +110,9 @@ internal static class Verifier
         Assert.Fail(message.ToString());
     }
 
-    /// <summary>The messages of every report, for the tests that check what a report says.</summary>
+    /// <summary>
+    /// Compiles test source and retrieves formatted diagnostic report strings (<c>Id: Message</c>).
+    /// </summary>
     public static async Task<IReadOnlyList<string>> MessagesAsync(string source, string? gameSource = null)
     {
         var references = BaseReferences.Value;
@@ -118,7 +126,9 @@ internal static class Verifier
         return diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
     }
 
-    /// <summary>A referenced assembly compiled from <paramref name="source"/>, for a ViewModel whose private members the mod cannot see.</summary>
+    /// <summary>
+    /// Compiles <paramref name="source"/> into a standalone external game assembly reference, modeling private members hidden from consumer compilations.
+    /// </summary>
     public static MetadataReference CompileGameAssembly(string source)
     {
         var compilation = CSharpCompilation.Create("Game",

@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Module xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/SubModule.xsd" >
+  <Id value="$moduleid$" />
+  <Name value="$modulename$" />
+  <Version value="v$version$" />
+  <DefaultModule value="false" />
+  <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
+  <Url value="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102" />
+  <UpdateInfo value="NexusMods:2102" />
+  <DependedModules>
+    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v$harmonyversion$" />
+  </DependedModules>
+  <ModulesToLoadAfterThis>
+    <Module Id="Native" />
+    <Module Id="SandBoxCore" />
+    <Module Id="Sandbox" />
+    <Module Id="StoryMode" />
+    <Module Id="CustomBattle" />
+  </ModulesToLoadAfterThis>
+  <!-- Community Dependency Metadata -->
+  <!-- https://github.com/BUTR/Bannerlord.BLSE#community-dependency-metadata -->
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" version="v$harmonyversion$" />
+
+    <DependedModuleMetadata id="Native" order="LoadAfterThis" version="$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadAfterThis" version="$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="Sandbox" order="LoadAfterThis" version="$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="StoryMode" order="LoadAfterThis" version="$gameversion$.*" optional="true" />
+    <DependedModuleMetadata id="CustomBattle" order="LoadAfterThis" version="$gameversion$.*" optional="true" />
+  </DependedModuleMetadatas>
+  <!-- Community Metadata -->
+  <SubModules>
+    <SubModule>
+      <Name value="$modulename$" />
+      <DLLName value="$moduleid$.dll" />
+      <SubModuleClassType value="$moduleid$.SubModule" />
+      <Assemblies/>
+      <Tags />
+    </SubModule>
+    <!-- The prefab runtimes, after the core: each installs itself when the game builds it, in this order -->
+    <SubModule>
+      <Name value="$modulename$ XML Prefabs" />
+      <DLLName value="$moduleid$.XmlPrefabs.dll" />
+      <SubModuleClassType value="$moduleid$.XmlPrefabs.SubModule" />
+      <Assemblies/>
+      <Tags />
+    </SubModule>
+    <SubModule>
+      <Name value="$modulename$ Game Prefabs" />
+      <DLLName value="$moduleid$.GamePrefabs.dll" />
+      <SubModuleClassType value="$moduleid$.GamePrefabs.SubModule" />
+      <Assemblies/>
+      <Tags />
+    </SubModule>
+    <SubModule>
+      <Name value="$modulename$ Compiled Prefabs" />
+      <DLLName value="$moduleid$.CompiledPrefabs.dll" />
+      <SubModuleClassType value="$moduleid$.CompiledPrefabs.SubModule" />
+      <Assemblies/>
+      <Tags />
+    </SubModule>
+  </SubModules>
+  <!-- Settings. Default is what ships, the current value is written next to it as Value="..." by UIExtenderEx and by MCM's options screen. -->
+  <!-- https://mcm.bannerlord.aragas.org/articles/MCMv5/mcmv5-submodule-xml-settings.html -->
+  <Settings DisplayName="$modulename$ v$version$">
+    <Group Name="{=ODH5APqM}Debug" Order="1">
+      <Bool Id="DumpXML" DisplayName="{=FP3G0cfi}Dump XML" HintText="{=rBkPEIL7}Whether to dump the resulting XML prefab after a patch." Default="false" RequireRestart="false" />
+      <Bool Id="DumpGeneratedCode" DisplayName="{=Rz5cGy1vNa}Dump generated code" HintText="{=Tq9dHx4mBo}Write the C# generated for a patched movie next to the cached compiled prefabs." Default="false" RequireRestart="false" />
+      <Bool Id="RecordTimings" DisplayName="{=Jc4tVw7nRe}Record timings" HintText="{=Pf6kQy2sXa}Keep how long each movie load, compilation and warm-up took in a file per session in the Timings folder next to the cached compiled prefabs. The last ten sessions are kept." Default="false" RequireRestart="false" />
+    </Group>
+    <Group Name="{=uX4aVQ2kHc}Compiled Prefabs" Order="0">
+      <Bool Id="CompiledPrefabs" DisplayName="{=Mh7rTq3wPd}Use compiled prefabs" HintText="{=Kb2nWz8sLe}Compile patched movies to C# and use them instead of XML. When off, patched movies always load from XML." Default="true" IsToggle="true" />
+      <Bool Id="DisableGeneratedPrefabs" DisplayName="{=Wn3jKp6eSf}Disable generated prefabs" HintText="{=Yv8bLm2rCg}Previous behaviour: the game's pre-compiled prefabs are disabled entirely and every movie loads from XML." Default="false" />
+    </Group>
+  </Settings>
+</Module>

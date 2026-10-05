@@ -71,3 +71,13 @@ csharp_preserve_single_line_blocks = true
 # 'using' directive preferences
 [*.cs]
 csharp_using_directive_placement = outside_namespace
+
+# Verify snapshots: kept exactly as Verify writes them, whatever the editor would do to a .cs file
+[*.{received,verified}.cs]
+charset = utf-8-bom
+end_of_line = lf
+indent_size = unset
+indent_style = unset
+insert_final_newline = false
+tab_width = unset
+trim_trailing_whitespace = false

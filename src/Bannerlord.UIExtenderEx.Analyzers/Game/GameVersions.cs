@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.Diagnostics;
+﻿using Microsoft.CodeAnalysis.Diagnostics;
 
 using System;
 using System.Collections.Generic;
@@ -8,24 +8,23 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
 /// <summary>
-/// The game versions a build is about, from the build properties the analyzer targets make compiler-visible: the one it
-/// compiles against (<see cref="GameVersionTag"/>), the ones the mod supports (<c>UIExtenderExGameVersions</c>, which the
-/// targets fill from <c>Bannerlord.BUTRModule.Sdk</c>'s <c>supported-game-versions.txt</c>), and whether this is one of
-/// the SDK's builds per version (<c>OverrideGameVersion</c>).
+/// Represents the game versions targeted by the current compilation, read from compiler-visible MSBuild properties:
+/// the compilation target version (<see cref="GameVersionTag"/>), the supported version list (<c>UIExtenderExGameVersions</c>,
+/// derived from <c>supported-game-versions.txt</c>), and multi-target iteration flags (<c>OverrideGameVersion</c>).
 /// </summary>
 internal sealed class GameVersions
 {
     public static readonly IComparer<string> Comparer = new VersionComparer();
 
-    /// <summary>The version the compilation builds against, <c>v1.4.8</c>; null when the project sets none.</summary>
+    /// <summary>Gets the game version targeted by the current compilation (e.g. <c>v1.4.8</c>), or <see langword="null"/> if unspecified.</summary>
     public string? Current { get; }
 
-    /// <summary>The versions the mod supports, as the project lists them; empty when it lists none.</summary>
+    /// <summary>Gets the list of game versions explicitly supported by the mod project.</summary>
     public IReadOnlyList<string> Supported { get; }
 
     /// <summary>
-    /// A build of <c>BuildModuleTask</c>'s loop, which builds the module once per supported version. Each of those builds
-    /// sees every version, so a finding is reported by one of them only: the build of the newest version it holds for.
+    /// Indicates whether the current compilation is one iteration of a multi-version build matrix (e.g. <c>BuildModuleTask</c>).
+    /// Prevents duplicate diagnostic reporting across matrix builds by reporting version-specific findings only in the newest matching build.
     /// </summary>
     public bool IsOneOfSeveralBuilds { get; }
 
@@ -47,21 +46,25 @@ internal sealed class GameVersions
     }
 
     /// <summary>
-    /// Whether this build reports a finding that holds for these versions: always, but in one of the SDK's builds per
-    /// version, only the build of the newest of them, so the finding is reported once across the builds.
+    /// Determines whether the current compilation should report a diagnostic that holds for the specified versions.
+    /// In multi-target matrix builds, reports only during the build matching the newest applicable version.
     /// </summary>
     public bool Reports(IEnumerable<string> holdsFor) =>
         !IsOneOfSeveralBuilds || Current is null || string.Equals(holdsFor.OrderBy(x => x, Comparer).LastOrDefault(), Current, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary><c>1.4.8</c> and <c>v1.4.8</c> as <c>v1.4.8</c>; null for nothing.</summary>
+    /// <summary>
+    /// Normalizes version strings to standard format (e.g. <c>1.4.8</c> and <c>v1.4.8</c> become <c>v1.4.8</c>; Early Access <c>e1.8.1</c> preserves prefix).
+    /// </summary>
     public static string? Normalize(string? version)
     {
         if (version?.Trim() is not { Length: > 0 } trimmed)
             return null;
-        return trimmed.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? "v" + trimmed.Substring(1) : "v" + trimmed;
+        if (trimmed.Length > 1 && trimmed[0] is 'v' or 'V' or 'e' or 'E' && char.IsDigit(trimmed[1]))
+            return char.ToLowerInvariant(trimmed[0]) + trimmed.Substring(1);
+        return "v" + trimmed;
     }
 
-    /// <summary>By each number in turn, v1.2.10 after v1.2.9; a part that is no number compares as text.</summary>
+    /// <summary>Compares version strings numerically by component (e.g. <c>v1.2.10</c> sorts after <c>v1.2.9</c>).</summary>
     private sealed class VersionComparer : IComparer<string>
     {
         public int Compare(string? x, string? y)

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 using System;
 using System.Collections.Concurrent;
@@ -8,12 +8,16 @@ using System.Linq;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
-/// <summary>What a point of the XML binds: a ViewModel, a binding list, something the build cannot tell, or a probe.</summary>
+/// <summary>
+/// Represents the data-binding context at a point in the prefab XML hierarchy:
+/// a ViewModel, a binding list, an unknown type, or a probe scope.
+/// </summary>
 internal abstract class Scope
 {
     public abstract string Key { get; }
 }
 
+/// <summary>Represents a data-binding scope resolved to a specific ViewModel type.</summary>
 internal sealed class ViewModelScope : Scope
 {
     public INamedTypeSymbol Type { get; }
@@ -21,6 +25,7 @@ internal sealed class ViewModelScope : Scope
     public override string Key => Type.ToDisplayString();
 }
 
+/// <summary>Represents a data-binding scope resolved to a collection such as <c>MBBindingList&lt;T&gt;</c>.</summary>
 internal sealed class ListScope : Scope
 {
     public ITypeSymbol Element { get; }
@@ -28,7 +33,7 @@ internal sealed class ListScope : Scope
     public override string Key => "list of " + Element.ToDisplayString();
 }
 
-/// <summary>A ViewModel the build cannot know: nothing below it is checked.</summary>
+/// <summary>Represents an unresolved or opaque ViewModel scope whose children cannot be verified at compile time.</summary>
 internal sealed class UnknownScope : Scope
 {
     public static readonly UnknownScope Instance = new();
@@ -36,26 +41,26 @@ internal sealed class UnknownScope : Scope
 }
 
 /// <summary>
-/// The insertion point of a patch whose ViewModel is to be inferred: records the names bound at it instead of checking
-/// them, so the mod's mixins can be asked which of their ViewModels answers.
+/// Represents the insertion point of a patch where the target ViewModel scope must be inferred.
+/// Records bound property and command names instead of verifying them immediately, allowing candidate
+/// mixin host ViewModels to be evaluated for compatibility.
 /// </summary>
 internal sealed class ProbeScope : Scope
 {
-    /// <summary>Each name, and whether <c>Location</c> is the literal that is the value rather than an attribute's name.</summary>
+    /// <summary>The collection of property and command bindings encountered, including command flags and source locations.</summary>
     public List<(string Name, bool IsCommand, Location Location, bool InSpan)> Names { get; } = [];
     public override string Key => "probe";
 }
 
 /// <summary>
-/// Whether a ViewModel answers a name, the way an instance's binding table and <c>ExecuteCommand</c> would: its own
-/// members, the members this mod's mixins put on it, and, because a property declared as a base type may hold a derived
-/// instance, the same of the types derived from it that the compilation can see.
+/// Resolves member and command bindings against a ViewModel hierarchy, mirroring Gauntlet's runtime binding table
+/// and <c>ExecuteCommand</c> dispatch. Evaluates intrinsic ViewModel members, mod mixin extensions, and visible derived types.
 /// </summary>
 internal sealed class ScopeResolver
 {
     private readonly Hosts _hosts;
     private readonly IReadOnlyList<Mixin> _mixins;
-    private readonly ConcurrentDictionary<(string Type, string Name, bool Command), (bool Found, ITypeSymbol? Type, bool ViaMixin)> _cache = new();
+    private readonly ConcurrentDictionary<(string Type, string Name, bool Command), (bool Found, IPropertySymbol? Property, bool ViaMixin)> _cache = new();
 
     public ScopeResolver(Hosts hosts, IReadOnlyList<Mixin> mixins)
     {
@@ -63,7 +68,7 @@ internal sealed class ScopeResolver
         _mixins = mixins;
     }
 
-    /// <summary>The ViewModels the mod's mixins extend, with the derived types a <c>handleDerived</c> mixin reaches.</summary>
+    /// <summary>Gets all ViewModels extended by the mod's mixins, including derived types when <c>handleDerived</c> is enabled.</summary>
     public IReadOnlyList<INamedTypeSymbol> MixinHosts()
     {
         var result = new List<INamedTypeSymbol>();
@@ -83,8 +88,16 @@ internal sealed class ScopeResolver
 
     public bool TryProperty(INamedTypeSymbol viewModel, string name, out ITypeSymbol? type, out bool viaMixin)
     {
+        var found = TryPropertySymbol(viewModel, name, out var property, out viaMixin);
+        type = property?.Type;
+        return found;
+    }
+
+    /// <summary>Resolves a property symbol on the ViewModel or its attached mixins to determine its declared type and setter signature.</summary>
+    public bool TryPropertySymbol(INamedTypeSymbol viewModel, string name, out IPropertySymbol? property, out bool viaMixin)
+    {
         var result = _cache.GetOrAdd((viewModel.ToDisplayString(), name, false), _ => Find(viewModel, name, command: false));
-        type = result.Type;
+        property = result.Property;
         viaMixin = result.ViaMixin;
         return result.Found;
     }
@@ -96,7 +109,7 @@ internal sealed class ScopeResolver
         return result.Found;
     }
 
-    private (bool Found, ITypeSymbol? Type, bool ViaMixin) Find(INamedTypeSymbol viewModel, string name, bool command)
+    private (bool Found, IPropertySymbol? Property, bool ViaMixin) Find(INamedTypeSymbol viewModel, string name, bool command)
     {
         if (FindOn(viewModel, name, command) is { Found: true } direct)
             return direct;
@@ -108,23 +121,23 @@ internal sealed class ScopeResolver
         return (false, null, false);
     }
 
-    private (bool Found, ITypeSymbol? Type, bool ViaMixin) FindOn(INamedTypeSymbol viewModel, string name, bool command)
+    private (bool Found, IPropertySymbol? Property, bool ViaMixin) FindOn(INamedTypeSymbol viewModel, string name, bool command)
     {
         foreach (var mixin in MixinsOf(viewModel))
         {
             if (command && mixin.Methods.Any(m => m.Name == name))
                 return (true, null, true);
             if (!command && mixin.Properties.FirstOrDefault(p => p.Name == name) is { } property)
-                return (true, property.Type, true);
+                return (true, property, true);
         }
         if (command)
             return Hosts.FindCommandMethod(viewModel, name) is not null ? (true, null, false) : (false, null, false);
-        return Hosts.FindTableProperty(viewModel, name) is { } own ? (true, own.Type, false) : (false, null, false);
+        return Hosts.FindTableProperty(viewModel, name) is { } own ? (true, own, false) : (false, null, false);
     }
 
     /// <summary>
-    /// Every name a binding (or with <paramref name="command"/>, a command) on this ViewModel reaches, the way
-    /// <see cref="TryProperty"/> and <see cref="TryCommand"/> look them up: for suggesting one in place of a misspelling.
+    /// Enumerates all accessible property or command names available on the specified ViewModel and its attached mixins,
+    /// used for suggesting corrections when an unbound identifier is encountered.
     /// </summary>
     public IEnumerable<string> Names(INamedTypeSymbol viewModel, bool command)
     {
@@ -151,12 +164,34 @@ internal sealed class ScopeResolver
         }
     }
 
-    /// <summary>The mod's mixins attached to instances of this type: registered for it, or for a base with <c>handleDerived</c>.</summary>
+    /// <summary>
+    /// Determines whether the mod itself supplies the requested property or command on the specified ViewModel across
+    /// all game versions (via a mixin or a mod-derived ViewModel subclass), rather than relying on vanilla game GUI definitions.
+    /// </summary>
+    public bool ModAnswers(INamedTypeSymbol viewModel, string name, bool command, Func<INamedTypeSymbol, bool> isGame)
+    {
+        foreach (var type in _hosts.InstantiableSelfAndDerived(viewModel).Prepend(viewModel))
+        {
+            if (MixinsOf(type).Any(m => command ? m.Methods.Any(x => x.Name == name) : m.Properties.Any(x => x.Name == name)))
+                return true;
+            foreach (var declaring in Hosts.SelfAndBases(type).TakeWhile(t => t.Locations.Any(l => l.IsInSource) && !isGame(t)))
+            {
+                var members = declaring.GetMembers(name);
+                if (command
+                        ? members.OfType<IMethodSymbol>().Any(m => !m.IsStatic && m.MethodKind == MethodKind.Ordinary)
+                        : members.OfType<IPropertySymbol>().Any(p => !p.IsStatic && !p.IsIndexer && (Hosts.SameType(declaring, type) || p.DeclaredAccessibility != Accessibility.Private)))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>Returns the mixins targeting the specified ViewModel type or inherited base types with <c>handleDerived</c> enabled.</summary>
     private IEnumerable<Mixin> MixinsOf(INamedTypeSymbol viewModel) => _mixins.Where(m =>
         Hosts.SameType(m.Host!, viewModel)
         || (m.HandleDerived && Hosts.SelfAndBases(viewModel).Any(b => Hosts.SameType(b, m.Host!))));
 
-    /// <summary>What binds below a property of this type: a ViewModel, a binding list's elements, or nothing the build can tell.</summary>
+    /// <summary>Determines the child data-binding scope resulting from navigating into a property of the specified type.</summary>
     public Scope ChildScope(ITypeSymbol? type)
     {
         if (type is not INamedTypeSymbol named)

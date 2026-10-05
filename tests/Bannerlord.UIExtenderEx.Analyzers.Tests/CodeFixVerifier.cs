@@ -1,4 +1,4 @@
-using Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
+﻿using Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,9 +20,9 @@ using System.Threading.Tasks;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// Runs every analyzer over a mod's C# and XML files in a workspace, applies the fix with the given title to the first
-/// report of a rule, and compares every document with what it should read afterwards. The code has to compile before the
-/// fix and after it.
+/// Runs diagnostic analyzers against module C# and Gauntlet XML documents within an in-memory workspace, executes the code
+/// fix matching a specified title against the first reported diagnostic, and verifies post-transformation document state and
+/// compilation validity.
 /// </summary>
 internal static class CodeFixVerifier
 {
@@ -46,22 +46,35 @@ internal static class CodeFixVerifier
         new PrefabLinkCodeFixProvider(), new PrefabXmlCodeFixProvider());
 
     /// <summary>
-    /// A fix to the mod's C#; <paramref name="before"/> and <paramref name="after"/> both follow <see cref="Usings"/>, or
-    /// with <paramref name="usings"/> false, are whole files.
+    /// Verifies a code fix targeting module C# source.
     /// </summary>
+    /// <param name="id">The diagnostic rule ID to trigger.</param>
+    /// <param name="before">The initial C# code before applying the fix.</param>
+    /// <param name="after">The expected C# code after applying the fix.</param>
+    /// <param name="title">The title of the code action to execute.</param>
+    /// <param name="gameSource">Optional external game assembly source.</param>
+    /// <param name="usings">Whether standard using directives should be automatically prepended.</param>
     public static Task VerifyAsync(string id, string before, string after, string title, string? gameSource = null, bool usings = true) =>
         VerifyAsync(id, before, after, [], title, gameSource, usings);
 
     /// <summary>
-    /// A fix to the mod's C# or one of its XML files, each given as it reads before and after. With
-    /// <paramref name="gameVersion"/>, the project builds against that game version, as the analyzer targets pass it on.
+    /// Verifies a code fix targeting module C# source or associated additional Gauntlet XML files against expected post-fix states.
     /// </summary>
+    /// <param name="id">The diagnostic rule ID to trigger.</param>
+    /// <param name="before">The initial C# code before applying the fix.</param>
+    /// <param name="after">The expected C# code after applying the fix.</param>
+    /// <param name="files">Additional document files and their respective before/after contents.</param>
+    /// <param name="title">The title of the code action to execute.</param>
+    /// <param name="gameSource">Optional external game assembly source.</param>
+    /// <param name="usings">Whether standard using directives should be automatically prepended.</param>
+    /// <param name="gameVersion">The target game version configuration string.</param>
+    /// <param name="game">Optional mock or real game package provider.</param>
     public static async Task VerifyAsync(string id, string before, string after, (string Path, string Before, string After)[] files, string title,
-        string? gameSource = null, bool usings = true, string? gameVersion = null)
+        string? gameSource = null, bool usings = true, string? gameVersion = null, Game? game = null)
     {
         var header = usings ? Usings : "";
         var (solution, documentId, fileIds) = CreateSolution(header + before, files.Select(f => (f.Path, f.Before)), gameSource, gameVersion);
-        var actions = await FixesAsync(solution, id, gameVersion);
+        var actions = await FixesAsync(solution, id, gameVersion, game);
         var action = actions.FirstOrDefault(a => a.Title == title);
         Assert.That(action, Is.Not.Null, $"No fix titled '{title}' for {id}; offered: {string.Join(", ", actions.Select(a => $"'{a.Title}'"))}");
 
@@ -81,21 +94,46 @@ internal static class CodeFixVerifier
         Assert.That(errors, Is.Empty, "The code does not compile after the fix:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
     }
 
-    /// <summary>The titles of the fixes offered for the first report of a rule; empty when there is none.</summary>
-    public static async Task<IReadOnlyList<string>> TitlesAsync(string id, string before, params (string Path, string Text)[] files)
+    /// <summary>
+    /// Retrieves the titles of all code actions registered for the first diagnostic report of rule <paramref name="id"/>.
+    /// </summary>
+    public static Task<IReadOnlyList<string>> TitlesAsync(string id, string before, params (string Path, string Text)[] files) =>
+        TitlesAsync(id, before, null, files);
+
+    /// <summary>
+    /// Retrieves the titles of all code actions registered for the first diagnostic report of rule <paramref name="id"/>,
+    /// evaluating against the specified game packages and build properties.
+    /// </summary>
+    public static async Task<IReadOnlyList<string>> TitlesAsync(string id, string before, Game? game, params (string Path, string Text)[] files)
     {
         var (solution, _, _) = CreateSolution(Usings + before, files, null, null);
-        return (await FixesAsync(solution, id)).Select(a => a.Title).ToList();
+        return (await FixesAsync(solution, id, game: game)).Select(a => a.Title).ToList();
     }
 
-    private static async Task<List<CodeAction>> FixesAsync(Solution solution, string id, string? gameVersion = null)
+    /// <summary>
+    /// Represents mock game GUI packages and analyzer build properties passed into the workspace options.
+    /// </summary>
+    public sealed class Game(ITestPackage[] packages, IReadOnlyDictionary<string, string> properties)
+    {
+        public ITestPackage[] Packages { get; } = packages;
+
+        public IReadOnlyDictionary<string, string> Properties { get; } = properties;
+    }
+
+    private static async Task<List<CodeAction>> FixesAsync(Solution solution, string id, string? gameVersion = null, Game? game = null)
     {
         var project = solution.Projects.Single();
         var compilation = (await project.GetCompilationAsync())!;
         var errors = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
         Assert.That(errors, Is.Empty, "The test's code does not compile:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
 
-        var diagnostics = await compilation.WithAnalyzers(Analyzers, project.AnalyzerOptions).GetAnalyzerDiagnosticsAsync();
+        var options = project.AnalyzerOptions;
+        if (game is not null)
+        {
+            var (files, provider) = PrefabVerifier.Game(game.Packages, game.Properties);
+            options = new AnalyzerOptions(options.AdditionalFiles.AddRange(files), provider);
+        }
+        var diagnostics = await compilation.WithAnalyzers(Analyzers, options).GetAnalyzerDiagnosticsAsync();
         var diagnostic = diagnostics
             .Where(d => d.Id == id)
             .OrderBy(d => d.Location.GetLineSpan().Path, StringComparer.Ordinal)
@@ -153,7 +191,9 @@ internal static class CodeFixVerifier
 
     private static string Normalize(string text) => text.Replace("\r\n", "\n");
 
-    /// <summary>The analyzer package's generators, which the workspace runs before handing out a compilation.</summary>
+    /// <summary>
+    /// Analyzer reference wrapper providing source generator instances to the test workspace compilation pipeline.
+    /// </summary>
     private sealed class Generators : AnalyzerReference
     {
         public override string? FullPath => null;
@@ -164,7 +204,7 @@ internal static class CodeFixVerifier
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => ImmutableArray<DiagnosticAnalyzer>.Empty;
 
-        // One instance for the life of the reference: the workspace keeps each generator's state by the instance
+        // Maintains a single generator instance across the reference lifetime to preserve generator state within the workspace
         private static readonly ImmutableArray<ISourceGenerator> Instances = ImmutableArray.Create(new PrefabLinkAttributeGenerator().AsSourceGenerator());
 
         public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages() => Instances;

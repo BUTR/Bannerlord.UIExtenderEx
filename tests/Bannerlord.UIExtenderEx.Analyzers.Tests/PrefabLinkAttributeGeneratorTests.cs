@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using NUnit.Framework;
@@ -11,8 +11,8 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// <see cref="PrefabLinkAttributeGenerator"/>: <c>[assembly: PrefabLink]</c> for a mod whose UIExtenderEx has none, and
-/// nothing for one whose UIExtenderEx or own code declares it.
+/// Tests <see cref="PrefabLinkAttributeGenerator"/>, verifying code generation of <c>[assembly: PrefabLink]</c> attribute
+/// definitions when targeting older UIExtenderEx builds lacking native attribute declarations.
 /// </summary>
 public class PrefabLinkAttributeGeneratorTests
 {
@@ -54,7 +54,7 @@ public class PrefabLinkAttributeGeneratorTests
         Assert.That(compilation.Assembly.GetAttributes().Count(a => a.AttributeClass?.Name == "PrefabLinkAttribute"), Is.EqualTo(2), "what the analyzers read");
     }
 
-    /// <summary>Conditional: the links stay in the build, not in the mod's assembly.</summary>
+    /// <summary>Verifies that generated <c>PrefabLinkAttribute</c> uses conditional compilation so link usages are omitted from output assembly metadata.</summary>
     [Test]
     public void TheLinks_AreNotCompiledIntoTheAssembly()
     {
@@ -70,7 +70,7 @@ public class PrefabLinkAttributeGeneratorTests
         Assert.That(emitted.GetAttributes().Where(a => a.AttributeClass?.Name == "PrefabLinkAttribute"), Is.Empty);
     }
 
-    /// <summary>A mod targeting .NET Framework compiles as C# 7.3 unless it says otherwise.</summary>
+    /// <summary>Verifies that generated attribute source compiles cleanly under C# 7.3 for .NET Framework targets.</summary>
     [Test]
     public void TheAttribute_CompilesAsCSharp73()
     {
@@ -84,7 +84,7 @@ public class PrefabLinkAttributeGeneratorTests
     [Test]
     public void AUIExtenderExThatHasIt_GetsNothing()
     {
-        // An assembly by UIExtenderEx's name that declares the attribute, as 3.0 does
+        // Synthesizes a UIExtenderEx assembly containing native [PrefabLinkAttribute] declarations (as in v3.0+)
         var uiExtenderEx = CSharpCompilation.Create("Bannerlord.UIExtenderEx",
             [CSharpSyntaxTree.ParseText("""
                 namespace Bannerlord.UIExtenderEx.Attributes

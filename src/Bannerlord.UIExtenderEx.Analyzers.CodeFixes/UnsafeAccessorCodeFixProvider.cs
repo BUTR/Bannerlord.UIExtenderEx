@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -17,8 +17,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
 /// <summary>
-/// UIX0010: <c>[MethodImpl(MethodImplOptions.NoInlining)]</c> on the stub, or <c>NoInlining</c> added to the
-/// <c>[MethodImpl]</c> it has, in place of <c>AggressiveInlining</c> when that is what it asks for.
+/// Provides code fixes for unsafe accessor stubs (<c>UIX0010</c>), ensuring methods are annotated with
+/// <c>[MethodImpl(MethodImplOptions.NoInlining)]</c> or combining <c>NoInlining</c> into existing method implementation flags.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UnsafeAccessorCodeFixProvider)), Shared]
 public sealed class UnsafeAccessorCodeFixProvider : CodeFixProvider
@@ -57,7 +57,7 @@ public sealed class UnsafeAccessorCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        // Written in full, then given a using where the file has none, and shortened as far as the usings allow
+        // Emits fully qualified type syntax, imports required namespaces when absent, and reduces syntax via Simplifier
         var added = new SyntaxAnnotation();
         var generator = SyntaxGenerator.GetGenerator(document);
         var noInlining = ((ExpressionSyntax) generator.MemberAccessExpression(generator.TypeExpression(optionsType), "NoInlining"))
@@ -94,7 +94,7 @@ public sealed class UnsafeAccessorCodeFixProvider : CodeFixProvider
         }
         else
         {
-            // The stub's leading trivia, its comments included, moves in front of the attribute
+            // Transfers method leading trivia (including doc comments) to precede the newly attached attribute list
             var leading = stub.GetLeadingTrivia();
             attributeList = attributeList.WithLeadingTrivia(leading).WithTrailingTrivia(EndOfLine(eol));
             marked = stub.WithoutLeadingTrivia().WithLeadingTrivia(Whitespace(Fixes.IndentationOf(stub))).WithAttributeLists(SingletonList(attributeList));

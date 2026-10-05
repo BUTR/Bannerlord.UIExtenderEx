@@ -1,0 +1,87 @@
+﻿<!--EXTERNAL_PROPERTIES: RoslynVersion-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+
+    <!-- Shipped in the module, not in any package -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Important for performance -->
+  <PropertyGroup>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <!--
+  ILRepack. The C# compiler and every assembly it binds to that the runtime does not provide are merged into this one
+  and internalized.
+  <para>
+  Before this, Roslyn was taken from the game's own mono folder and its support assemblies were resolved at runtime.
+  Two of those - System.Collections.Immutable and System.Reflection.Metadata - are a matched pair, and other modules
+  ship their own, higher-versioned pair (ButterLib carries 1.2.5.0/1.4.5.0 against the game's 1.2.3.0/1.4.3.0). The
+  resolvers in the game's process answer a bind by simple name with the first copy they find, and a consumer handed
+  one half of each pair sees two distinct ImmutableArray types and throws MissingMethodException. Merging removes the shared names
+  from the process entirely: nothing here is resolved by name, so no module load order can affect it.
+  </para>
+  <para>
+  System.Numerics.Vectors is deliberately NOT merged and not shipped. The JIT treats Vector<T> as a SIMD type only
+  inside the assembly of that name: merged, Vector.IsHardwareAccelerated measured false and System.Memory's span helpers
+  ran up to five times slower. The game ships a copy in its bin folder and .NET 6 provides it in-box; VectorsBinding
+  binds this assembly's reference to the game's copy whatever version either side has.
+  </para>
+  -->
+  <PropertyGroup>
+    <ILRepackTargetConfigurations>$(Configuration)</ILRepackTargetConfigurations>
+    <!--
+    The compiler-plumbing types every modern C# assembly carries a private copy of: IsExternalInit, NullableAttribute,
+    and their kin. Roslyn's assemblies bring their own and so does this one, and without this ILRepack renames the
+    duplicates to <guid>IsExternalInit. An `init` setter whose modreq points at a renamed type is a member the C#
+    compiler cannot express, so every record property in this assembly's public surface became unusable
+    ("CS0570: not supported by the language"). Unioning them keeps the one name the compiler looks for.
+    -->
+    <ILRepackAllowDuplicateNamespaces>System.Runtime.CompilerServices;System.Diagnostics.CodeAnalysis</ILRepackAllowDuplicateNamespaces>
+    <ILRepackMergeDebugSymbols>true</ILRepackMergeDebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ILRepack" Version="2.0.44" PrivateAssets="all" />
+    <PackageReference Include="ILRepack.FullAuto" Version="1.6.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+  ILRepack rewrites the intermediate assembly in place, and MSBuild skips the C# compile whenever that assembly is
+  newer than the sources. A second build would therefore hand ILRepack its own previous output and merge the compiler
+  into it again: measured at 12.5 MB, then 23.7 MB, then 34.6 MB over three consecutive builds of an unchanged tree.
+  Deleting it makes the compiler run every time, so what ILRepack is handed is always this project's own code.
+  The reference assembly is not touched by the merge, so projects downstream of this one still skip their compile.
+  -->
+  <Target Name="RecompileBeforeILRepack" BeforeTargets="CoreCompile" Condition="'$(ILRepackBuildEnable)' == 'True'">
+    <Delete Files="@(IntermediateAssembly)" />
+  </Target>
+
+  <Target Name="ExcludeAssembliesFromILRepack" BeforeTargets="ILRepackPrepareBuild">
+    <PropertyGroup>
+      <ILRepackExcludeAssemblies>$(ILRepackExcludeAssemblies);$(ProjectDir)$(OutputPath)System.Numerics.Vectors.dll;</ILRepackExcludeAssemblies>
+    </PropertyGroup>
+  </Target>
+
+  <ItemGroup>
+    <!--
+    The compiler itself, merged in.
+    System.Reflection.Metadata and System.Collections.Immutable arrive with it and are used directly by
+    PrefabAssemblyReference and ReferencePublicizer; they are merged for the same reason Roslyn is, which is also why
+    those two types live here rather than beside the rest of the pipeline.
+    -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Memory" Version="4.6.3" PrivateAssets="all" />
+
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" PrivateAssets="all" ExcludeAssets="runtime" />
+
+    <PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <PackageReference Include="IsExternalInit" Version="1.0.3" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+  </ItemGroup>
+
+</Project>

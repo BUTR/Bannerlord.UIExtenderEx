@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 using System;
 using System.Collections.Concurrent;
@@ -9,24 +9,22 @@ using System.Threading;
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
 /// <summary>
-/// A <c>Bannerlord.ReferenceAssemblies.GUI.v2.All</c> package: the newest build of every release game version, each
-/// distinct format 2 record stored once. <c>bundle.json</c> says, for every version and package, which lines of which
-/// table each format 2 file is made of; <c>nodes.jsonl</c> holds every distinct prefab node, children by line.
+/// Reads deduplicated multi-version GUI bundles (<c>Bannerlord.ReferenceAssemblies.GUI.v3.All</c>).
+/// Reconstructs format 3 package documents for each supported game version by indexing records from shared tables.
 /// <para>
-/// It is read back into the format 2 documents of each version's packages, as parsed JSON, so the rest of the analyzer
-/// reads a version of the bundle as it reads a per-build package. Only the lines of the versions checked are parsed.
+/// The index manifest (<c>bundle.json</c>) maps file entries across versions to line ranges in tabular data files,
+/// while <c>nodes.jsonl</c> stores deduplicated XML prefab DOM nodes.
 /// </para>
 /// </summary>
 internal sealed class GuiBundle
 {
     public const string IndexFile = "bundle.json";
 
-    private const int FormatVersion = 2;
     private const int Layout = 1;
 
     /// <summary>
-    /// What was parsed of the last bundle, shared across compilations: the IDE analyses the same package again on every
-    /// change, and the tables hold every version. Keyed by the content hash, so another package version starts over.
+    /// Parsed data from the most recently accessed bundle, cached across compilation passes.
+    /// Keyed by content hash to ensure cache invalidation when package contents change.
     /// </summary>
     private static Shared? _last;
 
@@ -44,12 +42,12 @@ internal sealed class GuiBundle
         _cancellation = cancellation;
     }
 
-    /// <summary>The bundle whose files these are, keyed by their path under <c>gui/</c>; null when it is not one this reads.</summary>
+    /// <summary>Opens a <see cref="GuiBundle"/> from package files indexed under <c>gui/</c>, or returns <see langword="null"/> if the bundle format or layout is unsupported.</summary>
     public static GuiBundle? Open(Dictionary<string, AdditionalText> files, CancellationToken cancellation)
     {
         if (!files.TryGetValue(IndexFile, out var indexFile)
             || Parse(indexFile.GetText(cancellation)?.ToString() ?? "") is not IReadOnlyDictionary<string, object?> index
-            || Number(index, "formatVersion") != FormatVersion || Number(index, "layout") != Layout)
+            || Number(index, "formatVersion") is not { } format || !GameGui.ReadsFormat(format) || Number(index, "layout") != Layout)
             return null;
 
         var hash = index.String("contentHash") ?? "";
@@ -80,7 +78,7 @@ internal sealed class GuiBundle
         return new GuiBundle(files, shared, versions, cancellation);
     }
 
-    /// <summary>A format 2 file of a package, as parsed JSON: its inline properties, and its arrays from their tables.</summary>
+    /// <summary>Reconstructs a format 3 document from package file properties and shared tabular records.</summary>
     public IReadOnlyDictionary<string, object?>? Document(BundlePackage package, string path)
     {
         if (!package.Files.TryGetValue(path, out var properties))
@@ -112,7 +110,7 @@ internal sealed class GuiBundle
 
     private readonly Dictionary<int, BundleTree> _trees = new();
 
-    /// <summary>The tree of a root node, one per node, so a prefab several versions share is one document.</summary>
+    /// <summary>Returns a cached <see cref="BundleTree"/> for the specified root node index, ensuring shared prefab trees are instantiated once.</summary>
     public BundleTree TreeFor(int root)
     {
         if (!_trees.TryGetValue(root, out var tree))
@@ -120,12 +118,12 @@ internal sealed class GuiBundle
         return tree;
     }
 
-    /// <summary>A prefab tree, from its root node: the format 2 <c>{ n, a, c }</c> node with its children nested.</summary>
+    /// <summary>Reconstructs a prefab node tree (<c>{ n, a, c }</c>) beginning from its root node index.</summary>
     public IReadOnlyDictionary<string, object?>? Tree(int root) => Node(root, int.MaxValue);
 
     private IReadOnlyDictionary<string, object?>? Node(int line, int parent)
     {
-        // Children come before their parents, so a child's line is always the lower; a cycle would be a broken bundle
+        // Child nodes precede parent nodes in topological order; lower line numbers ensure acyclic references.
         if (line < 0 || line >= parent)
             return null;
         if (_shared.Nodes.TryGetValue(line, out var cached))
@@ -151,7 +149,7 @@ internal sealed class GuiBundle
         return _shared.Nodes.GetOrAdd(line, node);
     }
 
-    /// <summary>One line of a table, parsed once per bundle.</summary>
+    /// <summary>Retrieves and parses a single line record from a shared table file, caching parsed results.</summary>
     private object? Record(string table, int line)
     {
         if (_shared.Records.TryGetValue((table, line), out var cached))
@@ -178,7 +176,7 @@ internal sealed class GuiBundle
     private static int? Number(IReadOnlyDictionary<string, object?> obj, string key) =>
         obj.TryGetValue(key, out var value) && value is double number ? (int) number : null;
 
-    /// <summary>What is parsed of one bundle, safe to share between analyses: nothing in it changes once added.</summary>
+    /// <summary>Thread-safe cache holding parsed table lines, records, and nodes shared across analyses of the same bundle.</summary>
     private sealed class Shared(string contentHash)
     {
         public string ContentHash { get; } = contentHash;
@@ -188,8 +186,8 @@ internal sealed class GuiBundle
     }
 }
 
-/// <summary>One game version in a bundle, its packages base first.</summary>
+/// <summary>Represents a game version entry within a bundle, ordered with base packages preceding DLC packages.</summary>
 internal sealed record BundleVersion(string GameVersion, IReadOnlyList<BundlePackage> Packages);
 
-/// <summary>One package of a version: its files by path under <c>gui/</c>, and the root node of each prefabs.json entry.</summary>
+/// <summary>Represents a package definition within a bundled version, mapping relative file paths to table records and prefab root nodes.</summary>
 internal sealed record BundlePackage(string Id, IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, object?>>> Files, IReadOnlyList<int> Trees);

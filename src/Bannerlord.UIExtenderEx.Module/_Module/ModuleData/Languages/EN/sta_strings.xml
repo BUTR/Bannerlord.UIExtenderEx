@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/ModuleLanguage.xsd" >
+  <tags>
+    <tag language="English" />
+  </tags>
+  <strings>
+    <string id="eySpdc25EE" text="Warning from Bannerlord.UIExtenderEx!" />
+    <string id="FE6ya1gzZR" text="{REQUIRED_MODULE} module was not found!" />
+    <string id="EvI6KPAqTT" text="Incompatible module {DENIED_MODULE} was found!" />
+    <string id="5G9zffrgMh" text="{MODULE} is loaded before the {REQUIRED_MODULE}!{NL}Make sure {MODULE} is loaded after it!" />
+    <string id="UZ8zfvudMs" text="{MODULE} is loaded after the {REQUIRED_MODULE}!{NL}Make sure {MODULE} is loaded before it!" />
+    <string id="FcR4BXnhx8" text="{MODULE} has mutually exclusive mod order directives specified for the {REQUIRED_MODULE}!" />
+    <string id="eXs6FLm5DP" text="It's strongly recommended to terminate the game now. Do you wish to terminate it?" />
+    <!-- Settings declared in SubModule.xml -->
+    <string id="ODH5APqM" text="Debug" />
+    <string id="FP3G0cfi" text="Dump XML" />
+    <string id="rBkPEIL7" text="Whether to dump the resulting XML prefab after a patch." />
+    <string id="Rz5cGy1vNa" text="Dump generated code" />
+    <string id="Tq9dHx4mBo" text="Write the C# generated for a patched movie next to the cached compiled prefabs." />
+    <string id="Jc4tVw7nRe" text="Record timings" />
+    <string id="Pf6kQy2sXa" text="Keep how long each movie load, compilation and warm-up took in a file per session in the Timings folder next to the cached compiled prefabs. The last ten sessions are kept." />
+    <string id="uX4aVQ2kHc" text="Compiled Prefabs" />
+    <string id="Mh7rTq3wPd" text="Use compiled prefabs" />
+    <string id="Kb2nWz8sLe" text="Compile patched movies to C# and use them instead of XML. When off, patched movies always load from XML." />
+    <string id="Wn3jKp6eSf" text="Disable generated prefabs" />
+    <string id="Yv8bLm2rCg" text="Previous behaviour: the game's pre-compiled prefabs are disabled entirely and every movie loads from XML." />
+  </strings>
+</base>

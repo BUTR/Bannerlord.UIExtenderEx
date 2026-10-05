@@ -1,6 +1,5 @@
 ﻿using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Components;
-using Bannerlord.UIExtenderEx.Patches;
 using Bannerlord.UIExtenderEx.Utils;
 
 using System;
@@ -10,44 +9,41 @@ using System.Xml;
 namespace Bannerlord.UIExtenderEx;
 
 /// <summary>
-/// Actual runtime of UIExtender, assigned to each module's instance of `UIExtender`
+/// Encapsulates runtime extension state and components for an individual module.
 /// </summary>
 internal class UIExtenderRuntime
 {
     /// <summary>
-    /// Name of the module this runtime is assigned to
+    /// Gets the name of the module managed by this runtime.
     /// </summary>
     public readonly string ModuleName;
 
     /// <summary>
-    /// Instance of PrefabComponent, which deals with XML files
+    /// Gets the prefab component handling Gauntlet XML patches.
     /// </summary>
     public readonly PrefabComponent PrefabComponent;
 
     /// <summary>
-    /// Instance of ViewModelComponent, which deals with child classes of `ViewModel`
+    /// Gets the view model component managing view model mixins.
     /// </summary>
     public readonly ViewModelComponent ViewModelComponent;
 
     /// <summary>
-    /// Constructor
+    /// Initializes a new instance of the <see cref="UIExtenderRuntime"/> class for the specified module.
     /// </summary>
-    /// <param name="moduleName">Name of the module this runtime is assigned to</param>
+    /// <param name="moduleName">The name of the module.</param>
     public UIExtenderRuntime(string moduleName)
     {
         ModuleName = moduleName;
 
-        PrefabComponent = new PrefabComponent(moduleName);
-        ViewModelComponent = new ViewModelComponent(moduleName);
+        PrefabComponent = new(moduleName);
+        ViewModelComponent = new(moduleName);
     }
 
     /// <summary>
-    /// Register types attributed with `UIExtenderLibExtension`:
-    /// 1. will add extensions to their respective components
-    /// 2. will add standard patches and patch game
-    /// 3. will force game to reload affected XMLs
+    /// Registers extension types decorated with <see cref="BaseUIExtenderAttribute"/> to their respective components.
     /// </summary>
-    /// <param name="types"></param>
+    /// <param name="types">The extension types to register.</param>
     public void Register(IEnumerable<Type> types)
     {
         foreach (var extensionType in types)
@@ -65,7 +61,7 @@ internal class UIExtenderRuntime
                             continue;
                         }
 
-                        // gauntlet xml extension
+                        // Gauntlet XML extension
                         switch (constructor.Invoke([]))
                         {
                             case Prefabs.PrefabExtensionSetAttributePatch patch:
@@ -101,15 +97,11 @@ internal class UIExtenderRuntime
                                 break;
                         }
 
-#pragma warning disable CS0618
-                        GauntletMoviePatch.Register(this, xmlExtension.AutoGenWidgetName);
-#pragma warning restore CS0618
-
                         break;
                     }
 
                     case ViewModelMixinAttribute viewModelExtension:
-                        // view model mixin
+                        // View model mixin
                         ViewModelComponent.RegisterViewModelMixin(extensionType, viewModelExtension.RefreshMethodName, viewModelExtension.HandleDerived);
                         break;
 
@@ -125,23 +117,22 @@ internal class UIExtenderRuntime
     {
         PrefabComponent.Deregister();
         ViewModelComponent.Deregister();
-        GauntletMoviePatch.Deregister(this);
     }
 
     public void Enable()
     {
-        // finalize code patcher and let harmony apply patches
+        // Enable view model mixins and apply dynamic binding tables.
         ViewModelComponent.Enable();
 
-        // force reload movies that should be patched by extensions
+        // Reload movies patched by prefab extensions.
         PrefabComponent.Enable();
     }
     public void Disable()
     {
-        // finalize code patcher and let harmony apply patches
+        // Disable view model mixins.
         ViewModelComponent.Disable();
 
-        // force reload movies that should be patched by extensions
+        // Reload movies patched by prefab extensions.
         PrefabComponent.Disable();
     }
 

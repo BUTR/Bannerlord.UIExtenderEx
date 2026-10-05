@@ -1,31 +1,32 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Xml;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Game;
 
-/// <summary>A movie the game loads, with the ViewModel it binds; see movies.json in the GUI package contract.</summary>
+/// <summary>Represents a Gauntlet movie loaded by the game and its bound ViewModel type, corresponding to records in <c>movies.json</c>.</summary>
 internal sealed record MovieEntry(string Movie, string? ViewModel, bool Paired, string? OverrideView, string? GameStateScreen, string? Module);
 
-/// <summary>A prefab of the game as the package's index lists it: its tree and the element names it uses.</summary>
+/// <summary>Represents a vanilla game prefab entry from the package index, containing its parsed DOM tree and constituent XML tag names.</summary>
 internal sealed record GamePrefabEntry(GameTree Tree, IReadOnlyCollection<string> Tags);
 
 /// <summary>
-/// A prefab tree, <c>{ n, a, c }</c>: the file of a per-build package, or a root node of a bundle. Documents are cached
-/// by the tree, so a bundle's tree that several versions share is rebuilt once.
+/// Represents a serialized prefab element tree (<c>{ n, a, c }</c>) sourced from either a per-build package file or a bundle root node.
+/// Document trees shared across versions are cached and reconstructed once.
 /// </summary>
 internal abstract class GameTree
 {
     public abstract IReadOnlyDictionary<string, object?>? Root(CancellationToken cancellation);
 }
 
-/// <summary>A tree file of a per-build package: <c>{ formatVersion, name, module, root }</c>.</summary>
+/// <summary>Represents a standalone prefab tree file from a per-build GUI package.</summary>
 internal sealed class FileTree(AdditionalText file) : GameTree
 {
     public override IReadOnlyDictionary<string, object?>? Root(CancellationToken cancellation) =>
@@ -33,13 +34,13 @@ internal sealed class FileTree(AdditionalText file) : GameTree
         && tree.TryGetValue("root", out var root) ? root as IReadOnlyDictionary<string, object?> : null;
 }
 
-/// <summary>A tree of a bundle, by its root node.</summary>
+/// <summary>Represents a prefab tree entry within a multi-version GUI bundle resolved via its root node index.</summary>
 internal sealed class BundleTree(GuiBundle bundle, int root) : GameTree
 {
     public override IReadOnlyDictionary<string, object?>? Root(CancellationToken cancellation) => bundle.Tree(root);
 }
 
-/// <summary>A game prefab, the module that ships it, and its document once rebuilt.</summary>
+/// <summary>Encapsulates a game prefab definition, its contributing module, and its lazily reconstructed XML document.</summary>
 internal sealed class GamePrefab
 {
     private readonly GamePrefabEntry _entry;
@@ -48,7 +49,7 @@ internal sealed class GamePrefab
     public string Name { get; }
     public string Module { get; }
 
-    /// <summary>Every element name in the prefab, from the index: where it could use another prefab by tag.</summary>
+    /// <summary>Gets all element tag names referenced in the prefab index, identifying potential child prefab instantiations.</summary>
     public IReadOnlyCollection<string> Tags => _entry.Tags;
 
     public GamePrefab(string name, string module, GamePrefabEntry entry, DocumentCache documents)
@@ -59,17 +60,16 @@ internal sealed class GamePrefab
         _documents = documents;
     }
 
-    /// <summary>The document UIExtenderEx applies patches to, rebuilt from the prefab's tree; null when the tree is broken.</summary>
+    /// <summary>Reconstructs the target <see cref="XmlDocument"/> representing the prefab XML, or returns <see langword="null"/> if tree deserialization fails.</summary>
     public XmlDocument? Document(CancellationToken cancellation) => _documents.Get(_entry.Tree, cancellation);
 }
 
 /// <summary>
-/// Game documents rebuilt during one analysis, shared by its configurations. Not shared across analyses: an
-/// <see cref="XmlDocument"/> is not safe to read from two threads, and the IDE can analyse two compilations at once.
+/// Caches reconstructed XML documents during an analysis pass. Caches are scoped per analysis because <see cref="XmlDocument"/>
+/// instances are not thread-safe and concurrent IDE compilations may evaluate simultaneously.
 /// <para>
-/// A tree holds what <c>WidgetPrefab.LoadFrom</c> loads: every element, attribute and text, without comments
-/// (<c>IgnoreComments</c>) or whitespace-only text (a default <see cref="XmlDocument"/> drops it). So the rebuilt document
-/// is the one the patches run against, and an XPath selects the same nodes in both.
+/// Element trees reflect the exact structure loaded by <c>WidgetPrefab.LoadFrom</c> (excluding comments and whitespace-only text),
+/// ensuring that XPath selections match runtime behavior identically.
 /// </para>
 /// </summary>
 internal sealed class DocumentCache
@@ -100,7 +100,7 @@ internal sealed class DocumentCache
         return document;
     }
 
-    /// <summary>A node: <c>n</c> its name, <c>a</c> its attributes, <c>c</c> its children, each a node or a text.</summary>
+    /// <summary>Constructs an <see cref="XmlElement"/> from a serialized node dictionary containing name (<c>n</c>), attributes (<c>a</c>), and children (<c>c</c>).</summary>
     private static XmlElement Element(XmlDocument document, IReadOnlyDictionary<string, object?> node)
     {
         var element = document.CreateElement(node.String("n") ?? throw new FormatException("A node has no name"));
@@ -126,31 +126,58 @@ internal sealed class DocumentCache
 }
 
 /// <summary>
-/// One GUI package: the game's own modules, or one DLC. Its files come in as additional files that the analyzer targets
-/// tag with the package id. Only format 2 is read, which carries no game file: prefabs as trees, with an index.
+/// Represents a format 3 game GUI package (base game modules or DLC) supplied via <c>AdditionalFiles</c>.
+/// Encapsulates serialized prefab trees, movie mappings, ViewModels, and widget metadata.
 /// </summary>
 internal sealed class GamePackage
 {
     public string Id { get; }
     public bool IsDlc { get; }
 
-    /// <summary>The game version of the build, <c>v1.4.8</c>, from the manifest; null when it names none.</summary>
+    /// <summary>Gets the target game version (e.g. <c>v1.4.8</c>) declared in the package manifest, or <see langword="null"/> if unspecified.</summary>
     public string? GameVersion { get; }
 
-    /// <summary>Module folders in the manifest's order, which is load order.</summary>
+    /// <summary>Gets the contributing module folders ordered by load precedence.</summary>
     public IReadOnlyList<string> Modules { get; }
 
-    /// <summary>Prefabs by module folder, then by prefab name.</summary>
+    /// <summary>Gets prefab entries grouped by module folder and indexed by prefab name.</summary>
     public IReadOnlyDictionary<string, Dictionary<string, GamePrefabEntry>> Prefabs { get; }
 
     public IReadOnlyList<MovieEntry> Movies { get; }
 
-    /// <summary>ViewModels by type name: base type and property types.</summary>
+    /// <summary>Gets ViewModel type definitions indexed by fully qualified type name.</summary>
     public IReadOnlyDictionary<string, GameViewModel> ViewModels { get; }
 
+    /// <summary>
+    /// Gets property change notifications announced by widget methods, indexed by widget type name and property name.
+    /// Returns <see langword="null"/> if the package metadata omits announcement records.
+    /// </summary>
+    public IReadOnlyDictionary<string, Dictionary<string, List<string>>>? Announcements { get; }
+
+    /// <summary>
+    /// Gets the names of all widget classes scanned from game assemblies. Any element tag matching a known widget
+    /// name instantiates that widget directly via Gauntlet's <c>WidgetFactory</c>.
+    /// </summary>
+    public IReadOnlyCollection<string> WidgetNames { get; }
+
+    /// <summary>Gets widget class definitions and their declared properties.</summary>
+    public IReadOnlyList<GameWidget> Widgets { get; }
+
+    /// <summary>Gets valid enum member names indexed by enum type name for widget properties.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyCollection<string>> Enums { get; }
+
+    /// <summary>
+    /// Gets the metadata type names supported by <c>WidgetExtensions.ConvertObject</c> string conversions.
+    /// Returns <see langword="null"/> if omitted by the package.
+    /// </summary>
+    public IReadOnlyCollection<string>? StringConversions { get; }
+
     public GamePackage(string id, bool isDlc, string? gameVersion, IReadOnlyList<string> modules, IReadOnlyDictionary<string, Dictionary<string, GamePrefabEntry>> prefabs,
-        IReadOnlyList<MovieEntry> movies, IReadOnlyDictionary<string, GameViewModel> viewModels)
+        IReadOnlyList<MovieEntry> movies, IReadOnlyDictionary<string, GameViewModel> viewModels,
+        IReadOnlyDictionary<string, Dictionary<string, List<string>>>? announcements, IReadOnlyCollection<string> widgetNames,
+        IReadOnlyList<GameWidget> widgets, IReadOnlyDictionary<string, IReadOnlyCollection<string>> enums, IReadOnlyCollection<string>? stringConversions)
     {
+        WidgetNames = widgetNames;
         Id = id;
         IsDlc = isDlc;
         GameVersion = gameVersion;
@@ -158,25 +185,47 @@ internal sealed class GamePackage
         Prefabs = prefabs;
         Movies = movies;
         ViewModels = viewModels;
+        Announcements = announcements;
+        Widgets = widgets;
+        Enums = enums;
+        StringConversions = stringConversions;
     }
 }
 
-internal sealed record GameViewModel(string Type, string? BaseType, IReadOnlyDictionary<string, string> Properties);
+/// <summary>
+/// Represents a ViewModel type recorded in <c>types.json</c>, including declared properties, accessibility,
+/// methods, and inheritance hierarchy.
+/// </summary>
+internal sealed record GameViewModel(string Type, string? BaseType, bool Abstract, IReadOnlyDictionary<string, string> Properties,
+    IReadOnlyCollection<string> PrivateProperties, IReadOnlyCollection<string> Methods);
 
 /// <summary>
-/// The game as a mod runs in it: the base package alone, or with one DLC. A patch has to hold in each, because a
-/// player may or may not own the DLC, and a DLC replaces prefabs by name and screens by their view or game state.
+/// Represents a widget class recorded in <c>types.json</c>, including its tag name, type name, base class,
+/// and declared properties.
+/// </summary>
+internal sealed record GameWidget(string Name, string Type, string? BaseType, IReadOnlyDictionary<string, string>? Properties);
+
+/// <summary>
+/// Represents a specific game configuration (base game alone, or base game plus an active DLC).
+/// Patches must remain valid across configurations since DLC content may override prefabs and screens.
 /// </summary>
 internal sealed class GameConfiguration
 {
     private readonly Dictionary<string, GamePrefab> _prefabs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<MovieEntry>> _movies = new(StringComparer.Ordinal);
     private readonly Dictionary<string, GameViewModel> _viewModels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Dictionary<string, List<string>>>? _announcements;
+    private readonly HashSet<string> _widgetNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, GameWidget> _widgetsByName = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, GameWidget> _widgetsByType = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IReadOnlyCollection<string>> _enums = new(StringComparer.Ordinal);
+    private readonly HashSet<string>? _stringConversions;
+    private Dictionary<string, List<GameViewModel>>? _derived;
 
-    /// <summary>Empty for the base game; otherwise the DLC package's module, for messages.</summary>
+    /// <summary>Gets the DLC module name for diagnostic messages, or an empty string for the base game.</summary>
     public string Dlc { get; }
 
-    /// <summary>The game version, <c>v1.4.8</c>; empty when the package names none.</summary>
+    /// <summary>Gets the normalized game version string (e.g. <c>v1.4.8</c>), or an empty string if unspecified.</summary>
     public string Version { get; }
 
     public IEnumerable<GamePrefab> Prefabs => _prefabs.Values;
@@ -187,7 +236,7 @@ internal sealed class GameConfiguration
         Version = GameVersions.Normalize(basePackage.GameVersion) ?? "";
         foreach (var package in dlc is null ? [basePackage] : new[] { basePackage, dlc })
         {
-            // Prefabs are keyed by file name across every loaded module, and the module loaded later wins
+            // Prefabs are keyed by filename across all loaded modules; modules loaded later take precedence.
             foreach (var module in package.Modules)
             {
                 if (!package.Prefabs.TryGetValue(module, out var files))
@@ -197,15 +246,34 @@ internal sealed class GameConfiguration
             }
             foreach (var pair in package.ViewModels)
                 _viewModels[pair.Key] = pair.Value;
+            _widgetNames.UnionWith(package.WidgetNames);
+            foreach (var widget in package.Widgets)
+            {
+                _widgetsByName[widget.Name] = widget;
+                _widgetsByType[widget.Type] = widget;
+            }
+            foreach (var pair in package.Enums)
+                _enums[pair.Key] = pair.Value;
+            // String conversion rules belong to the engine loader in the base package.
+            if (package.StringConversions is { } conversions)
+                (_stringConversions ??= new HashSet<string>(StringComparer.Ordinal)).UnionWith(conversions);
+        }
+        // Widget announcements are tracked only when all contributing packages provide them.
+        if ((dlc is null ? [basePackage] : new[] { basePackage, dlc }).All(x => x.Announcements is not null))
+        {
+            _announcements = new Dictionary<string, Dictionary<string, List<string>>>(StringComparer.Ordinal);
+            foreach (var package in dlc is null ? [basePackage] : new[] { basePackage, dlc })
+            {
+                foreach (var pair in package.Announcements!)
+                    _announcements[pair.Key] = pair.Value;
+            }
         }
 
         foreach (var entry in basePackage.Movies)
             Add(entry);
         if (dlc is null)
             return;
-        // A DLC's own class replaces the base entries of the view or game state it stands in for. An entry in the DLC's
-        // package whose class is a base module's adds to them instead: the DLC supplies a ViewModel that a base screen
-        // loads, as War Sails' NavalSettlementMenuOverlayVM reaches the base game menu overlay.
+        // DLC view/screen overrides replace base movie registrations; supplemental ViewModels from base modules are merged.
         foreach (var entry in dlc.Movies.Where(x => x.Module is not null && dlc.Modules.Contains(x.Module)))
         {
             foreach (var list in _movies.Values)
@@ -232,19 +300,147 @@ internal sealed class GameConfiguration
 
     public GameViewModel? ViewModel(string type) => _viewModels.TryGetValue(type, out var vm) ? vm : null;
 
+    /// <summary>
+    /// Resolves base ViewModel definitions from generic metadata representations (e.g. matching <c>Ns.ListVM&lt;Ns.ItemVM&gt;</c>
+    /// to <c>Ns.ListVM&lt;T&gt;</c> by name and arity).
+    /// </summary>
+    private GameViewModel? BaseViewModel(string type)
+    {
+        if (ViewModel(type) is { } exact)
+            return exact;
+        var open = type.IndexOf('<');
+        if (open < 0)
+            return null;
+        var arity = Arity(type, open);
+        return _viewModels.Values.FirstOrDefault(x => x.Type.Length > open && x.Type[open] == '<'
+                                                      && string.CompareOrdinal(x.Type, 0, type, 0, open) == 0 && Arity(x.Type, open) == arity);
+
+        static int Arity(string name, int open)
+        {
+            var count = 1;
+            for (int i = open + 1, depth = 0; i < name.Length; i++)
+            {
+                switch (name[i])
+                {
+                    case '<': depth++; break;
+                    case '>': depth--; break;
+                    case ',' when depth == 0: count++; break;
+                }
+            }
+            return count;
+        }
+    }
+
+    /// <summary>Enumerates the specified ViewModel and its inherited base types, ordered from most derived to base.</summary>
+    private IEnumerable<GameViewModel> SelfAndBases(GameViewModel viewModel)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var type = viewModel; type is not null && seen.Add(type.Type); type = type.BaseType is { } b ? BaseViewModel(b) : null)
+            yield return type;
+    }
+
+    /// <summary>
+    /// Determines whether the specified ViewModel type (or any instantiable derived subtype) declares a property or command method
+    /// matching <paramref name="name"/>. Returns <see langword="null"/> if the type is unrecorded.
+    /// </summary>
+    public bool? Answers(string type, string name, bool command)
+    {
+        if (ViewModel(type) is not { } viewModel)
+            return null;
+        if (Has(viewModel))
+            return true;
+        return DerivedFrom(viewModel.Type).Any(x => !x.Abstract && Has(x));
+
+        bool Has(GameViewModel self) => SelfAndBases(self).Any(x => command
+            ? x.Methods.Contains(name)
+            : x.Properties.ContainsKey(name) && (ReferenceEquals(x, self) || !x.PrivateProperties.Contains(name)));
+    }
+
+    /// <summary>Enumerates all accessible property or method names available on the ViewModel and its subtypes, used for suggesting corrections.</summary>
+    public IEnumerable<string> Names(string type, bool command)
+    {
+        if (ViewModel(type) is not { } viewModel)
+            return [];
+        return DerivedFrom(viewModel.Type).Prepend(viewModel)
+            .SelectMany(SelfAndBases)
+            .SelectMany(x => command ? x.Methods : x.Properties.Keys)
+            .Distinct(StringComparer.Ordinal);
+    }
+
+    /// <summary>Finds all recorded ViewModel types deriving from <paramref name="type"/>.</summary>
+    private IReadOnlyList<GameViewModel> DerivedFrom(string type)
+    {
+        if (_derived is null)
+        {
+            _derived = new Dictionary<string, List<GameViewModel>>(StringComparer.Ordinal);
+            foreach (var viewModel in _viewModels.Values)
+            {
+                foreach (var ancestor in SelfAndBases(viewModel).Skip(1))
+                {
+                    if (!_derived.TryGetValue(ancestor.Type, out var list))
+                        _derived[ancestor.Type] = list = [];
+                    list.Add(viewModel);
+                }
+            }
+        }
+        return _derived.TryGetValue(type, out var derived) ? derived : [];
+    }
+
+    /// <summary>Resolves a widget definition by its XML tag name.</summary>
+    public GameWidget? Widget(string name) => _widgetsByName.TryGetValue(name, out var widget) ? widget : null;
+
+    /// <summary>Resolves a widget definition by its fully qualified type name.</summary>
+    public GameWidget? WidgetOfType(string type) => _widgetsByType.TryGetValue(type, out var widget) ? widget : null;
+
+    /// <summary>Returns the valid member names of an enum type used by widget properties, or <see langword="null"/> if unrecorded.</summary>
+    public IReadOnlyCollection<string>? EnumMembers(string type) => _enums.TryGetValue(type, out var members) ? members : null;
+
+    /// <summary>Gets the metadata type names supported by <c>ConvertObject</c> string conversions, or <see langword="null"/> if unrecorded.</summary>
+    public IReadOnlyCollection<string>? StringConversions => _stringConversions;
+
+    /// <summary>Determines whether <paramref name="name"/> matches a known widget class name.</summary>
+    public bool HasWidget(string name) => _widgetNames.Contains(name);
+
+    /// <summary>Indicates whether widget class definitions are available in the loaded packages.</summary>
+    public bool KnowsWidgets => _widgetNames.Count > 0;
+
+    /// <summary>Indicates whether widget property change announcements are available in the loaded packages.</summary>
+    public bool HasAnnouncements => _announcements is not null;
+
+    /// <summary>
+    /// Returns the property types announced under <paramref name="name"/> across the specified widget type hierarchy.
+    /// Returns <see langword="null"/> if announcements are not recorded.
+    /// </summary>
+    public IReadOnlyCollection<string>? Announced(IEnumerable<string> widgetTypes, string name)
+    {
+        if (_announcements is null)
+            return null;
+        var types = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var type in widgetTypes)
+        {
+            if (_announcements.TryGetValue(type, out var byName) && byName.TryGetValue(name, out var announced))
+                types.UnionWith(announced);
+        }
+        return types;
+    }
+
     public string Describe(bool withDlcName) => Dlc.Length == 0 ? "without DLC" : withDlcName ? $"with {Dlc}" : "with DLC";
 }
 
 /// <summary>
-/// The GUI packages a mod references, read from the additional files the analyzer targets add for them. No packages,
-/// no layer 3: the rules that need the game stay silent.
+/// Loads and organizes game GUI packages provided via MSBuild <c>AdditionalFiles</c>.
+/// Enables compile-time verification of prefab hierarchies, movie-to-ViewModel pairings, widget properties, and announcements.
+/// <para>
+/// All game-specific metadata originates from <c>Bannerlord.ReferenceAssemblies.GUI.v3</c> packages (or the multi-version
+/// <c>GUI.v3.All</c> bundle), ensuring reliable verification in standalone builds and CI environments.
+/// </para>
 /// </summary>
 internal static class GameGui
 {
-    /// <summary>The item metadata the analyzer targets put on each game file: the package id.</summary>
+    /// <summary>The MSBuild metadata attribute identifying the source GUI package ID on <c>AdditionalFiles</c> items.</summary>
     public const string PackageMetadata = "build_metadata.AdditionalFiles.UIExtenderExGamePackage";
 
-    /// <summary>Splits the additional files into the game's, by package id, and the mod's own.</summary>
+    /// <summary>Separates incoming <c>AdditionalFiles</c> into game GUI package files and mod-authored files.</summary>
     public static (Dictionary<string, List<AdditionalText>> Game, ImmutableArray<AdditionalText> Mod) Split(AnalyzerOptions options)
     {
         var game = new Dictionary<string, List<AdditionalText>>(StringComparer.OrdinalIgnoreCase);
@@ -266,10 +462,8 @@ internal static class GameGui
     }
 
     /// <summary>
-    /// The configurations to check against, for every game version checked: the base game, and the base game with
-    /// each DLC. A per-build package (<c>GUI.v2</c>, <c>GUI.v2.&lt;Dlc&gt;</c>) is always checked: the project references
-    /// it. A bundle (<c>GUI.v2.All</c>) adds the versions the mod supports; for a version both have, the per-build
-    /// package is used, being the build the project compiles against.
+    /// Loads game configurations across all targeted game versions and DLC combinations, resolving per-build packages
+    /// and multi-version bundles (<c>GUI.v3.All</c>).
     /// </summary>
     public static GameSet Load(Dictionary<string, List<AdditionalText>> files, GameVersions versions, CancellationToken cancellation)
     {
@@ -342,15 +536,15 @@ internal static class GameGui
                 configurations.Add(new GameConfiguration(basePackage, dlc, documents));
         }
 
-        // The version the compilation's reference assemblies are: the rules that read them run against it alone
-        var present = configurations.Select(x => x.Version).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        var primary = versions.Current is { } own && present.Contains(own, StringComparer.OrdinalIgnoreCase) ? own
-            : referenced.FirstOrDefault(x => present.Contains(x, StringComparer.OrdinalIgnoreCase))
-            ?? present.OrderBy(x => x, GameVersions.Comparer).LastOrDefault();
-        return new GameSet(configurations, primary, versions);
+        // With a bundle, a version the mod wants that neither it nor a per-build package has is checked against nothing
+        var notInBundle = bundled.Count == 0
+            ? []
+            : wanted.Where(x => !byVersion.ContainsKey(x)).OrderBy(x => x, GameVersions.Comparer).ToList();
+        var newestBundled = bundled.Select(x => GameVersions.Normalize(x.Version)).OfType<string>().OrderBy(x => x, GameVersions.Comparer).LastOrDefault();
+        return new GameSet(configurations, versions, notInBundle, newestBundled);
     }
 
-    /// <summary>A bundle package's trees by the file its prefabs.json entry names, in the entries' order.</summary>
+    /// <summary>Creates a factory delegate mapping prefab relative paths to <see cref="GameTree"/> instances within a bundle package.</summary>
     private static Func<string, GameTree?> Trees(GuiBundle bundle, BundlePackage package)
     {
         var byFile = new Dictionary<string, GameTree>(StringComparer.Ordinal);
@@ -375,14 +569,17 @@ internal static class GameGui
         return byPath;
     }
 
-    /// <summary>The package format this analyzer reads.</summary>
-    private const int FormatVersion = 2;
+    /// <summary>
+    /// Determines whether the package format is supported. Only format 3 (<c>GUI.v3</c>) is supported;
+    /// earlier formats lack widget announcement metadata required by UIX0025.
+    /// </summary>
+    public static bool ReadsFormat(int version) => version == 3;
 
-    /// <summary>A package from its format 2 documents, by path under <c>gui/</c>, and its prefab trees, by the file the index names.</summary>
+    /// <summary>Constructs a <see cref="GamePackage"/> from format 3 manifest and metadata documents.</summary>
     private static GamePackage? Read(string id, Func<string, IReadOnlyDictionary<string, object?>?> data, Func<string, GameTree?> trees)
     {
         // A package of another format is left out whole: its prefabs would be read wrong
-        if (data("manifest.json") is not { } manifest || !manifest.TryGetValue("formatVersion", out var version) || version is not double number || (int) number != FormatVersion)
+        if (data("manifest.json") is not { } manifest || !manifest.TryGetValue("formatVersion", out var version) || version is not double number || !ReadsFormat((int) number))
             return null;
         var movies = data("movies.json");
         var types = data("types.json");
@@ -415,21 +612,70 @@ internal static class GameGui
             if (vm.String("type") is not { } type)
                 continue;
             var properties = new Dictionary<string, string>(StringComparer.Ordinal);
+            var privateProperties = new HashSet<string>(StringComparer.Ordinal);
             foreach (var property in vm.Objects("properties"))
             {
-                if (property.String("name") is { } name && property.String("type") is { } propertyType && !property.Bool("static", false))
-                    properties[name] = propertyType;
+                if (property.String("name") is not { } name || property.String("type") is not { } propertyType || property.Bool("static", false))
+                    continue;
+                properties[name] = propertyType;
+                if (property.String("accessibility") == "private")
+                    privateProperties.Add(name);
             }
-            viewModels[type] = new GameViewModel(type, vm.String("baseType"), properties);
+            var methods = new HashSet<string>(vm.Objects("methods").Select(x => x.String("name")).OfType<string>(), StringComparer.Ordinal);
+            viewModels[type] = new GameViewModel(type, vm.String("baseType"), vm.Bool("abstract", false), properties, privateProperties, methods);
         }
 
-        return new GamePackage(id, isDlc, manifest.String("gameVersion"), modules, prefabs, movieEntries, viewModels);
+        // A package generated before announcements were recorded has widget records without the field: no data, not none
+        Dictionary<string, Dictionary<string, List<string>>>? announcements = null;
+        var widgetNames = new HashSet<string>(StringComparer.Ordinal);
+        var widgets = new List<GameWidget>();
+        foreach (var widget in types?.Objects("widgets") ?? [])
+        {
+            if (widget.String("name") is { } widgetName)
+                widgetNames.Add(widgetName);
+            if (widget.String("name") is { } recordedName && widget.String("type") is { } recordedType)
+            {
+                Dictionary<string, string>? properties = null;
+                if (widget.ContainsKey("properties"))
+                {
+                    properties = new Dictionary<string, string>(StringComparer.Ordinal);
+                    foreach (var property in widget.Objects("properties"))
+                    {
+                        if (property.String("name") is { } name && property.String("type") is { } propertyType)
+                            properties[name] = propertyType;
+                    }
+                }
+                widgets.Add(new GameWidget(recordedName, recordedType, widget.String("baseType"), properties));
+            }
+            if (widget.String("type") is not { } type || !widget.TryGetValue("announcements", out var value) || value is not List<object?> list)
+                continue;
+            announcements ??= new Dictionary<string, Dictionary<string, List<string>>>(StringComparer.Ordinal);
+            var byName = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            foreach (var entry in list.OfType<IReadOnlyDictionary<string, object?>>())
+            {
+                if (entry.String("name") is { } name && entry.TryGetValue("types", out var typesValue) && typesValue is List<object?> announcedTypes)
+                    byName[name] = announcedTypes.OfType<string>().ToList();
+            }
+            announcements[type] = byName;
+        }
+
+        var enums = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.Ordinal);
+        foreach (var entry in types?.Objects("enums") ?? [])
+        {
+            if (entry.String("type") is { } type && entry.TryGetValue("members", out var value) && value is List<object?> members)
+                enums[type] = new HashSet<string>(members.OfType<string>(), StringComparer.Ordinal);
+        }
+
+        // Absent from a package that does not record them: no data, not no conversions
+        IReadOnlyCollection<string>? stringConversions = types is not null && types.TryGetValue("stringConversions", out var recorded) && recorded is List<object?> converted
+            ? new HashSet<string>(converted.OfType<string>(), StringComparer.Ordinal)
+            : null;
+
+        return new GamePackage(id, isDlc, manifest.String("gameVersion"), modules, prefabs, movieEntries, viewModels, announcements, widgetNames,
+            widgets, enums, stringConversions);
     }
 
-    /// <summary>
-    /// A file's path under the package's <c>gui/</c> folder, as <c>prefabs.json</c> names it: <c>movies.json</c>, or
-    /// <c>Native/GUI/Prefabs/…/Options.json</c>. The folder is lower case; a module's own is <c>GUI</c>.
-    /// </summary>
+    /// <summary>Extracts the path of a file relative to the package's <c>gui/</c> directory root.</summary>
     private static string? RelativePath(string path)
     {
         var normalized = path.Replace('\\', '/');
@@ -451,19 +697,50 @@ internal static class GameGui
 }
 
 /// <summary>
-/// What the game is checked against: the configurations of every version checked, oldest first, and the version the
-/// compilation builds against, whose reference assemblies the rules that read types use.
+/// Encapsulates the active game configurations evaluated during analysis, including supported versions and bundle coverage.
 /// </summary>
-internal sealed class GameSet(IReadOnlyList<GameConfiguration> configurations, string? primary, GameVersions versions)
+internal sealed class GameSet(IReadOnlyList<GameConfiguration> configurations, GameVersions versions,
+    IReadOnlyList<string>? notInBundle = null, string? newestBundled = null)
 {
     public IReadOnlyList<GameConfiguration> Configurations { get; } = configurations;
 
-    /// <summary>The version the compilation builds against, or the one standing in for it; null without packages.</summary>
-    public string? Primary { get; } = primary;
-
     public GameVersions Versions { get; } = versions;
 
-    public bool IsPrimary(GameConfiguration configuration) => string.Equals(configuration.Version, Primary, StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Gets the list of supported game versions requested by the mod that are absent from referenced GUI bundles (reported via UIX0030).
+    /// </summary>
+    public IReadOnlyList<string> NotInBundle { get; } = notInBundle ?? [];
 
-    public static GameSet Empty(GameVersions versions) => new([], null, versions);
+    /// <summary>Gets the newest game version present in the referenced GUI bundle, or <see langword="null"/> if no bundle is loaded.</summary>
+    public string? NewestBundled { get; } = newestBundled;
+
+    public static GameSet Empty(GameVersions versions) => new([], versions);
+
+    /// <summary>
+    /// Emits a version-aware diagnostic: returns the raw diagnostic if the issue occurs across all evaluated configurations,
+    /// or wraps it in UIX0024 identifying the subset of affected versions and DLC configurations.
+    /// </summary>
+    public Diagnostic? ForConfigurations(Diagnostic finding, IReadOnlyCollection<GameConfiguration> present, IReadOnlyCollection<GameConfiguration> holds)
+    {
+        var holdVersions = VersionsOf(holds);
+        if (holds.Count == 0 || !Versions.Reports(holdVersions))
+            return null;
+        if (holds.Count == present.Count)
+            return finding;
+
+        var presentVersions = VersionsOf(present);
+        string Part(string version)
+        {
+            var inVersion = present.Count(x => Same(x.Version, version));
+            var holdsIn = holds.Where(x => Same(x.Version, version)).ToList();
+            return holdsIn.Count == inVersion ? version : $"{version} {string.Join(", ", holdsIn.Select(x => x.Describe(withDlcName: true)))}".Trim();
+        }
+        return Diagnostic.Create(Descriptors.HoldsForSomeVersions, finding.Location, finding.AdditionalLocations, finding.Properties.SetItem(FixData.Rule, finding.Id),
+            GamePatchChecker.Join(holdVersions, presentVersions, Part), finding.GetMessage(CultureInfo.InvariantCulture));
+    }
+
+    private static List<string> VersionsOf(IEnumerable<GameConfiguration> configurations) =>
+        configurations.Select(x => x.Version).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x, GameVersions.Comparer).ToList();
+
+    private static bool Same(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 }

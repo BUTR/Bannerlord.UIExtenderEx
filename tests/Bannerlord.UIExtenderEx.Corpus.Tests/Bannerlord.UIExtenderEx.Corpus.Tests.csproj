@@ -1,0 +1,42 @@
+<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
+<!--
+Every prefab a game installation ships, held to the XML loader by the oracles of Bannerlord.UIExtenderEx.Tests.Shared.
+A project of its own because it needs an installed game and runs for a while, and so that a solution run holds it side
+by side with the rest of the tests instead of after them.
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <PackageReference Include="nunit" Version="3.14.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!Exists($(GameFolder))">
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists($(GameFolder))">
+    <Reference Include="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.*.dll" Exclude="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Native.dll">
+      <HintPath>%(Identity)</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Bannerlord.UIExtenderEx.Tests.Shared\Bannerlord.UIExtenderEx.Tests.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

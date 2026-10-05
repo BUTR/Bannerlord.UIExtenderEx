@@ -1,0 +1,55 @@
+<!--EXTERNAL_PROPERTIES: GameFolder;GameVersion-->
+<!--
+Bannerlord.UIExtenderEx.CompiledPrefabs: the manager, the fingerprint, the runtime, and everything that needs a real
+UIContext or the game, with the oracle tests over prefabs written for a test
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+    <RootNamespace>Bannerlord.UIExtenderEx.Tests.CompiledPrefabs</RootNamespace>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NSubstitute" Version="5.1.0" />
+    <PackageReference Include="nunit" Version="3.14.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
+    <!-- CompiledPrefabGenerationTests reads a publicized image back; net6.0 already has it -->
+    <PackageReference Include="System.Reflection.Metadata" Version="1.6.0" Condition="'$(TargetFramework)' == 'net472'" />
+  </ItemGroup>
+
+  <!-- CompiledPrefabManagerTests damages a cache archive by hand -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!Exists($(GameFolder))">
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists($(GameFolder))">
+    <Reference Include="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.*.dll" Exclude="$(GameFolder)\bin\Win64_Shipping_Client\TaleWorlds.Native.dll">
+      <HintPath>%(Identity)</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx\Bannerlord.UIExtenderEx.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.XmlPrefabs\Bannerlord.UIExtenderEx.XmlPrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.GamePrefabs\Bannerlord.UIExtenderEx.GamePrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.CodeGenerator\Bannerlord.UIExtenderEx.CodeGenerator.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.CompiledPrefabs\Bannerlord.UIExtenderEx.CompiledPrefabs.csproj" />
+    <ProjectReference Include="..\..\src\Bannerlord.UIExtenderEx.Compiler\Bannerlord.UIExtenderEx.Compiler.csproj" />
+    <ProjectReference Include="..\Bannerlord.UIExtenderEx.Tests.Shared\Bannerlord.UIExtenderEx.Tests.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +11,14 @@ namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 public partial class GamePrefabRuleTests
 {
     /// <summary>
-    /// The <c>GUI.v2.All</c> package: every game version in one, each patch checked in every version the mod supports,
-    /// and a finding that holds for some of them only reported as UIX0024.
+    /// Tests for <c>GUI.v3.All</c> bundle integration: multi-version prefab and patch verification,
+    /// version filtering, and UIX0024 diagnostic reporting across version subsets.
     /// </summary>
     public class Bundles
     {
         private const string Panel = "\"descendant::ListPanel[@Id='Panel']\"";
 
-        /// <summary>The game of <see cref="Game"/>, of another version, with the node of <see cref="Panel"/> renamed.</summary>
+        /// <summary>Creates a mock game configuration for the specified version with the panel element ID modified.</summary>
         private static TestGame WithoutPanel(string version) => TestGame.Base().Version(version)
             .Movie("HostMovie", "HostVM")
             .ViewModel("HostVM", null, ("Title", "System.String"), ("Child", "ChildVM"), ("Items", "TaleWorlds.Library.MBBindingList<ItemVM>"))
@@ -39,7 +39,7 @@ public partial class GamePrefabRuleTests
             return properties;
         }
 
-        /// <summary>The bundle is read into the packages it holds: every rule reports as with the per-build package.</summary>
+        /// <summary>Verifies that bundled packages produce identical diagnostics to standalone per-build packages.</summary>
         [Test]
         public async Task ABundle_ReportsWhatItsPackagesReport()
         {
@@ -65,7 +65,7 @@ public partial class GamePrefabRuleTests
             }));
         }
 
-        /// <summary>Three or more versions in a row among those checked read as a range.</summary>
+        /// <summary>Verifies that sequences of three or more consecutive versions are formatted as contiguous ranges in UIX0024 messages.</summary>
         [Test]
         public async Task VersionsInARow_ReadAsARange()
         {
@@ -89,7 +89,7 @@ public partial class GamePrefabRuleTests
             }));
         }
 
-        /// <summary>Within a version, a finding that holds with a DLC only says so, as for the per-build packages.</summary>
+        /// <summary>Verifies that diagnostics isolated to a DLC configuration report both the version and the DLC name.</summary>
         [Test]
         public async Task AFindingOfOneVersionsDlc_NamesTheVersionAndTheDlc()
         {
@@ -111,7 +111,7 @@ public partial class GamePrefabRuleTests
             Assert.That(await MessagesAsync(mod, Build("1.4.8", "v1.3.4;v1.4.8"), bundle), Has.Count.EqualTo(1), "Supported, it is checked");
         }
 
-        /// <summary>Without a list of supported versions, the version the project builds against is the one checked.</summary>
+        /// <summary>Verifies that absent an explicit supported versions list, the current target build version is checked.</summary>
         [Test]
         public async Task WithoutSupportedVersions_TheBuildsVersionIsChecked()
         {
@@ -124,7 +124,51 @@ public partial class GamePrefabRuleTests
             }));
         }
 
-        /// <summary>For a version both have, the per-build package the project references is the one checked.</summary>
+        /// <summary>
+        /// Verifies that supported game versions absent from referenced GUI bundles trigger UIX0030 warnings.
+        /// </summary>
+        [Test]
+        public async Task AVersionTheBundleDoesNotHave_IsUIX0030()
+        {
+            var mod = Mod + Insert("Page", "HostMovie", Panel, "Child", "<Widget />");
+            var bundle = new TestBundle(Of("v1.3.4"), Of("v1.4.8"));
+            Assert.That(await MessagesAsync(mod, Build("1.5.3", "v1.4.8;v1.5.1;v1.5.3"), bundle), Is.EqualTo(new[]
+            {
+                "UIX0030: [v1.5.3] The game's GUI data has no v1.5.1, v1.5.3, so the patches are not checked against them; the newest the bundle holds is v1.4.8. Reference Bannerlord.ReferenceAssemblies.GUI.v3.All with Version=\"*\" for a newer bundle, or the build's Bannerlord.ReferenceAssemblies.GUI.v3 package.",
+            }));
+            Assert.That(await MessagesAsync(mod, new Dictionary<string, string> { ["UIExtenderExInferredGameVersion"] = "v1.5.3" }, bundle),
+                Has.Exactly(1).StartsWith("UIX0030: [v1.5.3] The game's GUI data has no v1.5.3, so the patches are not checked against it;"));
+            Assert.That(await MessagesAsync(mod, Build("1.5.3"), Of("v1.5.3"), bundle), Is.Empty, "The build's own package");
+            Assert.That(await MessagesAsync(mod, Build("1.5.3", "v1.4.8;v1.5.3"), Of("v1.4.8")), Is.Empty, "No bundle");
+        }
+
+        /// <summary>Verifies that in multi-target matrix builds, UIX0030 is reported only once during the newest missing version build.</summary>
+        [Test]
+        public async Task InTheSdksBuildPerVersion_UIX0030_IsReportedOnce()
+        {
+            var mod = Mod + Insert("Page", "HostMovie", Panel, "Child", "<Widget />");
+            var bundle = new TestBundle(Of("v1.3.4"), Of("v1.4.8"));
+            Assert.That(await MessagesAsync(mod, Build("1.4.8", "v1.4.8;v1.5.3", oneOfSeveral: true), bundle), Is.Empty);
+            Assert.That(await MessagesAsync(mod, Build("1.5.3", "v1.4.8;v1.5.3", oneOfSeveral: true), bundle), Has.Exactly(1).StartsWith("UIX0030: "));
+        }
+
+        /// <summary>
+        /// Verifies that when no explicit version is defined, the version inferred from assembly references takes precedence.
+        /// </summary>
+        [Test]
+        public async Task WithoutAVersion_TheInferredOneIsChecked()
+        {
+            var mod = Mod + Insert("Page", "HostMovie", Panel, "Child", "<Widget />");
+            var bundle = new TestBundle(WithoutPanel("v1.3.4"), Of("v1.4.8"));
+            Assert.That(await MessagesAsync(mod, new Dictionary<string, string>(), bundle), Is.Empty, "The bundle's newest");
+            Assert.That(await MessagesAsync(mod, new Dictionary<string, string> { ["UIExtenderExInferredGameVersion"] = "v1.3.4" }, bundle), Is.EqualTo(new[]
+            {
+                "UIX0020: [v1.3.4] 'descendant::ListPanel[@Id='Panel']' matches no node of 'HostMovie'; the patch is not applied",
+            }));
+            Assert.That(await MessagesAsync(mod, new Dictionary<string, string> { ["UIExtenderExInferredGameVersion"] = "v1.3.4", ["GameVersion"] = "1.4.8" }, bundle), Is.Empty);
+        }
+
+        /// <summary>Verifies that an explicitly referenced per-build package takes precedence over bundled versions for the matching version.</summary>
         [Test]
         public async Task TheReferencedPackage_WinsOverTheBundleForItsVersion()
         {
@@ -135,8 +179,7 @@ public partial class GamePrefabRuleTests
         }
 
         /// <summary>
-        /// Bannerlord.BUTRModule.Sdk builds the module once per supported version, and each build sees every version: the
-        /// finding is reported by the build of the newest version it holds for alone.
+        /// Verifies that in multi-target matrix builds, version-specific diagnostics are emitted only by the build corresponding to the newest affected version.
         /// </summary>
         [Test]
         public async Task InTheSdksBuildPerVersion_OnlyTheNewestVersionsBuildReports()
@@ -153,11 +196,10 @@ public partial class GamePrefabRuleTests
         }
 
         /// <summary>
-        /// The patch's content is checked against the scope at the node in the version the compilation builds against:
-        /// its types are that version's. It is reported once, not once per version.
+        /// Verifies that patch content verified across multiple versions reports common diagnostics once rather than redundantly per version.
         /// </summary>
         [Test]
-        public async Task TheContentOfAPatch_IsCheckedOnceAgainstTheBuildsVersion()
+        public async Task TheContentOfAPatch_IsReportedOnceForEveryVersion()
         {
             var messages = await MessagesAsync(Mod + Insert("Page", "HostMovie", Panel, "Child", "<TextWidget Text=\\\"@Lable\\\" />"),
                 Build("1.4.8", "v1.3.4;v1.4.8"), new TestBundle(Of("v1.3.4"), Of("v1.4.8")));
@@ -172,7 +214,7 @@ public partial class GamePrefabRuleTests
             Assert.That(await MessagesAsync(mod, Build("1.4.8", "v1.4.8"), new TestBundle(WithoutPanel("v1.4.8"))), Has.Count.EqualTo(1), "Layout 1 is read");
         }
 
-        /// <summary>UIX0024 is placed where UIX0020 would be, on the XPath.</summary>
+        /// <summary>Verifies that UIX0024 diagnostics are highlighted directly on the patch XPath expression.</summary>
         [Test]
         public async Task UIX0024_IsReportedOnTheXPath()
         {

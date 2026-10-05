@@ -1,11 +1,14 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
 /// <summary>
-/// The UIExtenderEx and game types the rules compare against, by the exact types the runtime checks for.
-/// <c>DataSourceProperty</c> is the game's; <c>DataSourceMethodAttribute</c> is UIExtenderEx's own.
+/// Caches well-known UIExtenderEx and TaleWorlds Gauntlet library type symbols resolved from the compilation context.
 /// </summary>
+/// <remarks>
+/// Distinguishes engine-level attributes (such as TaleWorlds' <c>DataSourceProperty</c>) from UIExtenderEx extension
+/// attributes (such as <c>DataSourceMethodAttribute</c>).
+/// </remarks>
 internal sealed class KnownTypes
 {
     public INamedTypeSymbol ViewModelMixinAttribute { get; }
@@ -19,8 +22,7 @@ internal sealed class KnownTypes
     public INamedTypeSymbol? PrefabLinkAttribute { get; private set; }
 
     /// <summary>
-    /// Whether the UIExtenderEx referenced is older than 3.0, whose registration fails where a newer one skips and says
-    /// so: it throws on a refresh method it cannot find. The assembly version is the package version.
+    /// Indicates whether the referenced UIExtenderEx assembly precedes version 3.0 (where registration throws on missing refresh methods rather than logging warnings).
     /// </summary>
     public bool IsV2 => ViewModelMixinAttribute.ContainingAssembly.Identity.Version.Major < 3;
 
@@ -35,7 +37,7 @@ internal sealed class KnownTypes
         ViewModel = viewModel;
     }
 
-    /// <summary>The attributes a UIExtenderEx older than the analyzer does not have.</summary>
+    /// <summary>Attempts to resolve optional UIExtenderEx 3.0+ attributes when available in the compilation.</summary>
     private KnownTypes WithOptionalAttributes(Compilation compilation)
     {
         OverrideAttribute = compilation.GetTypeByMetadataName("Bannerlord.UIExtenderEx.Attributes.BUTRViewModelOverrideAttribute");
@@ -44,7 +46,9 @@ internal sealed class KnownTypes
         return this;
     }
 
-    /// <summary>Null when the compilation does not reference UIExtenderEx, which leaves nothing to check.</summary>
+    /// <summary>
+    /// Resolves required types from <paramref name="compilation"/>, returning <see langword="null"/> if UIExtenderEx is not referenced.
+    /// </summary>
     public static KnownTypes? Create(Compilation compilation)
     {
         var attribute = compilation.GetTypeByMetadataName("Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute");

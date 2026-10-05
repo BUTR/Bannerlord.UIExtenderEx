@@ -18,14 +18,13 @@ public class PrefabsTests : BaseTests
     public void Setup()
     {
         _uiExtender = UIExtender.Create("TestModule");
-        _uiExtender.Register(new[]
-        {
+        _uiExtender.Register([
             typeof(TestPrefabExtensionInsertAsSiblingAppendPatch),
             typeof(TestPrefabExtensionInsertAsSiblingPrependPatch),
             typeof(TestPrefabExtensionInsertPatch),
             typeof(TestPrefabExtensionReplacePatch),
             typeof(TestPrefabExtensionSetAttributePatch),
-        });
+        ]);
         _uiExtender.Enable();
     }
 

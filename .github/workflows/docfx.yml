@@ -74,9 +74,7 @@ jobs:
       shell: bash
 
     - name: Run DocFX
-      run: >-
-        Copy-Item "README.md" -Destination "docs/index.md";
-        docfx docs/docfx.json;
+      run: docfx docs/docfx.json
       shell: pwsh
 
     - name: Post-process xrefmap

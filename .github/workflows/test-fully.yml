@@ -1,0 +1,88 @@
+name: Test Every Game Version
+
+# The build as it ships, against the game binaries of every version it supports: from GameVersion in
+# build/common.props to the current beta, as the build registry of Bannerlord.ReferenceAssemblies lists them.
+# Versions whose Steam branch is gone (betas that moved on) cannot be downloaded, so they are not in the list.
+
+on:
+  schedule:
+    - cron: '0 4 * * 1' # Mondays
+  workflow_dispatch:
+
+env:
+  # Disable the .NET logo in the console output.
+  DOTNET_NOLOGO: true
+  # Disable the .NET first time experience to skip caching NuGet packages and speed up the build.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Disable sending .NET CLI telemetry to Microsoft.
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  versions:
+    name: Game Versions
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.versions.outputs.matrix }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Every Supported Version
+      id: versions
+      run: ./.github/resources/GameVersions.ps1
+      shell: pwsh
+
+  test:
+    name: Test (${{ matrix.version }}, ${{ matrix.branch }})
+    needs: versions
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      # One Steam account logs in for every job
+      max-parallel: 4
+      matrix:
+        include: ${{ fromJson(needs.versions.outputs.matrix) }}
+    steps:
+    - name: Tests Setup
+      uses: butr/actions-tests-setup@v1
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        steam-login: ${{secrets.STEAM_LOGIN}}
+        steam-password: ${{secrets.STEAM_PASSWORD}}
+        # A Steam branch, not a version: DepotDownloader falls back to public for a branch that does not exist
+        stable-version: ${{matrix.branch}}
+
+    - name: Game Version
+      # The game the tests run against is the one Steam served, so it has to be the one asked for
+      run: >-
+          $served=([xml](Get-Content bannerlord/bin/Win64_Shipping_Client/Version.xml)).Version.Singleplayer.Value;
+          if ($served -ne 'v${{matrix.version}}') { throw "Branch '${{matrix.branch}}' served $served, not v${{matrix.version}}" };
+          Write-Host "Testing against $served";
+      shell: pwsh
+
+    - name: Test
+      # No GameVersion: every project builds as it ships, against the oldest supported version, and the tests run
+      # it against this version's binaries, as a player's game would
+      run: >-
+          $failed=@();
+          foreach ($project in 'Bannerlord.UIExtenderEx.Tests','Bannerlord.UIExtenderEx.CodeGenerator.Tests','Bannerlord.UIExtenderEx.CompiledPrefabs.Tests','Bannerlord.UIExtenderEx.Corpus.Tests') {
+            dotnet test tests/$project/$project.csproj --configuration Release -p:GameFolder="$PWD/bannerlord" --logger "trx;LogFilePrefix=$project" --results-directory TestResults;
+            if ($LASTEXITCODE -ne 0) { $failed+=$project };
+          };
+          if ($failed.Count -gt 0) { throw "Failed: $($failed -join ', ')" };
+      env:
+        BANNERLORD_GAME_DIR: ${{github.workspace}}/bannerlord
+        # The oracles write their reports under the temp folder; this one is uploaded below
+        TMP: ${{runner.temp}}
+        TEMP: ${{runner.temp}}
+      shell: pwsh
+
+    - name: Upload Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{matrix.version}}
+        path: |
+          TestResults
+          ${{runner.temp}}/UIExtenderEx-oracle/*.txt
+        if-no-files-found: ignore

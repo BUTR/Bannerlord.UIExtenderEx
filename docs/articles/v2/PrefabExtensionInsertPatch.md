@@ -1,372 +1,348 @@
-### [``PrefabExtensionInsertPatch``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch)  
-Versatile patch that can be used to Prepend, Append, Replace (entirely, or while keeping children) or AddAsChild. Insertion type is determined by the [``Type``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch#collapsible-Bannerlord_UIExtenderEx_Prefabs2_PrefabExtensionInsertPatch_Type) Property.
+# PrefabExtensionInsertPatch
 
-Your class insertion patch class should contain a single Property or Method flagged with one of the attributes inheriting from [``PrefabExtensionContent``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionContentAttribute).
-Supported types are the following:
-- [``XmlDocument``](xref:System.Xml.XmlDocument)
-- [``XmlNode``](xref:System.Xml.XmlNode)
-- [``IEnumerable<XmlNode>``](xref:System.Collections.Generic.IEnumerable`1)
-- string (can represent either a file name ([``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute)), or Xml ([``PrefabExtensionText``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute)))
+[`PrefabExtensionInsertPatch`](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch) is the primary structural patch type in the v2 API. It allows you to insert new elements, prepend or append siblings, replace existing nodes (with or without preserving their child hierarchy), or remove nodes entirely from a Gauntlet Movie XML document.
 
-The Attribute you use will depend on the return type of the method, or the type of the property that it is associated with.
-
-See [PrefabExtensionInsertPatch.cs](https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/Prefabs2/PrefabExtensionInsertPatch.cs) for the full documentation.
+The patch's behavior is governed by two key properties:
+* **`Type` (`InsertType`):** Determines the transformation applied to the target node.
+* **`Index` (`int`):** Controls positional placement for child insertions and child inheritance during replacements.
 
 ---
 
-**Example of prepending the content of an XmlDocument:**
+## Insertion Types (`InsertType`)
+
+| `InsertType` | Behavior | Positional Context (`Index`) |
+| :--- | :--- | :--- |
+| `Child` | Inserts the new XML nodes as children of the target element. | `Index` specifies the 0-based position among existing children. Default is `0` (first child). Values greater than or equal to the current child count append to the end. |
+| `Prepend` | Inserts the new XML nodes immediately **before** the target node as adjacent siblings. | `Index` is not used. |
+| `Append` | Inserts the new XML nodes immediately **after** the target node as adjacent siblings. | `Index` is not used. |
+| `Replace` | Replaces the target node and all of its existing children with the new XML content. | `Index` is not used. |
+| `ReplaceKeepChildren` | Replaces the target node with the new XML content, while preserving the original node's children and re-parenting them into the new node. | If inserting multiple nodes, `Index` specifies which newly inserted node inherits the original children. |
+| `Remove` | Completely removes the target node and all of its children from the movie. | No content or `Index` required. |
+
+---
+
+## Supplying XML Content
+
+Unless using `InsertType.Remove`, every `PrefabExtensionInsertPatch` must declare **exactly one** public instance property or parameterless method decorated with a content attribute derived from `PrefabExtensionContentAttribute`:
+
+| Attribute | Expected Member Type | Description |
+| :--- | :--- | :--- |
+| [`[PrefabExtensionText]`](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute) | `string` | An XML snippet string. |
+| [`[PrefabExtensionFileName]`](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute) | `string` | The file name of an XML file located in your module's `GUI/` directory. |
+| [`[PrefabExtensionXmlNode]`](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute) | [`XmlNode`](xref:System.Xml.XmlNode) or [`XmlDocument`](xref:System.Xml.XmlDocument) | An in-memory XML node or document. If an `XmlDocument` is provided, its root element (`DocumentElement`) is used. |
+| [`[PrefabExtensionXmlNodes]`](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute) | [`IEnumerable<XmlNode>`](xref:System.Collections.Generic.IEnumerable`1) | A sequence of XML nodes to insert sequentially in order. |
+
+> [!NOTE]
+> `[PrefabExtensionXmlDocument]` is obsolete. Use `[PrefabExtensionXmlNode]` instead, which accepts both `XmlDocument` and `XmlNode`.
+
+### Member Visibility and Evaluation
+
+* Content properties or methods must be **`public` instance** members. UIExtenderEx cannot invoke `private`, `protected`, or `static` members.
+* The content member is evaluated dynamically each time the movie is patched, not cached permanently.
+* All XML comments inside the supplied content, at any depth, are stripped before insertion.
+* In UIExtenderEx 3.0+, `InsertType.Remove` patches do not require any content member. (In legacy 2.x versions, a dummy content member was required).
+
+### Stripping Root Nodes with `RemoveRootNode`
+
+When inserting multiple sibling elements, XML syntax normally requires wrapping them in a single root element (for example, `<Root><WidgetA /><WidgetB /></Root>`). 
+
+To avoid inserting an unwanted container widget, pass `true` to the `RemoveRootNode` parameter on the attribute constructor:
+* `[PrefabExtensionText(true)]`
+* `[PrefabExtensionFileName(true)]`
+* `[PrefabExtensionXmlNode(true)]`
+
+When set to `true`, UIExtenderEx discards the wrapper root element and inserts all of its child elements directly.
+
+---
+
+## Examples
+
+### 1. Prepending a Sibling (`InsertType.Prepend`)
+
+Inserts the new widget directly before the target element at the same hierarchy level.
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
-internal class PrependExamplePatch : PrefabExtensionInsertPatch
+using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs2;
+
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
+internal sealed class PrependTabPatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Prepend;
 
-    private XmlDocument document;
-
-    public PrependExamplePatch()
-    {
-        document = new XmlDocument();
-        document.LoadXml("<OptionsTabToggle Id=\"PrependedTabToggle\"><SomeChild/></OptionsTabToggle>");
-    }
-        
-    [PrefabExtensionXmlDocument]
-    public XmlDocument GetPrefabExtension() => document;
+    [PrefabExtensionText]
+    public string Content => "<OptionsTabToggle Id=\"CustomPrependedTab\" />";
 }
 ```
+
 ```xml
-<!-- ExampleFile.xml -->
 <!-- Before Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="Gameplay" />
+    </Children>
+</OptionsScreenWidget>
 
 <!-- After Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle Id="PrependedTabToggle">
-                    <SomeChild/>
-                </OptionsTabToggle>
-                <OptionsTabToggle/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="CustomPrependedTab" />
+        <OptionsTabToggle Id="Gameplay" />
+    </Children>
+</OptionsScreenWidget>
 ```
 
 ---
 
-**Example of appending an XmlNode:**
+### 2. Appending a Sibling (`InsertType.Append`)
+
+Inserts the new widget directly after the target element at the same hierarchy level.
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
-internal class AppendExamplePatch : PrefabExtensionInsertPatch
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
+internal sealed class AppendTabPatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Append;
 
-    private XmlDocument document;
-
-    public AppendExamplePatch()
-    {
-        document = new XmlDocument();
-        document.LoadXml("<OptionsTabToggle Id=\"AppendedTabToggle\"/>");
-    }
-        
-    [PrefabExtensionXmlNode]
-    public XmlNode GetPatchContent() => document.DocumentElement;
+    [PrefabExtensionText]
+    public string Content => "<OptionsTabToggle Id=\"CustomAppendedTab\" />";
 }
 ```
+
 ```xml
-<!-- ExampleFile.xml -->
 <!-- Before Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="Gameplay" />
+    </Children>
+</OptionsScreenWidget>
 
 <!-- After Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle/>
-                <OptionsTabToggle Id="AppendedTabToggle"/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="Gameplay" />
+        <OptionsTabToggle Id="CustomAppendedTab" />
+    </Children>
+</OptionsScreenWidget>
 ```
 
 ---
 
-**Example of adding multiple XmlNodes as children:**
+### 3. Inserting as a Child at an Index (`InsertType.Child`)
+
+Inserts the new element into the target container at a specific 0-based index.
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children")]
-internal class AddAsChildrenExamplePatch : PrefabExtensionInsertPatch
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children")]
+internal sealed class InsertChildAtIndexPatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Child;
 
-    // When the InsertType is set to InsertType.Child, determines the index the patch should occupy in the target node's child list. 
-    // Default is 0 (patch would be the first child).
+    // 0 = first child, 1 = second child, etc.
+    // If the index exceeds the child count, the element is appended to the end.
     public override int Index => 1;
 
-    private List<XmlNode> nodes;
-
-    public AddAsChildrenExamplePatch()
-    {
-        XmlDocument firstChild = new XmlDocument();
-        firstChild.LoadXml("<OptionsTabToggle Id=\"InsertedFirstChild\"><Children><InnerChild/></Children></OptionsTabToggle>");
-        XmlDocument secondChild = new XmlDocument();
-        secondChild.LoadXml("<OptionsTabToggle Id=\"InsertedSecondChild\"/>");
-
-        nodes = new List<XmlNode> {firstChild, secondChild};
-    }
-
-    // Just to demonstrate that both Properties and Methods are supported.
-    [PrefabExtensionXmlNodes]
-    public IEnumerable<XmlNode> Nodes => nodes;
+    [PrefabExtensionText]
+    public string Content => "<OptionsTabToggle Id=\"InsertedSecondTab\" />";
 }
 ```
+
 ```xml
-<!-- ExampleFile.xml -->
 <!-- Before Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle Id="ExistingFirstChild"/>
-                <OptionsTabToggle Id="ExistingSecondChild"/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="FirstTab" />
+        <OptionsTabToggle Id="ThirdTab" />
+    </Children>
+</OptionsScreenWidget>
 
 <!-- After Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle Id="ExistingFirstChild">
-                <OptionsTabToggle Id="InsertedFirstChild">
-                    <Children>
-                        <InnerChild/>
-                    </Children>
-                </OptionsTabToggle>
-                <OptionsTabToggle Id="InsertedSecondChild"/>
-                <OptionsTabToggle Id="ExistingSecondChild">
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="FirstTab" />
+        <OptionsTabToggle Id="InsertedSecondTab" />
+        <OptionsTabToggle Id="ThirdTab" />
+    </Children>
+</OptionsScreenWidget>
 ```
 
 ---
 
-**Example of replacing a node:**
+### 4. Replacing an Entire Node (`InsertType.Replace`)
+
+Replaces the target node and all of its descendants with your new widget.
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
-internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle[@Id='Audio']")]
+internal sealed class ReplaceTabPatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Replace;
 
     [PrefabExtensionText]
-    public string GetReplacementPatch => "<Widget Id=\"ReplacementNode\"/>";
+    public string Content => "<CustomAudioPanel Id=\"ReplacementAudioPanel\" />";
 }
 ```
+
 ```xml
-<!-- ExampleFile.xml -->
 <!-- Before Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="Audio">
             <Children>
-                <OptionsTabToggle>
-                    <Children>
-                        <SomeChild/>
-                    </Children>
-                </OptionsTabToggle>
+                <Standard.TopPanel />
             </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+        </OptionsTabToggle>
+    </Children>
+</OptionsScreenWidget>
 
 <!-- After Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <Widget Id="ReplacementNode"/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <CustomAudioPanel Id="ReplacementAudioPanel" />
+    </Children>
+</OptionsScreenWidget>
 ```
 
 ---
 
-**Example of replacing a node while keeping its children:**
+### 5. Replacing a Node While Preserving Children (`InsertType.ReplaceKeepChildren`)
+
+Replaces the target container element with a new widget while preserving all existing child nodes. If inserting multiple new nodes, `Index` designates which new node receives the preserved children.
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
-internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/ListPanel")]
+internal sealed class SwapContainerKeepChildrenPatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.ReplaceKeepChildren;
 
-    // When the InsertType is set to InsertType.ReplaceKeepChildren, determines which new node should inherit the target node's children.
-    // Only applicable when multiple nodes are inserted.
-    public override int Index => 1;
+    // If multiple nodes are inserted, Index specifies which one inherits the children (0 = first node)
+    public override int Index => 0;
 
-    private IEnumerable<XmlNode> nodes;
-
-    [PrefabExtensionXmlNodes]
-    public IEnumerable<XmlNode> GetNodes()
-    {
-        if(nodes is null)
-        {
-            XmlDocument document = new XmlDocument();
-            document.LoadXml("<DiscardedRoot><Widget Id=\"FirstChild\"/><Widget Id=\"SecondChild\"/><Widget Id=\"ThirdChild\"/></DiscardedRoot>")
-            // We discard the "DiscardedRoot" node by only fetching its children.
-            nodes = document.DocumentElement.ChildNodes.Cast<XmlNode>();
-        }
-        return nodes;
-    }
+    [PrefabExtensionText]
+    public string Content => "<NavigatableGridWidget Id=\"CustomGrid\" ColumnCount=\"2\" />";
 }
 ```
+
 ```xml
-<!-- ExampleFile.xml -->
 <!-- Before Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle>
-                    <Children>
-                        <SomeChild/>
-                    </Children>
-                </OptionsTabToggle>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<ListPanel Id="OldList">
+    <Children>
+        <ButtonWidget Id="Button1" />
+        <ButtonWidget Id="Button2" />
+    </Children>
+</ListPanel>
 
 <!-- After Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <Widget Id="FirstChild"/>
-                <Widget Id="SecondChild">
-                    <Children>
-                        <SomeChild/>
-                    </Children>
-                </Widget>
-                <Widget Id="ThirdChild"/>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
+<NavigatableGridWidget Id="CustomGrid" ColumnCount="2">
+    <Children>
+        <ButtonWidget Id="Button1" />
+        <ButtonWidget Id="Button2" />
+    </Children>
+</NavigatableGridWidget>
 ```
 
-Inserting multiple children at the "root" level like in the above example can be tidier by using the "RemoveRootNode" parameter available with the following attribute types:
-- [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute)
-- [``PrefabExtensionText``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute)
-- [``PrefabExtensionXmlNode``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute)
-- [``PrefabExtensionXmlDocument``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlDocumentAttribute)
-
-**Example of using RemoveRootNode. The result will be the same as the example above:**
+#### Preserving Children with Multi-Node Injection (`RemoveRootNode = true`)
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
-internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/ListPanel")]
+internal sealed class MultiNodeReplaceKeepChildrenPatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.ReplaceKeepChildren;
 
+    // Node at index 1 (<Panel Id="Target">) receives the preserved children
     public override int Index => 1;
 
-    // Setting "RemoveRootNode" to true.
-    [PrefabExtensionText(true)]
-    public string GetContent() => "<DiscardedRoot><Widget Id=\"FirstChild\"/><Widget Id=\"SecondChild\"/><Widget Id=\"ThirdChild\"/></DiscardedRoot>";
+    [PrefabExtensionText(removeRootNode: true)]
+    public string Content => """
+        <Wrapper>
+            <Widget Id="Header" />
+            <Panel Id="Target" />
+            <Widget Id="Footer" />
+        </Wrapper>
+        """;
 }
+```
+
+```xml
+<!-- After Patch -->
+<Widget Id="Header" />
+<Panel Id="Target">
+    <Children>
+        <ButtonWidget Id="Button1" />
+        <ButtonWidget Id="Button2" />
+    </Children>
+</Panel>
+<Widget Id="Footer" />
 ```
 
 ---
 
-[``PrefabExtensionInsertPatch``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch) also supports fetching and inserting xml from a file inside of your module's GUI folder.
-The biggest advantage of doing this is being able to perform live debugging on your injected patch!
+### 6. Removing a Node (`InsertType.Remove`)
 
-**Example of appending the content of a file using [``PrefabExtensionFileName``](xref:Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute):**
+Deletes the target element and its entire subtree from the movie XML.
 
 ```csharp
-[PrefabExtension("ExampleFile", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle")]
-internal class ReplaceNodeExamplePatch : PrefabExtensionInsertPatch
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle[@Id='UnwantedTab']")]
+internal sealed class RemoveTabPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type => InsertType.Remove;
+}
+```
+
+```xml
+<!-- Before Patch -->
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="Tab1" />
+        <OptionsTabToggle Id="UnwantedTab" />
+        <OptionsTabToggle Id="Tab2" />
+    </Children>
+</OptionsScreenWidget>
+
+<!-- After Patch -->
+<OptionsScreenWidget Id="Options">
+    <Children>
+        <OptionsTabToggle Id="Tab1" />
+        <OptionsTabToggle Id="Tab2" />
+    </Children>
+</OptionsScreenWidget>
+```
+
+---
+
+## Loading XML from External Files (`[PrefabExtensionFileName]`)
+
+For large UI templates, keeping XML inside external `.xml` files instead of C# string literals improves syntax highlighting, validation, and maintainability.
+
+```csharp
+[PrefabExtension("Options", "descendant::OptionsScreenWidget[@Id='Options']/Children")]
+internal sealed class ExternalFilePatch : PrefabExtensionInsertPatch
 {
     public override InsertType Type => InsertType.Append;
 
-    // The file should have an extension of type .xml, and be located inside of the GUI folder of your module.
-    // You can include or omit the extension type. I.e. both of the following would work:
-    //   ExampleFileInjectedPatch
-    //   ExampleFileInjectedPatch.xml
+    // Loads GUI/PrefabExtensions/MyCustomContainer.xml from your module folder
     [PrefabExtensionFileName]
-    public string PatchFileName => "ExampleFileInjectedPatch";
+    public string FileName => "MyCustomContainer";
 }
 ```
-```xml
-<!-- ExampleFileInjectedPatch.xml -->
-<Widget Id="InjectedWidget">
-    <Children>
-        <SomeOtherChild/>
-    </Children>
-</Widget>
-```
-```xml
-<!-- ExampleFile.xml -->
-<!-- Before Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle>
-                    <Children>
-                        <SomeChild/>
-                    </Children>
-                </OptionsTabToggle>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
 
-<!-- After Patch -->
-<Prefab>
-    <Window>
-        <OptionsScreenWidget Id="Options">
-            <Children>
-                <OptionsTabToggle>
-                    <Children>
-                        <SomeChild/>
-                    </Children>
-                </OptionsTabToggle>
-                <Widget Id="InjectedWidget">
-                    <Children>
-                        <SomeOtherChild/>
-                    </Children>
-                </Widget>
-            </Children>
-        </OptionsScreenWidget>
-    </Window>
-</Prefab>
-```
+### File Resolution Rules
+
+1. **Folder Location:** Place patch XML files in your module's `GUI/` directory or any subfolder within it (such as `GUI/PrefabExtensions/MyCustomContainer.xml`).
+2. **File Extension:** You can include or omit the `.xml` extension in the string (`"MyCustomContainer"` or `"MyCustomContainer.xml"`). Matching is case-insensitive.
+3. **Module Resolution:** UIExtenderEx identifies your module using the string identifier provided when calling `UIExtender.Create("MyModuleId")`.
+4. **Hot Reloading:** The external file is read from disk each time the movie is patched. You can edit the XML file while the game is running, reload the screen (or call `Extender.Disable(typeof(MyPatch))` followed by `Extender.Enable(typeof(MyPatch))`), and see your changes without restarting the game or recompiling your C# assembly.
+
+> [!CAUTION]
+> **Do NOT place patch XML files inside `GUI/Prefabs/`!**
+> 
+> TaleWorlds' `WidgetFactory` registers every XML file inside `GUI/Prefabs` as a standalone prefab. However, patch fragments are incomplete snippets that use a `<Widget>` or `<DummyRoot>` root rather than `<Prefab>`. While the XML loader ignores unreferenced fragment files, the compiled-prefab generator attempts to parse them, triggering an engine exception that forces any movie referencing the fragment to fall back to XML. Always place patch fragments in a separate folder, such as `GUI/PrefabExtensions/`.
+> 
+> See [Keep Patch Fragments Out of GUI/Prefabs](../general/CompiledPrefabs.md#keep-patch-fragments-out-of-guiprefabs) for more information.
+
+---
+
+## Compile-Time Checking with Prefab Links
+
+To ensure that injected XML widgets, attributes, and data bindings (`@PropertyName`, `Command.Click="@MethodName"`) are validated at compile time, pair your patch with [`[assembly: PrefabLink]`](PrefabLink.md). The [Roslyn Analyzers](../general/Analyzers.md) will inspect your XML and confirm all bindings against the target ViewModel and its registered [ViewModel Mixins](ViewModelMixin.md).
+

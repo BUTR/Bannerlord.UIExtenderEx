@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using System;
@@ -8,8 +8,8 @@ using System.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
 /// <summary>
-/// An <c>[assembly: PrefabLink(...)]</c> that holds together: a patch or prefab of the mod, the ViewModel its XML binds
-/// where it goes in, and optionally a mixin attached to that ViewModel.
+/// Represents a validated <c>[assembly: PrefabLink]</c> declaration associating a prefab patch or standalone prefab
+/// with its bound ViewModel and optional mixin.
 /// </summary>
 internal sealed class PrefabLink
 {
@@ -34,8 +34,8 @@ internal sealed class PrefabLink
 }
 
 /// <summary>
-/// The mod's <c>[assembly: PrefabLink]</c> attributes, read in the order they are written. One that does not hold
-/// together is reported and left out, so the patch or prefab it names is checked as if it were not there.
+/// Collects and validates <c>[assembly: PrefabLink]</c> attributes declared across the compilation.
+/// Reports invalid links (<c>UIX0018</c>) and excludes them from subsequent scope analysis.
 /// </summary>
 internal static class PrefabLinks
 {
@@ -104,7 +104,7 @@ internal static class PrefabLinks
                     Invalid(2, $"'{mixinType.Name}' is not marked [ViewModelMixin]");
                     continue;
                 }
-                // A mixin whose ViewModel cannot be told is UIX0005's; the link is taken without it
+                // If the mixin lacks an identifiable host ViewModel (reported under UIX0005), evaluate the link without the mixin
                 if (mixin.Host is { } host && WhyNotAttached(mixin, host, viewModel) is { } why)
                 {
                     Invalid(2, why);
@@ -131,7 +131,9 @@ internal static class PrefabLinks
         return links;
     }
 
-    /// <summary>Why the mixin is not attached to instances of the ViewModel, the way <c>MixinsOf</c> tells it; null when it is.</summary>
+    /// <summary>
+    /// Explains why the specified mixin does not attach to instances of the target ViewModel, or returns <see langword="null"/> if attached.
+    /// </summary>
     private static string? WhyNotAttached(Mixin mixin, INamedTypeSymbol host, INamedTypeSymbol viewModel)
     {
         if (Hosts.SameType(host, viewModel))

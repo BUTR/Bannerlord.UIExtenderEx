@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using System.Threading.Tasks;
 
@@ -8,7 +8,7 @@ namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 public class MixinAnalyzerTests
 {
-    /// <summary>A ViewModel in the mod itself, where every member is visible anyway.</summary>
+    /// <summary>Defines a test ViewModel declared within the mod project, where all members are visible to the compilation.</summary>
     private const string HostVM = """
         public class HostVM : ViewModel
         {
@@ -64,7 +64,7 @@ public class MixinAnalyzerTests
                 """);
         }
 
-        /// <summary>MCM's mixin, against the game's own OptionsVM.</summary>
+        /// <summary>Tests mixin command collisions against method members of the game's <c>OptionsVM</c>.</summary>
         [Test]
         public async Task CommandsNamedLikeTheGamesOptionsVMMethods_AreReported()
         {
@@ -122,8 +122,9 @@ public class MixinAnalyzerTests
         }
 
         /// <summary>
-        /// GetProperties(NonPublic) returns no private property of a base type, so the table holds none; but the command
-        /// walk in ExecuteCommand does find a private method of a base type.
+        /// Verifies that private members on base ViewModel types collide for commands but not properties,
+        /// reflecting Gauntlet reflection behavior where private base properties are excluded from property tables
+        /// while private methods are discovered during command dispatch.
         /// </summary>
         [Test]
         public async Task APrivateMemberOfABaseType_CollidesForCommandsOnly()
@@ -235,7 +236,7 @@ public class MixinAnalyzerTests
                 """);
         }
 
-        /// <summary>A PropertyInfo carries its own attributes only, so the runtime does not collect an unmarked override.</summary>
+        /// <summary>Verifies that overriding a decorated member without re-applying attributes does not register the override at runtime.</summary>
         [Test]
         public async Task AnUnmarkedOverrideOfAMarkedMember_IsNotCollected()
         {
@@ -473,7 +474,7 @@ public class MixinAnalyzerTests
                 """);
         }
 
-        /// <summary>AccessTools2.Method walks up the base types, where a private method is visible on its own type.</summary>
+        /// <summary>Verifies that private refresh methods on base types in referenced assemblies are successfully resolved via type hierarchy traversal.</summary>
         [Test]
         public async Task APrivateMethodOfABaseTypeInAnotherAssembly_IsFound()
         {
@@ -495,7 +496,7 @@ public class MixinAnalyzerTests
 
     public class HostNeverInstantiated
     {
-        /// <summary>SecretAlliances' mixin: the ViewModel base type, with a type name where the refresh method goes.</summary>
+        /// <summary>Verifies that declaring a mixin directly on base <c>ViewModel</c> reports a diagnostic.</summary>
         [Test]
         public async Task AMixinOfViewModelItself_IsReported()
         {
@@ -534,7 +535,7 @@ public class MixinAnalyzerTests
                 """);
         }
 
-        /// <summary>The ViewModel comes from the closed BaseViewModelMixin, whatever a shared base takes first.</summary>
+        /// <summary>Verifies that the target ViewModel is extracted from the closed <c>BaseViewModelMixin</c> type regardless of type argument positions on intermediate classes.</summary>
         [Test]
         public async Task ASharedBaseTakingSomethingElseFirst_IsNotReported()
         {
@@ -552,7 +553,7 @@ public class MixinAnalyzerTests
                 """);
         }
 
-        /// <summary>A mixin implementing IViewModelMixin itself keeps the old rule: the first type argument, whatever it is.</summary>
+        /// <summary>Verifies legacy resolution rules for custom <c>IViewModelMixin</c> implementations that select the first generic type argument.</summary>
         [Test]
         public async Task AnIViewModelMixinOfItsOwnTakingSomethingElseFirst_IsReported()
         {

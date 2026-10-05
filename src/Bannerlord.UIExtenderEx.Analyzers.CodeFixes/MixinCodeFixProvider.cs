@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,8 +15,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace Bannerlord.UIExtenderEx.Analyzers.CodeFixes;
 
 /// <summary>
-/// UIX0003: the refresh method name replaced by one the ViewModel has. UIX0004: <c>handleDerived: true</c>. UIX0006: the
-/// constructor UIExtenderEx creates the mixin through. UIX0007: the marked member made public.
+/// Provides code fixes for ViewModel mixin diagnostics: corrects misspelled refresh methods (<c>UIX0003</c>), adds
+/// or enables <c>handleDerived: true</c> (<c>UIX0004</c>), supplies or exposes required mixin instantiation constructors
+/// (<c>UIX0006</c>), and ensures exposed DataSource members have public accessibility (<c>UIX0007</c>).
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MixinCodeFixProvider)), Shared]
 public sealed class MixinCodeFixProvider : CodeFixProvider
@@ -64,8 +65,8 @@ public sealed class MixinCodeFixProvider : CodeFixProvider
     };
 
     /// <summary>
-    /// One fix per method the analyzer found close to the name: <c>nameof(TheViewModel.Method)</c> where the mixin can
-    /// see the method, the name as a string where it cannot, a protected or private one.
+    /// Registers code fixes offering suggested refresh method names on the host ViewModel, generating a type-safe
+    /// <c>nameof(ViewModel.Method)</c> expression when accessible to the mixin or a string literal when inaccessible (e.g. private).
     /// </summary>
     private static async Task RegisterRefreshMethodFixes(CodeFixContext context, Diagnostic diagnostic, AttributeSyntax attribute)
     {
@@ -89,7 +90,7 @@ public sealed class MixinCodeFixProvider : CodeFixProvider
             var visible = viewModel is not null && SelfAndBases(viewModel)
                 .SelectMany(t => t.GetMembers(name).OfType<IMethodSymbol>())
                 .Any(m => model.IsAccessible(argument.SpanStart, m));
-            // Parsed rather than built: an identifier built as "nameof" is not the contextual keyword, and does not bind
+            // Parses the expression as text because manually constructed identifier syntax does not bind as the contextual nameof keyword
             ExpressionSyntax replacement = visible
                 ? ParseExpression($"nameof({viewModel!.ToMinimalDisplayString(model, argument.SpanStart)}.{name})")
                 : LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(name));
@@ -101,7 +102,9 @@ public sealed class MixinCodeFixProvider : CodeFixProvider
         }
     }
 
-    /// <summary><c>handleDerived: true</c>: a <c>false</c> already written turned over, or the argument added.</summary>
+    /// <summary>
+    /// Configures <c>handleDerived: true</c> on <c>[ViewModelMixin]</c>, either updating an explicit <c>false</c> argument or adding the named parameter.
+    /// </summary>
     private static async Task RegisterHandleDerivedFix(CodeFixContext context, Diagnostic diagnostic, ClassDeclarationSyntax mixin)
     {
         var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
@@ -123,8 +126,8 @@ public sealed class MixinCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// An abstract mixin made concrete; a constructor taking the ViewModel made public; or, when there is none, one
-    /// added after the fields, handing the ViewModel to the base when the base takes it.
+    /// Resolves mixin instantiation issues (<c>UIX0006</c>) by removing the <c>abstract</c> modifier, changing an existing constructor
+    /// accessibility to public, or generating a public constructor accepting the host ViewModel and forwarding to the base class.
     /// </summary>
     private static async Task RegisterCreationFix(CodeFixContext context, Diagnostic diagnostic, ClassDeclarationSyntax mixin)
     {
@@ -172,7 +175,7 @@ public sealed class MixinCodeFixProvider : CodeFixProvider
         var inside = mixin.OpenBraceToken.Span.End;
         var passesViewModel = type.BaseType?.InstanceConstructors.Any(c => Accepts(c) && model.IsAccessible(inside, c)) == true;
         var viewModelName = viewModel.ToMinimalDisplayString(model, inside);
-        // A blank line between the constructor and the fields before it, or the members after it
+        // Inserts a blank line to separate the synthesized constructor from preceding fields or subsequent member declarations
         var constructor = ParseMemberDeclaration($"public {type.Name}({viewModelName} vm){(passesViewModel ? " : base(vm)" : "")} {{ }}")!;
         constructor = fields > 0
             ? constructor.WithLeadingTrivia(EndOfLine(eol), Whitespace(indentation)).WithTrailingTrivia(EndOfLine(eol))

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using System.Collections.Immutable;
@@ -8,9 +8,8 @@ using System.Reflection;
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
 /// <summary>
-/// Resolves each <c>[BUTRUnsafeAccessor]</c> stub the way <c>UnsafeAccessorPatch.Resolve</c> does when the assembly is
-/// registered, so a stub naming a member the game no longer has is found while building against that game version, not
-/// at start-up.
+/// Validates stub methods annotated with <c>[BUTRUnsafeAccessor]</c> against target game types, mirroring runtime
+/// resolution performed by <c>UnsafeAccessorPatch.Resolve</c> to detect missing members and inlining misconfigurations at compile time.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class UnsafeAccessorAnalyzer : DiagnosticAnalyzer

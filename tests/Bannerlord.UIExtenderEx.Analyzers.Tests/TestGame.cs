@@ -1,17 +1,17 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
-/// <summary>GUI data as the analyzer targets hand it to the compiler: each file's path, text, and the package it is tagged with.</summary>
+/// <summary>Represents mock GUI package data supplied to the compiler, providing virtual file paths, text content, and package identity metadata.</summary>
 internal interface ITestPackage
 {
     IEnumerable<(string Path, string Text, string Package)> Files();
 }
 
-/// <summary>A format 2 file as a list of top-level properties: an inline JSON value, or an array of records.</summary>
+/// <summary>Represents a format 3 document composed of top-level JSON properties and record arrays.</summary>
 internal sealed class TestDocument(string path, IReadOnlyList<(string Name, string? Value, IReadOnlyList<string>? Items)> properties)
 {
     public string Path { get; } = path;
@@ -19,10 +19,10 @@ internal sealed class TestDocument(string path, IReadOnlyList<(string Name, stri
 }
 
 /// <summary>
-/// A GUI package in format 2: manifest.json, movies.json, types.json, and each prefab as a tree under
-/// <c>gui/&lt;Module&gt;/GUI/Prefabs</c> listed in prefabs.json. Tests give the prefabs as XML; they are converted the way
-/// the package generator converts the game's, without comments or whitespace-only text. Several can be passed
-/// together: a base package and DLC packages. <see cref="TestBundle"/> packs several into a <c>GUI.v2.All</c>.
+/// Constructs an in-memory GUI package conforming to format 3 (<c>manifest.json</c>, <c>movies.json</c>, <c>types.json</c>,
+/// and JSON prefab trees under <c>gui/&lt;Module&gt;/GUI/Prefabs</c> referenced by <c>prefabs.json</c>).
+/// Automatically converts XML prefab definitions to JSON representation without comments or extraneous whitespace.
+/// Supports combining base modules and DLC packages, or packing into a unified <see cref="TestBundle"/>.
 /// </summary>
 internal sealed class TestGame : ITestPackage
 {
@@ -30,8 +30,11 @@ internal sealed class TestGame : ITestPackage
     private readonly string[] _modules;
     private readonly List<string> _movies = [];
     private readonly List<string> _viewModels = [];
+    private readonly List<string> _widgets = [];
+    private readonly List<string> _enums = [];
+    private List<string>? _stringConversions;
     private readonly List<(string Module, string Name, string Xml)> _prefabs = [];
-    private int _formatVersion = 2;
+    private int _formatVersion = 3;
 
     public string Package { get; }
     public bool IsDlc => _dlc;
@@ -45,18 +48,18 @@ internal sealed class TestGame : ITestPackage
         _modules = modules;
     }
 
-    public static TestGame Base() => new("Bannerlord.ReferenceAssemblies.GUI.v2", false, "Native", "SandBox");
+    public static TestGame Base() => new("Bannerlord.ReferenceAssemblies.GUI.v3", false, "Native", "SandBox");
 
-    public static TestGame NavalDlc() => new("Bannerlord.ReferenceAssemblies.GUI.v2.NavalDLC", true, "NavalDLC");
+    public static TestGame NavalDlc() => new("Bannerlord.ReferenceAssemblies.GUI.v3.NavalDLC", true, "NavalDLC");
 
-    /// <summary>Writes another format version into the manifest, for the tests of packages the analyzer does not read.</summary>
+    /// <summary>Sets a custom format version in the manifest to test compatibility handling for unsupported bundle formats.</summary>
     public TestGame Format(int version)
     {
         _formatVersion = version;
         return this;
     }
 
-    /// <summary>The game build the package is of; <c>v1.4.8</c> by default.</summary>
+    /// <summary>Configures the game version and changeset for the package (defaults to <c>v1.4.8</c>).</summary>
     public TestGame Version(string gameVersion, int changeSet = 1)
     {
         GameVersion = gameVersion;
@@ -64,17 +67,56 @@ internal sealed class TestGame : ITestPackage
         return this;
     }
 
-    /// <summary>A movies.json entry; <paramref name="module"/> is the module of its class, this package's first by default.</summary>
+    /// <summary>Registers a movie entry in <c>movies.json</c>, associating a Gauntlet movie name with its ViewModel.</summary>
     public TestGame Movie(string movie, string? viewModel, string? gameStateScreen = null, bool paired = true, string? overrideView = null, string? module = null)
     {
         _movies.Add($$"""{"movie":{{Quote(movie)}},"viewModel":{{Quote(viewModel)}},"module":{{Quote(module ?? _modules[0])}},"overrideView":{{Quote(overrideView)}},"gameStateScreen":{{Quote(gameStateScreen)}},"paired":{{(paired ? "true" : "false")}}}""");
         return this;
     }
 
-    public TestGame ViewModel(string type, string? baseType, params (string Name, string Type)[] properties)
+    public TestGame ViewModel(string type, string? baseType, params (string Name, string Type)[] properties) =>
+        ViewModel(type, baseType, [], properties);
+
+    /// <summary>Registers a ViewModel type definition with properties and command methods in <c>types.json</c>.</summary>
+    public TestGame ViewModel(string type, string? baseType, IReadOnlyList<string> methods, params (string Name, string Type)[] properties)
     {
         var props = string.Join(",", properties.Select(p => $$"""{"name":{{Quote(p.Name)}},"type":{{Quote(p.Type)}},"accessibility":"public","static":false}"""));
-        _viewModels.Add($$"""{"type":{{Quote(type)}},"baseType":{{Quote(baseType ?? "TaleWorlds.Library.ViewModel")}},"properties":[{{props}}],"methods":[]}""");
+        var methodRecords = string.Join(",", methods.Select(m => $$"""{"name":{{Quote(m)}},"accessibility":"public","returnType":"System.Void","parameters":[]}"""));
+        _viewModels.Add($$"""{"type":{{Quote(type)}},"baseType":{{Quote(baseType ?? "TaleWorlds.Library.ViewModel")}},"properties":[{{props}}],"methods":[{{methodRecords}}]}""");
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a widget type with announced property types under <c>widgets[].announcements</c> without explicit property definitions.
+    /// </summary>
+    public TestGame Widget(string type, string? baseType, params (string Name, string[] Types)[] announcements) =>
+        Widget(type, baseType, null, announcements);
+
+    /// <summary>Registers a widget type definition with public properties and announced types.</summary>
+    public TestGame Widget(string type, string? baseType, IReadOnlyList<(string Name, string Type)>? properties, params (string Name, string[] Types)[] announcements)
+    {
+        var name = type.Substring(type.LastIndexOf('.') + 1);
+        var announced = string.Join(",", announcements.OrderBy(a => a.Name, System.StringComparer.Ordinal)
+            .Select(a => $$"""{"name":{{Quote(a.Name)}},"types":[{{string.Join(",", a.Types.Select(t => Quote(t)))}}]}"""));
+        var props = properties is null
+            ? ""
+            : ",\"properties\":[" + string.Join(",", properties.OrderBy(p => p.Name, System.StringComparer.Ordinal)
+                .Select(p => $$"""{"name":{{Quote(p.Name)}},"type":{{Quote(p.Type)}},"canRead":true,"canWrite":true}""")) + "]";
+        _widgets.Add($$"""{"name":{{Quote(name)}},"type":{{Quote(type)}},"baseType":{{Quote(baseType)}},"module":null,"assembly":"TaleWorlds.GauntletUI.dll","abstract":false,"events":[],"unresolvedEvents":[],"announcements":[{{announced}}],"unresolvedAnnouncements":[]{{props}}}""");
+        return this;
+    }
+
+    /// <summary>Registers an enum type definition and its member names in <c>types.json</c>.</summary>
+    public TestGame Enum(string type, params string[] members)
+    {
+        _enums.Add($$"""{"type":{{Quote(type)}},"members":[{{string.Join(",", members.OrderBy(m => m, System.StringComparer.Ordinal).Select(m => Quote(m)))}}]}""");
+        return this;
+    }
+
+    /// <summary>Registers supported string conversion target types recognized by <c>ConvertObject</c> in <c>types.json</c>.</summary>
+    public TestGame StringConversions(params string[] types)
+    {
+        _stringConversions = types.OrderBy(t => t, System.StringComparer.Ordinal).Select(t => Quote(t)).ToList();
         return this;
     }
 
@@ -84,7 +126,7 @@ internal sealed class TestGame : ITestPackage
         return this;
     }
 
-    /// <summary>The package's files other than the prefab trees, each as its top-level properties.</summary>
+    /// <summary>Generates document models for metadata files (<c>manifest.json</c>, <c>movies.json</c>, <c>prefabs.json</c>, and <c>types.json</c>).</summary>
     public IReadOnlyList<TestDocument> Documents()
     {
         static (string, string?, IReadOnlyList<string>?) Value(string name, string value) => (name, value, null);
@@ -96,11 +138,13 @@ internal sealed class TestGame : ITestPackage
             new("manifest.json", [format, Value("package", Quote(Package)), Value("gameVersion", Quote(GameVersion)), Value("changeSet", ChangeSet.ToString()), Value("buildId", "1"), Items("modules", modules)]),
             new("movies.json", [format, Items("calls", _movies), Items("unresolved", [])]),
             new("prefabs.json", [format, Items("prefabs", Trees().Select(t => t.Index).ToList())]),
-            new("types.json", [format, Items("widgets", []), Items("viewModels", _viewModels), Items("enums", [])]),
+            new("types.json", _stringConversions is null
+                ? [format, Items("widgets", _widgets), Items("viewModels", _viewModels), Items("enums", _enums)]
+                : [format, Items("widgets", _widgets), Items("viewModels", _viewModels), Items("enums", _enums), Items("stringConversions", _stringConversions)]),
         ];
     }
 
-    /// <summary>The prefab trees in prefabs.json order: each tree's name, module, file, root element and index entry.</summary>
+    /// <summary>Generates JSON prefab trees and corresponding index metadata entries for <c>prefabs.json</c>.</summary>
     public IReadOnlyList<(string Name, string Module, string File, XElement Root, string Index)> Trees() => _prefabs.Select(p =>
     {
         var file = $"{p.Module}/GUI/Prefabs/{p.Name}.json";
@@ -112,7 +156,7 @@ internal sealed class TestGame : ITestPackage
         return (p.Name, p.Module, file, element, index);
     }).ToList();
 
-    /// <summary>The files as the package's props file lists them: path, text, and the package they are tagged with.</summary>
+    /// <summary>Yields all mock files within the package directory structure tagged with their package identity.</summary>
     public IEnumerable<(string Path, string Text, string Package)> Files()
     {
         var root = $"/packages/{Package.ToLowerInvariant()}/{GameVersion.Substring(1)}.{ChangeSet}/gui";
@@ -125,12 +169,11 @@ internal sealed class TestGame : ITestPackage
             yield return ($"{root}/{tree.File}", $$"""{"formatVersion":{{_formatVersion}},"name":{{Quote(tree.Name)}},"module":{{Quote(tree.Module)}},"root":{{Tree(tree.Root)}}}""", Package);
     }
 
-    /// <summary>A node of the tree: <c>n</c>, <c>a</c> in document order, <c>c</c> with nodes and non-whitespace texts.</summary>
+    /// <summary>Serializes an XML element into JSON prefab format (<c>n</c> for name, <c>a</c> for attributes, <c>c</c> for children).</summary>
     private static string Tree(XElement element) => Node(element, Tree);
 
     /// <summary>
-    /// A node, <c>{ n, a, c }</c>, with each child element written by <paramref name="child"/>: nested, in a tree file, or
-    /// as its line in a bundle's node table.
+    /// Serializes an XML element into node object format using the specified child serializer callback (inline or indexed intern reference).
     /// </summary>
     public static string Node(XElement element, System.Func<XElement, string> child)
     {
@@ -173,20 +216,20 @@ internal sealed class TestGame : ITestPackage
 }
 
 /// <summary>
-/// A <c>Bannerlord.ReferenceAssemblies.GUI.v2.All</c> package packed from format 2 packages as the <c>bundle-gui</c>
-/// verb packs them: versions ascending, base package first; every distinct record once in a table per file and array,
-/// every distinct prefab node once in <c>nodes.jsonl</c>, children first; <c>bundle.json</c> naming each file's lines.
+/// Packs multiple <see cref="TestGame"/> packages into a unified <c>Bannerlord.ReferenceAssemblies.GUI.v3.All</c> bundle,
+/// matching the structure produced by the <c>bundle-gui</c> tool: deduplicated record tables, an interned <c>nodes.jsonl</c> table,
+/// and a master <c>bundle.json</c> manifest.
 /// </summary>
 internal sealed class TestBundle : ITestPackage
 {
-    public const string Id = "Bannerlord.ReferenceAssemblies.GUI.v2.All";
+    public const string Id = "Bannerlord.ReferenceAssemblies.GUI.v3.All";
 
     private readonly TestGame[] _games;
     private int _layout = 1;
 
     public TestBundle(params TestGame[] games) => _games = games;
 
-    /// <summary>Writes another layout into bundle.json, for the tests of bundles the analyzer does not read.</summary>
+    /// <summary>Sets a custom bundle layout version in <c>bundle.json</c> to test compatibility handling for unsupported bundle formats.</summary>
     public TestBundle Layout(int layout)
     {
         _layout = layout;
@@ -233,12 +276,12 @@ internal sealed class TestBundle : ITestPackage
         var body = string.Join(",", versions);
         var hash = Hash(string.Join("\n", contents.OrderBy(c => c.Key, System.StringComparer.Ordinal).Select(c => c.Key + "\n" + c.Value)) + body);
         const string root = "/packages/bannerlord.referenceassemblies.gui.v2.all/2026.9.28.1/gui";
-        yield return ($"{root}/bundle.json", $$"""{"formatVersion":2,"layout":{{_layout}},"contentHash":{{TestGame.Quote(hash)}},"versions":[{{body}}]}""", Id);
+        yield return ($"{root}/bundle.json", $$"""{"formatVersion":3,"layout":{{_layout}},"contentHash":{{TestGame.Quote(hash)}},"versions":[{{body}}]}""", Id);
         foreach (var content in contents)
             yield return ($"{root}/{content.Key}", content.Value, Id);
     }
 
-    /// <summary>An element's line in the node table, its children written first.</summary>
+    /// <summary>Interns an XML element into the deduplicated node table (bottom-up, children first) and returns its line index.</summary>
     private static int Intern(XElement element, Table nodes) => nodes.Add(TestGame.Node(element, child => Intern(child, nodes).ToString()));
 
     private static IEnumerable<string> Runs(List<int> lines)
@@ -259,7 +302,7 @@ internal sealed class TestBundle : ITestPackage
         return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(text)).Take(16).Select(b => b.ToString("x2")));
     }
 
-    /// <summary>Distinct lines, each numbered from 0 in the order first added.</summary>
+    /// <summary>Maintains a deduplicated set of text lines mapped to zero-based insertion indices.</summary>
     private sealed class Table
     {
         private readonly List<string> _lines = [];

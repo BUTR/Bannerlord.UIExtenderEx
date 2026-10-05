@@ -1,17 +1,19 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Bannerlord.UIExtenderEx.Analyzers;
 
-/// <summary>The names close enough to a misspelled one to offer in its place.</summary>
+/// <summary>
+/// Provides fuzzy string distance matching and candidate suggestion ranking for misspelled identifiers and attributes.
+/// </summary>
 internal static class Suggestions
 {
     private const int Max = 3;
 
     /// <summary>
-    /// The candidates within a few edits of <paramref name="name"/>, ignoring case, closest first; one differing only in
-    /// case comes before any other. <paramref name="name"/> itself is left out.
+    /// Selects candidates within a threshold edit distance of <paramref name="name"/> (case-insensitive), ordered by
+    /// ascending distance and alphabetical order, prioritizing case-only discrepancies. Excludes exact matches of <paramref name="name"/>.
     /// </summary>
     public static IEnumerable<string> Closest(string name, IEnumerable<string> candidates)
     {
@@ -28,7 +30,9 @@ internal static class Suggestions
             .ToList();
     }
 
-    /// <summary>Edits between two strings, a swap of two neighbours counting as one.</summary>
+    /// <summary>
+    /// Calculates the Damerau-Levenshtein edit distance between strings, treating adjacent character transpositions as a single edit.
+    /// </summary>
     private static int Distance(string a, string b)
     {
         if (Math.Abs(a.Length - b.Length) > 3)

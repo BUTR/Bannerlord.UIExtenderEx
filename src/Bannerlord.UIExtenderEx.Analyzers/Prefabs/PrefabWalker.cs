@@ -1,3 +1,5 @@
+﻿using Bannerlord.UIExtenderEx.Analyzers.Game;
+
 using Microsoft.CodeAnalysis;
 
 using System;
@@ -10,22 +12,16 @@ using System.Xml.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
 /// <summary>
-/// Walks prefab XML the way the game's loader reads it, and reports what the loader would drop, fail on, or bind to
-/// nothing.
+/// Recursively analyzes prefab XML hierarchies using Gauntlet's runtime evaluation semantics, detecting invalid
+/// widget attributes, broken data bindings, unresolved commands, and parameter forwarding errors.
 /// <list type="bullet">
-/// <item>Keys (<c>WidgetAttributeContext</c> and <c>PrefabDatabindingExtension</c>): <c>Id</c>, <c>DataSource</c>,
-/// <c>Command.*</c>, <c>CommandParameter.*</c>, <c>Parameter.*</c>; anything else is a widget attribute.</item>
-/// <item>Values: <c>@</c> binds, <c>{...}</c> is a binding path, <c>!</c> a constant, <c>*</c> a parameter of the prefab;
-/// anything else is the literal text.</item>
-/// <item>A widget attribute is a public instance property of the widget's class, followed through dotted paths
-/// (<c>WidgetExtensions.GetObjectAndProperty</c>); <c>@Name</c> reads the last node of the path from the widget's own
-/// ViewModel (<c>GauntletView.BindData</c>).</item>
-/// <item>A widget with a <c>DataSource</c> binds its own attributes, and its children, in the new scope; an
-/// <c>ItemTemplate</c> binds the elements of the list its widget is bound to.</item>
-/// <item>A tag names a widget class by its name, or a prefab; a prefab's attributes land on its root widget, and its
-/// parameters reach the attributes inside written <c>*Name</c>.</item>
+/// <item><b>Reserved Keys:</b> <c>Id</c>, <c>DataSource</c>, <c>Command.*</c>, <c>CommandParameter.*</c>, <c>Parameter.*</c>; all other keys represent widget properties.</item>
+/// <item><b>Expression Prefixes:</b> <c>@</c> binds to ViewModel properties, <c>{...}</c> defines DataSource navigation paths, <c>!</c> references constants, and <c>*</c> references prefab parameters.</item>
+/// <item><b>Widget Attributes:</b> Evaluated against public instance properties on the target Widget class (<c>WidgetExtensions.GetObjectAndProperty</c>).</item>
+/// <item><b>DataSource Scoping:</b> Widgets declare new data contexts via <c>DataSource</c>; <c>ItemTemplate</c> and <c>ItemTemplates</c> bind against collection element types.</item>
+/// <item><b>Prefab Components:</b> Custom tags instantiate compiled widgets or nested prefabs, forwarding parameters declared via <c>&lt;Parameters&gt;</c>.</item>
 /// </list>
-/// Nothing is checked below a scope the build cannot tell, a tag it cannot resolve, or a value it cannot read.
+/// Validation halts gracefully when encountering unresolved dynamic scopes, unknown tags, or unparseable expressions.
 /// </summary>
 internal sealed class PrefabWalker
 {
@@ -34,14 +30,27 @@ internal sealed class PrefabWalker
     private readonly PrefabSources _sources;
     private readonly ScopeResolver _resolver;
     private readonly Dictionary<string, INamedTypeSymbol> _widgets;
+    private readonly GameSet _game;
+    private readonly Hosts _hosts;
+    private readonly SourceAnnouncements _ownAnnouncements;
     private readonly Action<Diagnostic> _report;
     private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
     private readonly HashSet<string> _visited = new(StringComparer.Ordinal);
 
-    public PrefabWalker(PrefabSources sources, ScopeResolver resolver, Hosts hosts, Action<Diagnostic> report)
+    /// <summary>
+    /// The target game configurations against which XML is validated. If the XML is part of a patch, only configurations
+    /// where the patch successfully applies are evaluated.
+    /// </summary>
+    private IReadOnlyList<GameConfiguration> _configurations;
+
+    public PrefabWalker(PrefabSources sources, ScopeResolver resolver, Hosts hosts, GameSet game, Action<Diagnostic> report)
     {
         _sources = sources;
         _resolver = resolver;
+        _game = game;
+        _configurations = game.Configurations;
+        _hosts = hosts;
+        _ownAnnouncements = new SourceAnnouncements(hosts);
         _report = report;
         _widgets = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
         foreach (var type in hosts.AllTypes)
@@ -51,11 +60,11 @@ internal sealed class PrefabWalker
         }
     }
 
-    /// <summary>Reports once per rule, place and message, however many ways the same XML is reached.</summary>
+    /// <summary>Reports a diagnostic, deduplicating multiple visits to the same XML node across paths.</summary>
     public void Report(DiagnosticDescriptor descriptor, Location location, params object[] arguments) =>
         ReportWith(descriptor, location, null, arguments);
 
-    /// <summary><see cref="Report"/>, with what the rule's code fix needs.</summary>
+    /// <summary>Reports a diagnostic with custom properties for Roslyn code fix providers.</summary>
     public void ReportWith(DiagnosticDescriptor descriptor, Location location, ImmutableDictionary<string, string?>? properties, params object[] arguments)
     {
         var diagnostic = Diagnostic.Create(descriptor, location, properties, arguments);
@@ -63,51 +72,179 @@ internal sealed class PrefabWalker
             _report(diagnostic);
     }
 
-    /// <summary>What a fix replacing <paramref name="replace"/> with one of <paramref name="suggestions"/> needs.</summary>
+    /// <summary>Constructs code fix metadata replacing <paramref name="replace"/> with candidate <paramref name="suggestions"/>.</summary>
     public static ImmutableDictionary<string, string?> Replacing(string replace, IEnumerable<string> suggestions, bool inSpan) => FixData.Of(
         (FixData.Suggestions, FixData.Join(suggestions)),
         (FixData.Replace, replace),
         (FixData.Where, inSpan ? FixData.InSpan : FixData.AfterSpan));
 
-    /// <summary>Walks content whose root is the widget itself, or with <paramref name="removeRootNode"/> its root's children.</summary>
-    public void WalkContent(PrefabXml xml, bool removeRootNode, Scope scope)
+    /// <summary>
+    /// Traverses XML content starting from the root widget (or its child elements if <paramref name="removeRootNode"/> is true).
+    /// </summary>
+    public void WalkContent(PrefabXml xml, bool removeRootNode, Scope scope, IReadOnlyList<GameConfiguration>? configurations = null)
     {
         if (xml.Document?.Root is not { } root)
             return;
         var chain = ImmutableList.Create(scope);
-        foreach (var widget in removeRootNode ? root.Elements() : [root])
-            Walk(widget, xml, chain, Parameters.Empty, 0);
+        In(configurations, () =>
+        {
+            foreach (var widget in removeRootNode ? root.Elements() : [root])
+                Walk(widget, xml, chain, Parameters.Empty, 0);
+        });
     }
 
-    /// <summary>Walks a prefab file's root widget: the element under <c>&lt;Window&gt;</c>.</summary>
+    private void In(IReadOnlyList<GameConfiguration>? configurations, Action walk)
+    {
+        var outer = _configurations;
+        _configurations = configurations ?? _game.Configurations;
+        try
+        {
+            walk();
+        }
+        finally
+        {
+            _configurations = outer;
+        }
+    }
+
+    /// <summary>Traverses a standalone prefab file starting from the root widget under <c>&lt;Window&gt;</c>.</summary>
     public void WalkPrefab(PrefabXml prefab, Scope scope, Parameters parameters)
     {
         if (RootWidget(prefab) is { } root)
             Walk(root, prefab, ImmutableList.Create(scope), WithDefaults(prefab, parameters), 0);
     }
 
-    /// <summary>The binding checks a set-attribute patch's values need: only <c>@Name</c> depends on the scope.</summary>
-    public void CheckSetAttribute(string value, Location location, Scope scope)
+    /// <summary>Validates attributes modified by a set-attribute patch, verifying binding expressions against the active scope.</summary>
+    public void CheckSetAttribute(string value, Location location, Scope scope, IReadOnlyList<GameConfiguration>? configurations = null)
     {
-        // The location is the literal that is the value, not an attribute's name
+        // The location corresponds to the literal value string, not the attribute key name
         if (value.StartsWith("@", StringComparison.Ordinal))
-            CheckBinding(scope, LastNode(value.Substring(1)), location, inSpan: true);
+            In(configurations, () => CheckBinding(scope, LastNode(value.Substring(1)), location, inSpan: true));
     }
 
     /// <summary>
-    /// An attribute a set-attribute patch puts on a node of the game's XML, checked like one written on that node's tag.
-    /// Only a tag that names a widget class is checked; a prefab used by tag is not followed to its root widget.
+    /// Validates an attribute targeted by a set-attribute patch against vanilla widget definitions in <c>types.json</c>
+    /// across all targeted game configurations (UIX0012, UIX0013, UIX0024).
+    /// Falls back to local compilation types when package definitions are absent.
     /// </summary>
-    public void CheckTagAttribute(string tag, string key, string value, Location location)
+    public void CheckTagAttribute(IReadOnlyList<PatchTarget> targets, string key, string value, Location location)
     {
         if (key is "Id" or "DataSource" || key.StartsWith("Command.", StringComparison.Ordinal)
             || key.StartsWith("CommandParameter.", StringComparison.Ordinal) || key.StartsWith("Parameter.", StringComparison.Ordinal))
             return;
-        if (!_sources.PrefabsByTag.ContainsKey(tag) && _widgets.TryGetValue(tag, out var widget))
-            CheckWidgetAttribute(widget, key, value, literal: !value.StartsWith("*", StringComparison.Ordinal), location);
+        var widgetTargets = targets.Where(x => !_sources.PrefabsByTag.ContainsKey(x.Tag)).Select(x => (x.Configuration, x.Tag)).ToList();
+        if (CheckInConfigurations(widgetTargets, key, value, location))
+            return;
+
+        // When no package records the widget type, validate against locally compiled types matching the tag
+        foreach (var tag in widgetTargets.Select(x => x.Tag).Distinct(StringComparer.Ordinal))
+        {
+            if (_widgets.TryGetValue(tag, out var compiled))
+                CheckWidgetAttribute(compiled, key, value, !value.StartsWith("*", StringComparison.Ordinal), location);
+        }
     }
 
-    /// <summary>The root widget: the first element under <c>&lt;Window&gt;</c>, which is the file's root or sits under <c>&lt;Prefab&gt;</c>.</summary>
+    /// <summary>
+    /// Validates widget attributes across targeted game configurations against <c>types.json</c> (UIX0012, UIX0013, UIX0024).
+    /// Returns <see langword="false"/> if no configuration records the widget, allowing compilation fallback.
+    /// Suggestions prioritize the newest supported game version while ensuring compatibility across all targeted versions.
+    /// </summary>
+    private bool CheckInConfigurations(IReadOnlyList<(GameConfiguration Configuration, string Tag)> targets, string key, string value, Location location)
+    {
+        if (key.IndexOf(':') >= 0)
+            return true;
+        var dot = key.IndexOf('.');
+        var first = dot < 0 ? key : key.Substring(0, dot);
+        var literal = !value.StartsWith("*", StringComparison.Ordinal);
+        var checksValue = dot < 0 && literal && value.Length > 0 && value[0] is not ('@' or '!' or '{');
+
+        var widgets = new Dictionary<GameConfiguration, GameWidget>();
+        var missing = new List<(GameConfiguration Configuration, List<string> Names)>();
+        var propertyTypes = new Dictionary<GameConfiguration, string>();
+        var misfit = new List<GameConfiguration>();
+        foreach (var (configuration, tag) in targets)
+        {
+            if (configuration.Widget(tag) is not { } widget || WidgetProperty(configuration, widget, first) is not var (found, propertyType, names))
+                continue;
+            widgets[configuration] = widget;
+            if (!found)
+            {
+                missing.Add((configuration, names));
+                continue;
+            }
+            propertyTypes[configuration] = propertyType!;
+            if (checksValue && WhyValueDoesNotFit(configuration, propertyType!, value) is not null)
+                misfit.Add(configuration);
+        }
+        if (widgets.Count == 0)
+            return false;
+
+        // The newest version's reason: the one the mod meets from now on
+        if (missing.Count > 0)
+        {
+            var (newest, names) = missing[missing.Count - 1];
+            var candidates = missing.Count == widgets.Count ? names : names.Where(name => widgets.All(x => WidgetProperty(x.Key, x.Value, name) is { Found: true }));
+            var finding = Diagnostic.Create(Descriptors.UnknownWidgetAttribute, location,
+                Replacing(first, Suggestions.Closest(first, candidates.Distinct(StringComparer.Ordinal)), inSpan: true), key, widgets[newest].Name);
+            if (_game.ForConfigurations(finding, widgets.Keys.ToList(), missing.Select(x => x.Configuration).ToList()) is { } unknown)
+                Report(unknown);
+        }
+        if (misfit.Count > 0)
+        {
+            var newest = misfit[misfit.Count - 1];
+            var (why, wrong, _) = WhyValueDoesNotFit(newest, propertyTypes[newest], value)!.Value;
+            Func<string, bool>? takenEverywhere = misfit.Count == propertyTypes.Count
+                ? null
+                : meant => propertyTypes.All(x => WhyValueDoesNotFit(x.Key, x.Value, WithPart(value, wrong, meant)) is null);
+            var suggestions = WhyValueDoesNotFit(newest, propertyTypes[newest], value, takenEverywhere)!.Value.Suggestions;
+            var finding = Diagnostic.Create(Descriptors.InvalidAttributeValue, location, Replacing(wrong, suggestions, inSpan: false), value, key, why);
+            if (_game.ForConfigurations(finding, propertyTypes.Keys.ToList(), misfit) is { } invalid)
+                Report(invalid);
+        }
+        return true;
+    }
+
+    /// <summary>Replaces a token within a comma-separated attribute value string (e.g. flags enum values) with a suggested replacement.</summary>
+    private static string WithPart(string value, string wrong, string replacement) =>
+        string.Join(",", value.Split(',').Select(part => part.Trim() == wrong ? replacement : part));
+
+    /// <summary>
+    /// Resolves a widget's public property across its inheritance hierarchy using <c>types.json</c> and local compilation symbols.
+    /// Returns whether the property was found, its type name, and candidate property names for code fix suggestions.
+    /// </summary>
+    private (bool Found, string? Type, List<string> Names)? WidgetProperty(GameConfiguration configuration, GameWidget widget, string name)
+    {
+        var names = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        for (var current = widget; seen.Add(current.Type);)
+        {
+            if (current.Properties is not { } properties)
+                return null;
+            if (properties.TryGetValue(name, out var type))
+                return (true, type, names);
+            names.AddRange(properties.Keys);
+            if (current.BaseType is not { } baseType)
+                return (false, null, names);
+            if (configuration.WidgetOfType(baseType) is { } next)
+            {
+                current = next;
+                continue;
+            }
+            if (_hosts.TypeByMetadataName(baseType) is not { } compiled)
+                return null;
+            foreach (var property in Hosts.SelfAndBases(compiled).SelectMany(t => t.GetMembers().OfType<IPropertySymbol>())
+                         .Where(p => p.DeclaredAccessibility == Accessibility.Public && !p.IsStatic && !p.IsIndexer))
+            {
+                if (property.Name == name)
+                    return (true, property.Type is INamedTypeSymbol named ? Hosts.MetadataName(named) : property.Type.ToDisplayString(), names);
+                names.Add(property.Name);
+            }
+            return (false, null, names);
+        }
+        return (false, null, names);
+    }
+
+    /// <summary>Retrieves the root widget element located directly under <c>&lt;Window&gt;</c>.</summary>
     private static XElement? RootWidget(PrefabXml prefab)
     {
         var root = prefab.Document?.Root;
@@ -116,9 +253,7 @@ internal sealed class PrefabWalker
     }
 
     /// <summary>
-    /// The prefab's declared parameters, as <c>WidgetPrefab.LoadParameters</c> reads them: every child of
-    /// <c>&lt;Parameters&gt;</c>, whatever its tag, and only under <c>&lt;Prefab&gt;</c>. The game's own prefabs spell the child
-    /// <c>Paramter</c> and <c>Parameters</c> in places, and those parameters work.
+    /// Enumerates parameter definitions declared under <c>&lt;Parameters&gt;</c> within a <c>&lt;Prefab&gt;</c> root element.
     /// </summary>
     private static IEnumerable<XElement> DeclaredParameters(PrefabXml prefab) =>
         prefab.Document?.Root is { Name.LocalName: "Prefab" } root ? root.Elements("Parameters").Elements() : [];
@@ -136,7 +271,15 @@ internal sealed class PrefabWalker
             scopeHere = value is not null && value.Length > 2 && value[0] == '{' && value[value.Length - 1] == '}'
                 ? Resolve(chain, value.Substring(1, value.Length - 2), location)
                 : chain.Add(UnknownScope.Instance);
+            if (value is not null && value.Length > 2 && value[0] == '{' && value[value.Length - 1] == '}')
+            {
+                CheckRefreshedWhenReplaced(chain, value, location);
+                CheckIntoAListByIndex(chain, value, location);
+            }
         }
+        if (prefab is null && widget is null)
+            CheckTagKnown(tag, xml.Locate(element));
+        CheckPassedChildren(element, xml, tag);
 
         var passed = new Dictionary<string, (string Value, Location Location)>(StringComparer.Ordinal);
         foreach (var attribute in element.Attributes())
@@ -158,7 +301,8 @@ internal sealed class PrefabWalker
             if (key.StartsWith("Parameter.", StringComparison.Ordinal))
             {
                 var name = key.Substring("Parameter.".Length);
-                if (prefab is not null && UsedParameters(prefab) is var used && !used.Contains(name))
+                // Parameters referenced by children placed into a LogicalChildrenLocation are marked as used (UIX0027)
+                if (prefab is not null && UsedParameters(prefab) is var used && !used.Contains(name) && !PassedChildrenRead(element, tag, name))
                     ReportWith(Descriptors.UnknownPrefabParameter, attributeLocation, Replacing(name, Suggestions.Closest(name, used), inSpan: true), name, tag);
                 if (value is not null)
                     passed[name] = (value, valueLocation);
@@ -166,9 +310,13 @@ internal sealed class PrefabWalker
             }
 
             if (widget is not null)
-                CheckWidgetAttribute(widget, key, attribute.Value, literal, attributeLocation);
+                CheckContentAttribute(prefab is null ? tag : RootWidgetTag(prefab, depth), widget, key, attribute.Value, literal, attributeLocation);
             if (value is not null && value.StartsWith("@", StringComparison.Ordinal))
+            {
                 CheckBinding(scopeHere[scopeHere.Count - 1], LastNode(value.Substring(1)), valueLocation);
+                if (widget is not null)
+                    CheckBoundTypes(widget, key, scopeHere[scopeHere.Count - 1], LastNode(value.Substring(1)), valueLocation);
+            }
         }
 
         foreach (var child in element.Elements())
@@ -208,7 +356,28 @@ internal sealed class PrefabWalker
         return _widgets.TryGetValue(root.Name.LocalName, out var type) ? type : null;
     }
 
-    /// <summary>The names a prefab can be handed: those it declares under <c>&lt;Parameters&gt;</c>, and those it reads as <c>*Name</c>.</summary>
+    /// <summary>Resolves the tag name of a prefab's root widget, recursively traversing inner prefabs when defined.</summary>
+    private string? RootWidgetTag(PrefabXml prefab, int depth)
+    {
+        if (depth >= MaxDepth || RootWidget(prefab) is not { } root)
+            return null;
+        if (_sources.PrefabsByTag.TryGetValue(root.Name.LocalName, out var inner))
+            return ReferenceEquals(inner, prefab) ? null : RootWidgetTag(inner, depth + 1);
+        return root.Name.LocalName;
+    }
+
+    /// <summary>
+    /// Validates a widget attribute against vanilla package metadata across all active game configurations (reporting
+    /// UIX0024 when version-specific), or against locally compiled types when definitions are absent.
+    /// </summary>
+    private void CheckContentAttribute(string? tag, INamedTypeSymbol widget, string key, string rawValue, bool literal, Location location)
+    {
+        var own = widget.Locations.Any(x => x.IsInSource);
+        if (own || tag is null || !CheckInConfigurations(_configurations.Select(x => (x, tag)).ToList(), key, rawValue, location))
+            CheckWidgetAttribute(widget, key, rawValue, literal, location);
+    }
+
+    /// <summary>Collects all parameter names declared under <c>&lt;Parameters&gt;</c> or referenced via <c>*Name</c> inside the prefab.</summary>
     private static HashSet<string> UsedParameters(PrefabXml prefab)
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
@@ -239,9 +408,8 @@ internal sealed class PrefabWalker
     }
 
     /// <summary>
-    /// A widget attribute: its first node a public instance property of the widget's class; for a single node with a
-    /// literal value, that value one the loader can convert. Dotted paths are only checked at their first node: the rest
-    /// is looked up on the runtime type of what the first returns, which may be more than its declared type.
+    /// Validates an attribute against a compiled widget type, checking property existence and literal type compatibility.
+    /// Dotted paths evaluate their root property against the widget class; nested properties are evaluated dynamically at runtime.
     /// </summary>
     private void CheckWidgetAttribute(INamedTypeSymbol widget, string key, string rawValue, bool literal, Location location)
     {
@@ -267,32 +435,48 @@ internal sealed class PrefabWalker
             ReportWith(Descriptors.InvalidAttributeValue, location, Replacing(wrong, suggestions, inSpan: false), rawValue, key, why);
     }
 
-    /// <summary>Why the loader cannot take the value, the part of it that is wrong, and what could be meant instead.</summary>
-    private static (string Why, string Wrong, IEnumerable<string> Suggestions)? WhyValueDoesNotFit(ITypeSymbol type, string value)
+    /// <summary>Validates literal attribute values against expected target types, returning error details and code fix suggestions if invalid.</summary>
+    private static (string Why, string Wrong, IEnumerable<string> Suggestions)? WhyValueDoesNotFit(ITypeSymbol type, string value) =>
+        type is INamedTypeSymbol named
+            ? WhyValueDoesNotFit(Hosts.MetadataName(named), named.TypeKind == TypeKind.Enum ? named.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToList() : null, value)
+            : null;
+
+    /// <summary>
+    /// Validates attribute literals against a metadata type name and optional enum member definitions.
+    /// Filters suggestions using the <paramref name="keep"/> predicate when cross-version compatibility is required.
+    /// </summary>
+    private (string Why, string Wrong, IEnumerable<string> Suggestions)? WhyValueDoesNotFit(GameConfiguration configuration, string type, string value, Func<string, bool>? keep = null) =>
+        WhyValueDoesNotFit(type, configuration.EnumMembers(type)
+            ?? (_hosts.TypeByMetadataName(type) is { TypeKind: TypeKind.Enum } compiled ? compiled.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name).ToList() : null), value, keep);
+
+    private static (string Why, string Wrong, IEnumerable<string> Suggestions)? WhyValueDoesNotFit(string type, IReadOnlyCollection<string>? enumMembers, string value,
+        Func<string, bool>? keep = null)
     {
+        keep ??= _ => true;
+        if (enumMembers is not null)
+        {
+            var members = new HashSet<string>(enumMembers, StringComparer.Ordinal);
+            var name = type.Substring(Math.Max(type.LastIndexOf('.'), type.LastIndexOf('+')) + 1);
+            foreach (var part in value.Split(','))
+            {
+                var trimmed = part.Trim();
+                if (!members.Contains(trimmed) && !long.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
+                    return ($"{name} has no member '{trimmed}'", trimmed, Suggestions.Closest(trimmed, members.Where(keep)));
+            }
+            return null;
+        }
         switch (type)
         {
-            case INamedTypeSymbol { TypeKind: TypeKind.Enum } enumType:
-            {
-                var members = new HashSet<string>(enumType.GetMembers().OfType<IFieldSymbol>().Select(f => f.Name), StringComparer.Ordinal);
-                foreach (var part in value.Split(','))
-                {
-                    var trimmed = part.Trim();
-                    if (!members.Contains(trimmed) && !long.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
-                        return ($"{enumType.Name} has no member '{trimmed}'", trimmed, Suggestions.Closest(trimmed, members));
-                }
-                return null;
-            }
-            case { SpecialType: SpecialType.System_Boolean }:
+            case "System.Boolean":
                 if (value is "true" or "false")
                     return null;
                 string[] meant = value.Equals("true", StringComparison.OrdinalIgnoreCase) ? ["true"]
                     : value.Equals("false", StringComparison.OrdinalIgnoreCase) ? ["false"]
                     : ["true", "false"];
-                return ("only \"true\" reads as true; this reads as false", value, meant);
-            case { SpecialType: SpecialType.System_Int32 }:
+                return ("only \"true\" reads as true; this reads as false", value, meant.Where(keep).ToList());
+            case "System.Int32":
                 return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _) ? null : ("it is not a whole number", value, []);
-            case { SpecialType: SpecialType.System_Single }:
+            case "System.Single":
                 return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _) ? null : ("it is not a number", value, []);
             default:
                 return null;
@@ -306,10 +490,229 @@ internal sealed class PrefabWalker
             case ProbeScope probe:
                 probe.Names.Add((name, false, location, inSpan));
                 break;
-            case ViewModelScope viewModel when !_resolver.TryProperty(viewModel.Type, name, out _, out _):
-                ReportNotFound(viewModel, name, command: false, location, inSpan);
+            case ViewModelScope viewModel:
+                CheckName(viewModel, name, command: false, _resolver.TryProperty(viewModel.Type, name, out _, out _), location, inSpan);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Validates data binding type compatibility between widget properties and ViewModel properties (UIX0025, <see cref="BindingTypes"/>).
+    /// <list type="bullet">
+    /// <item><b>ViewModel to Widget:</b> Validates assignability and supported string conversions (<c>stringConversions</c>).</item>
+    /// <item><b>Widget to ViewModel:</b> Validates announced change notification types against target property setters (<see cref="SourceAnnouncements"/>).</item>
+    /// </list>
+    /// If an incompatibility occurs only in a subset of targeted game versions, reports <see cref="Descriptors.HoldsForSomeVersions"/> (UIX0024).
+    /// </summary>
+    private void CheckBoundTypes(INamedTypeSymbol widget, string key, Scope scope, string name, Location location)
+    {
+        if (scope is not ViewModelScope viewModel || key.IndexOf('.') >= 0 || key.IndexOf(':') >= 0)
+            return;
+        var widgetProperty = Hosts.SelfAndBases(widget)
+            .SelectMany(t => t.GetMembers(key).OfType<IPropertySymbol>())
+            .FirstOrDefault(p => p.DeclaredAccessibility == Accessibility.Public && !p.IsStatic && !p.IsIndexer);
+        if (widgetProperty is null || !_resolver.TryPropertySymbol(viewModel.Type, name, out var viewModelProperty, out _) || viewModelProperty is null)
+            return;
+        var viewModelType = viewModelProperty.Type;
+        var widgetType = widgetProperty.Type;
+
+        // In multi-target SDK builds, validate against the active build's version only.
+        // Conditional compilation symbols (#if v103) may produce different property types per build.
+        var configurations = _game.Configurations
+            .Where(x => !_game.Versions.IsOneOfSeveralBuilds || _game.Versions.Current is not { } own || string.Equals(x.Version, own, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        // Gauntlet refreshes bindings when the movie opens before subscribing to property change events.
+        // String bindings depend on registered runtime converters (or fallback types if metadata is absent).
+        if (viewModelProperty.GetMethod is not null && BindingTypes.LoaderHandsWidget(viewModelType, widgetType) is var handed && handed != true)
+        {
+            var throws = Diagnostic.Create(Descriptors.BindingThrowsBetweenWidgetAndViewModel, location, key, viewModel.Type.Name, name,
+                $"the loader hands the widget the {viewModelType.ToDisplayString()} as it is, which its {widgetType.ToDisplayString()} property cannot take, so the movie does not open",
+                $"bind a {widgetType.ToDisplayString()} property");
+            if (handed == false)
+            {
+                Report(throws);
+                return;
+            }
+            var widgetTypeName = widgetType is INamedTypeSymbol namedWidgetType ? Hosts.MetadataName(namedWidgetType) : widgetType.ToDisplayString();
+            if (configurations.Count == 0)
+            {
+                if (!BindingTypes.FallbackStringConversions.Contains(widgetTypeName))
+                {
+                    Report(throws);
+                    return;
+                }
+            }
+            else
+            {
+                var notConverted = configurations.Where(x => !(x.StringConversions ?? BindingTypes.FallbackStringConversions).Contains(widgetTypeName)).ToList();
+                if (notConverted.Count > 0)
+                {
+                    if (_game.ForConfigurations(throws, configurations, notConverted) is { } notHanded)
+                        Report(notHanded);
+                    return;
+                }
+            }
+        }
+        // ViewModel.SetPropertyValue only assigns through public setters
+        if (viewModelProperty.SetMethod is not { DeclaredAccessibility: Accessibility.Public })
+            return;
+
+        // For custom widget classes, inspect calls to OnPropertyChanged directly from source symbols
+        var ownRejected = _ownAnnouncements.Announced(widget, key)
+            .Where(x => !BindingTypes.InvokeTakes(x, viewModelType))
+            .Select(x => x is INamedTypeSymbol named ? Hosts.MetadataName(named) : x.ToDisplayString())
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(x => x, StringComparer.Ordinal)
+            .ToList();
+        if (ownRejected.Count > 0)
+        {
+            Report(Throws(ownRejected));
+            return;
+        }
+
+        configurations = configurations.Where(x => x.HasAnnouncements).ToList();
+        if (configurations.Count == 0)
+            return;
+        var widgetTypes = Hosts.SelfAndBases(widget).Select(Hosts.MetadataName).ToList();
+        var versions = new List<string>();
+        var rejectedIn = new List<(string Version, List<string> Rejected)>();
+        foreach (var group in configurations.GroupBy(x => x.Version, StringComparer.OrdinalIgnoreCase).OrderBy(x => x.Key, GameVersions.Comparer))
+        {
+            versions.Add(group.Key);
+            // Fall back to a type unresolved by compilation with the benefit of the doubt
+            var rejected = group
+                .SelectMany(x => x.Announced(widgetTypes, key) ?? [])
+                .Distinct(StringComparer.Ordinal)
+                .Where(x => _hosts.TypeByMetadataName(x) is { } announced && !BindingTypes.InvokeTakes(announced, viewModelType))
+                .OrderBy(x => x, StringComparer.Ordinal)
+                .ToList();
+            if (rejected.Count > 0)
+                rejectedIn.Add((group.Key, rejected));
+        }
+        var holdVersions = rejectedIn.Select(x => x.Version).ToList();
+        if (rejectedIn.Count == 0 || !_game.Versions.Reports(holdVersions))
+            return;
+
+        // Formulate diagnostic details highlighting the newest affected game version
+        var diagnostic = Throws(rejectedIn[rejectedIn.Count - 1].Rejected);
+        if (rejectedIn.Count == versions.Count)
+        {
+            Report(diagnostic);
+            return;
+        }
+        Report(Diagnostic.Create(Descriptors.HoldsForSomeVersions, location, FixData.Of((FixData.Rule, diagnostic.Id)),
+            GamePatchChecker.Join(holdVersions, versions, v => v), diagnostic.GetMessage(CultureInfo.InvariantCulture)));
+
+        Diagnostic Throws(IReadOnlyCollection<string> announced)
+        {
+            var why = $"the widget announces a change as {string.Join(" or ", announced)}, which a {viewModelType.ToDisplayString()} property cannot take, so every change after the movie opens throws out of whatever made it";
+            var remedy = announced.Contains("System.String") && widgetType.TypeKind == TypeKind.Enum
+                ? "bind an object property that keeps the enum and turns a name it is handed back into it with Enum.Parse"
+                : $"bind a property of the type the widget announces, {string.Join(" or ", announced)}";
+            return Diagnostic.Create(Descriptors.BindingThrowsBetweenWidgetAndViewModel, location, key, viewModel.Type.Name, name, why, remedy);
+        }
+    }
+
+    /// <summary>Reports a diagnostic, deduplicating multiple visits to the same XML node across paths.</summary>
+    public void Report(Diagnostic diagnostic)
+    {
+        if (_reported.Add($"{diagnostic.Id}|{diagnostic.Location}|{diagnostic.GetMessage(CultureInfo.InvariantCulture)}"))
+            _report(diagnostic);
+    }
+
+    /// <summary>
+    /// Validates that multi-step DataSource navigation paths ({..\Visual}, {Hint\Child}) are not used on replaced child ViewModels (UIX0026).
+    /// In Gauntlet's XML loader, <c>GauntletView.OnPropertyChanged</c> only refreshes direct child views matching the property path;
+    /// widgets bound through indirect scopes retain stale references to the previous ViewModel instance.
+    /// </summary>
+    private void CheckRefreshedWhenReplaced(ImmutableList<Scope> chain, string written, Location location)
+    {
+        var nodes = written.Substring(1, written.Length - 2).Split('\\').Where(x => x.Length > 0).ToArray();
+        if (nodes.Length < 2)
+            return;
+        var last = nodes[nodes.Length - 1];
+        if (last == ".." || int.TryParse(last, out _))
+            return;
+        var owner = Resolve(chain, string.Join("\\", nodes.Take(nodes.Length - 1)), location);
+        if (owner[owner.Count - 1] is not ViewModelScope viewModel
+            || !_resolver.TryPropertySymbol(viewModel.Type, last, out var property, out _) || property?.SetMethod is null)
+            return;
+        Report(Descriptors.DataSourceNotRefreshedWhenReplaced, location, written, last, viewModel.Type.Name);
+    }
+
+    /// <summary>
+    /// Validates that indexed DataSource paths ({List\0}, {..\1}) are not bound directly in XML (UIX0028).
+    /// <c>GauntletView.RefreshBinding</c> evaluates indexed paths only during initial construction or full view refresh.
+    /// In-place mutations (<c>ListChanged</c>) are only received by the widget bound to the collection itself.
+    /// </summary>
+    private void CheckIntoAListByIndex(ImmutableList<Scope> chain, string written, Location location)
+    {
+        var nodes = written.Substring(1, written.Length - 2).Split('\\').Where(x => x.Length > 0).ToArray();
+        for (var i = 1; i < nodes.Length; i++)
+        {
+            if (!char.IsDigit(nodes[i][0]))
+                continue;
+            var owner = Resolve(chain, string.Join("\\", nodes.Take(i)), Location.None);
+            if (owner[owner.Count - 1] is ViewModelScope)
+                continue;
+            Report(Descriptors.DataSourceIntoAListByIndex, location, written, nodes[i - 1]);
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Validates that an XML element tag corresponds to a known compiled Widget class or registered prefab (UIX0029).
+    /// When encountering unknown tags, Gauntlet instantiates a plain base <c>Widget</c> and logs an engine assertion.
+    /// </summary>
+    private void CheckTagKnown(string tag, Location location)
+    {
+        if (!_game.Configurations.Any(x => x.KnowsWidgets) || _game.Configurations.Any(x => x.HasWidget(tag) || x.Prefab(tag) is not null))
+            return;
+        Report(Descriptors.UnknownWidgetTag, location, tag);
+    }
+
+    /// <summary>
+    /// Validates parameter usage in child widgets passed into a prefab containing a <c>&lt;LogicalChildrenLocation /&gt;</c> (UIX0027).
+    /// Unless explicitly forwarded via <c>Parameter.Name="*Name"</c>, parameter expressions evaluate against the receiving prefab's context.
+    /// </summary>
+    private void CheckPassedChildren(XElement element, PrefabXml xml, string tag)
+    {
+        var passedChildren = element.Elements("Children").Elements().ToList();
+        if (passedChildren.Count == 0 || !HasLogicalChildrenLocation(tag))
+            return;
+        foreach (var attribute in passedChildren.SelectMany(x => x.DescendantsAndSelf()).Where(x => x.Name.LocalName != "ItemTemplate").SelectMany(x => x.Attributes()))
+        {
+            if (!attribute.Value.StartsWith("*", StringComparison.Ordinal) || attribute.Value.Length < 2)
+                continue;
+            var name = attribute.Value.Substring(1);
+            if (element.Attribute("Parameter." + name)?.Value == attribute.Value)
+                continue;
+            Report(Descriptors.ParameterInPassedChildren, xml.Locate(attribute), name, tag);
+        }
+    }
+
+    /// <summary>Determines whether any child elements passed into a logical children location reference the parameter <c>*name</c>.</summary>
+    private bool PassedChildrenRead(XElement element, string tag, string name) =>
+        HasLogicalChildrenLocation(tag) && element.Elements("Children").Elements().SelectMany(x => x.DescendantsAndSelf()).SelectMany(x => x.Attributes())
+            .Any(x => x.Value == "*" + name);
+
+    private readonly Dictionary<string, bool> _logicalChildrenLocations = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Determines whether the target prefab contains a <c>&lt;LogicalChildrenLocation /&gt;</c> tag, inspecting local prefabs
+    /// or vanilla package documents.
+    /// </summary>
+    private bool HasLogicalChildrenLocation(string tag)
+    {
+        if (_logicalChildrenLocations.TryGetValue(tag, out var known))
+            return known;
+        bool found;
+        if (_sources.PrefabsByTag.TryGetValue(tag, out var prefab))
+            found = prefab.Document?.Root?.Descendants().Any(x => x.Name.LocalName == "LogicalChildrenLocation") == true;
+        else
+            found = _game.Configurations.Any(c => c.Prefab(tag)?.Document(default)?.GetElementsByTagName("LogicalChildrenLocation").Count > 0);
+        return _logicalChildrenLocations[tag] = found;
     }
 
     private void CheckCommand(Scope scope, string name, Location location)
@@ -319,20 +722,50 @@ internal sealed class PrefabWalker
             case ProbeScope probe:
                 probe.Names.Add((name, true, location, false));
                 break;
-            case ViewModelScope viewModel when !_resolver.TryCommand(viewModel.Type, name, out _):
-                ReportNotFound(viewModel, name, command: true, location, inSpan: false);
+            case ViewModelScope viewModel:
+                CheckName(viewModel, name, command: true, _resolver.TryCommand(viewModel.Type, name, out _), location, inSpan: false);
                 break;
         }
     }
 
-    private void ReportNotFound(ViewModelScope viewModel, string name, bool command, Location location, bool inSpan) =>
-        ReportWith(Descriptors.BindingNotFound, location,
-            Replacing(name, Suggestions.Closest(name, _resolver.Names(viewModel.Type, command)), inSpan),
+    /// <summary>
+    /// Validates ViewModel property and method bindings (UIX0015).
+    /// Checks definitions across all targeted game configurations via <c>types.json</c> (<see cref="GameConfiguration.Answers"/>).
+    /// If members are absent only in specific versions, reports <see cref="Descriptors.HoldsForSomeVersions"/> (UIX0024).
+    /// </summary>
+    private void CheckName(ViewModelScope viewModel, string name, bool command, bool found, Location location, bool inSpan)
+    {
+        var type = Hosts.MetadataName(viewModel.Type);
+        var present = new List<GameConfiguration>();
+        var missing = new List<GameConfiguration>();
+        foreach (var configuration in _configurations)
+        {
+            if (configuration.Answers(type, name, command) is not { } answers)
+                continue;
+            present.Add(configuration);
+            if (!answers)
+                missing.Add(configuration);
+        }
+        if (present.Count == 0 ? found : missing.Count == 0 || _resolver.ModAnswers(viewModel.Type, name, command, IsGame))
+            return;
+
+        var names = _resolver.Names(viewModel.Type, command).Concat(missing.SelectMany(x => x.Names(type, command)));
+        // Where some versions answer the name, suggestions only offer names present across all targeted versions
+        if (missing.Count > 0 && missing.Count < present.Count)
+            names = names.Where(x => present.All(c => c.Answers(type, x, command) == true) || _resolver.ModAnswers(viewModel.Type, x, command, IsGame));
+        var finding = Diagnostic.Create(Descriptors.BindingNotFound, location, Replacing(name, Suggestions.Closest(name, names.Distinct(StringComparer.Ordinal)), inSpan),
             name, viewModel.Type.Name, command ? "method" : "property");
+        if (present.Count == 0)
+            Report(finding);
+        else if (_game.ForConfigurations(finding, present, missing) is { } diagnostic)
+            Report(diagnostic);
+
+        bool IsGame(INamedTypeSymbol candidate) => _configurations.Any(x => x.ViewModel(Hosts.MetadataName(candidate)) is not null);
+    }
 
     /// <summary>
-    /// A <c>DataSource</c> path from the current scope, node by node: <c>..</c> steps back out, a name steps into the
-    /// property's value, an index into a list's element.
+    /// Resolves a <c>DataSource</c> path step-by-step: <c>..</c> navigates to the parent scope, property names navigate to child ViewModels,
+    /// and indices navigate into collection element scopes.
     /// </summary>
     private ImmutableList<Scope> Resolve(ImmutableList<Scope> chain, string path, Location location)
     {
@@ -353,15 +786,10 @@ internal sealed class PrefabWalker
                     chain = chain.Add(UnknownScope.Instance);
                     break;
                 case ViewModelScope viewModel:
-                    if (_resolver.TryProperty(viewModel.Type, node, out var type, out _))
-                    {
-                        chain = chain.Add(_resolver.ChildScope(type));
-                    }
-                    else
-                    {
-                        ReportNotFound(viewModel, node, command: false, location, inSpan: false);
-                        chain = chain.Add(UnknownScope.Instance);
-                    }
+                    var found = _resolver.TryProperty(viewModel.Type, node, out var type, out _);
+                    CheckName(viewModel, node, command: false, found, location, inSpan: false);
+                    // Child scopes are resolved using compilation types
+                    chain = chain.Add(found ? _resolver.ChildScope(type) : UnknownScope.Instance);
                     break;
                 case ListScope list when int.TryParse(node, out _):
                     chain = chain.Add(_resolver.ChildScope(list.Element));
@@ -384,7 +812,7 @@ internal sealed class PrefabWalker
     }
 }
 
-/// <summary>What a prefab was handed: each parameter's text, and where that text was written.</summary>
+/// <summary>Represents parameter assignments passed to a prefab instance, mapping parameter names to literal values and source locations.</summary>
 internal sealed class Parameters
 {
     public static readonly Parameters Empty = new(new Dictionary<string, (string, Location)>());
@@ -396,8 +824,8 @@ internal sealed class Parameters
     public string Key => string.Join(";", Values.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => x.Key + "=" + x.Value.Value));
 
     /// <summary>
-    /// A value as the loader sees it: <c>*Name</c> replaced by what the prefab was handed, with the place that text was
-    /// written. Null when it was handed nothing, which the walk cannot read further.
+    /// Evaluates a parameter expression (<c>*Name</c>), returning the substituted parameter value and its declaration location.
+    /// Returns null if the parameter was not provided by the caller.
     /// </summary>
     public (string? Value, Location Location) Substitute(string value, Location location)
     {

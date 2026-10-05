@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -18,8 +18,8 @@ using System.Threading.Tasks;
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
 /// <summary>
-/// <see cref="Verifier"/> for the prefab rules: a mod's C# and its XML files, each with <c>{|UIX0012:Name|}</c> markup, and
-/// every report checked against the markup of the file it lands in.
+/// Provides Roslyn test verification infrastructure for prefab and XML content analyzers, validating diagnostic IDs
+/// and spans in C# and XML files annotated with <c>{|UIX0012:Name|}</c> markup syntax.
 /// </summary>
 internal static class PrefabVerifier
 {
@@ -39,11 +39,11 @@ internal static class PrefabVerifier
     public static Task VerifyAsync(string csharpMarkup, params (string Path, string XmlMarkup)[] files) =>
         VerifyAsync(csharpMarkup, [], files);
 
-    /// <summary>With the game's GUI packages referenced: their files tagged with their package, as the analyzer targets do.</summary>
+    /// <summary>Verifies diagnostics with mock GUI bundle packages, simulating MSBuild targets that tag additional files with package metadata.</summary>
     public static Task VerifyAsync(string csharpMarkup, ITestPackage[] games, params (string Path, string XmlMarkup)[] files) =>
         VerifyAsync(csharpMarkup, games, new Dictionary<string, string>(), files);
 
-    /// <summary>The same, with build properties as the analyzer targets make them compiler-visible, by name.</summary>
+    /// <summary>Verifies diagnostics with mock GUI packages and MSBuild property configuration exposed through compiler options.</summary>
     public static async Task VerifyAsync(string csharpMarkup, ITestPackage[] games, IReadOnlyDictionary<string, string> properties, params (string Path, string XmlMarkup)[] files)
     {
         var expected = new HashSet<(string Id, string Path, TextSpan Span)>();
@@ -87,11 +87,11 @@ internal static class PrefabVerifier
         Assert.Fail(message.ToString());
     }
 
-    /// <summary>The messages of every report on the mod's C#, for the tests that check what a report says.</summary>
+    /// <summary>Executes analyzers on C# source and returns formatted diagnostic messages for exact text assertions.</summary>
     public static Task<IReadOnlyList<string>> MessagesAsync(string csharp, params ITestPackage[] games) =>
         MessagesAsync(csharp, new Dictionary<string, string>(), games);
 
-    /// <summary>The same, with build properties as the analyzer targets make them compiler-visible, by name.</summary>
+    /// <summary>Executes analyzers on C# source with MSBuild property configuration and returns formatted diagnostic messages.</summary>
     public static async Task<IReadOnlyList<string>> MessagesAsync(string csharp, IReadOnlyDictionary<string, string> properties, params ITestPackage[] games)
     {
         var (gameFiles, options) = Game(games, properties);
@@ -103,7 +103,8 @@ internal static class PrefabVerifier
         return diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}").ToList();
     }
 
-    private static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(ITestPackage[] games, IReadOnlyDictionary<string, string>? properties = null)
+    /// <summary>Constructs mock additional files and analyzer config options representing GUI bundles and project build properties.</summary>
+    internal static (List<AdditionalText> Files, AnalyzerConfigOptionsProvider Options) Game(ITestPackage[] games, IReadOnlyDictionary<string, string>? properties = null)
     {
         var files = new List<AdditionalText>();
         var packages = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -115,7 +116,7 @@ internal static class PrefabVerifier
         return (files, new MetadataOptionsProvider(packages, properties ?? new Dictionary<string, string>()));
     }
 
-    /// <summary>What the analyzer targets make compiler-visible: each game file's package, and the build properties.</summary>
+    /// <summary>Supplies analyzer configuration options mimicking MSBuild compiler-visible items and build properties.</summary>
     private sealed class MetadataOptionsProvider(Dictionary<string, string> packages, IReadOnlyDictionary<string, string> properties) : AnalyzerConfigOptionsProvider
     {
         public override AnalyzerConfigOptions GlobalOptions { get; } = new BuildProperties(properties);

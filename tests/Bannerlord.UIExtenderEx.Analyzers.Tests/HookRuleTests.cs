@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using System.Threading.Tasks;
 
@@ -6,7 +6,10 @@ using static Bannerlord.UIExtenderEx.Analyzers.Tests.Verifier;
 
 namespace Bannerlord.UIExtenderEx.Analyzers.Tests;
 
-/// <summary>UIX0008 to UIX0010: the rules for <c>[BUTRViewModelOverride]</c> and <c>[BUTRUnsafeAccessor]</c>.</summary>
+/// <summary>
+/// Tests diagnostics UIX0008 through UIX0010, enforcing method signatures and attributes
+/// for <c>[BUTRViewModelOverride]</c> and <c>[BUTRUnsafeAccessor]</c>.
+/// </summary>
 public class HookRuleTests
 {
     private const string Usings = """
@@ -76,7 +79,7 @@ public class HookRuleTests
             }));
         }
 
-        /// <summary>The runtime looks the method up whatever its accessibility, so a private method of the game counts.</summary>
+        /// <summary>Verifies that private game methods can be targeted by overrides because runtime lookup ignores member accessibility.</summary>
         [Test]
         public async Task AnOverrideOfAPrivateMethodOfTheGame_IsFound()
         {

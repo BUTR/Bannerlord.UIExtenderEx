@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace Bannerlord.UIExtenderEx.Tests.Prefabs2;
 
-public class PrefabComponentPrefabs2Tests : SharedTests
+public class PrefabComponentPrefabs2Tests
 {
     private static XmlDocument GetBaseDocument()
     {
@@ -384,7 +384,7 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         // Validate that every node we did want inserted are actually inserted.
         var validRootNode = movieDocument.SelectSingleNode("descendant::ValidRoot");
         Assert.IsNotNull(validRootNode);
-        Assert.AreEqual("Children", validRootNode!.ParentNode!.Name);
+        Assert.AreEqual("Children", validRootNode.ParentNode.Name);
         Assert.AreEqual("SomeChild", validRootNode.FirstChild.Name);
         Assert.AreEqual(validRootNode, validRootNode.ParentNode.FirstChild, $"First child should be ValidRoot. Was {validRootNode.ParentNode.FirstChild.Name}");
 
@@ -410,6 +410,30 @@ public class PrefabComponentPrefabs2Tests : SharedTests
         // Assert
         var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
         Assert.IsNull(removedNode);
+
+        prefabComponent.Deregister();
+    }
+
+    [Test]
+    public void RegisterPatch_Remove_WithoutContent()
+    {
+        // Arrange
+        const string MovieName = "TestMovieName";
+        const string XPath = "descendant::OptionsScreenWidget[@Id='Options']";
+        var patch = new TestPrefabExtensionRemovePatch();
+
+        PrefabComponent prefabComponent = new("TestModule");
+        var movieDocument = GetBaseDocument();
+
+        // Act
+        prefabComponent.RegisterPatch(MovieName, XPath, patch);
+        prefabComponent.Enable();
+        prefabComponent.ProcessMovieIfNeeded(MovieName, movieDocument);
+
+        // Assert
+        var removedNode = movieDocument.SelectSingleNode("descendant::OptionsScreenWidget[@Id='Options']");
+        Assert.IsNull(removedNode);
+        Assert.IsNotNull(movieDocument.SelectSingleNode("descendant::Window"));
 
         prefabComponent.Deregister();
     }

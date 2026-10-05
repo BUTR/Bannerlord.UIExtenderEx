@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,19 +10,19 @@ using System.Xml.Linq;
 namespace Bannerlord.UIExtenderEx.Analyzers.Prefabs;
 
 /// <summary>
-/// A piece of prefab XML and the way back from a position in it to a position in what the author wrote: a prefab file
-/// handed to the compiler as an additional file, or a string literal in a patch class.
+/// Encapsulates parsed prefab XML content and maps XML line and column positions back to their original source locations,
+/// whether originating from an MSBuild <c>AdditionalFiles</c> XML file or an embedded C# string literal.
 /// </summary>
 internal sealed class PrefabXml
 {
     private readonly Func<int, int, Location> _locate;
 
-    /// <summary>The document, or null when it is not well-formed; <see cref="Error"/> then says why and where.</summary>
+    /// <summary>The parsed XML document, or <see langword="null"/> if the content is malformed; <see cref="Error"/> describes any syntax failure.</summary>
     public XDocument? Document { get; }
 
     public (string Message, Location Location)? Error { get; }
 
-    /// <summary>What reports about the whole piece point at: the file's start, or the literal.</summary>
+    /// <summary>The fallback source location representing the document as a whole (the file start or the enclosing string literal).</summary>
     public Location Location { get; }
 
     private PrefabXml(string text, Func<int, int, Location> locate, Location location)
@@ -39,7 +39,7 @@ internal sealed class PrefabXml
         }
     }
 
-    /// <summary>Where an element's name or an attribute's name starts.</summary>
+    /// <summary>Computes the precise Roslyn <see cref="Location"/> corresponding to the beginning of an element or attribute name.</summary>
     public Location Locate(XObject node)
     {
         if (node is IXmlLineInfo { } info && info.HasLineInfo())
@@ -47,6 +47,7 @@ internal sealed class PrefabXml
         return Location;
     }
 
+    /// <summary>Creates a <see cref="PrefabXml"/> instance from an XML additional file.</summary>
     public static PrefabXml FromFile(AdditionalText file, SourceText text)
     {
         var path = file.Path;
@@ -63,9 +64,8 @@ internal sealed class PrefabXml
     }
 
     /// <summary>
-    /// XML written as a C# string literal. Positions are mapped through the literal's escapes, so a report lands on the
-    /// characters that were written; a literal whose content cannot be mapped (a raw or interpolated string) reports on the
-    /// literal as a whole.
+    /// Creates a <see cref="PrefabXml"/> instance from a C# string literal token, mapping internal XML offsets back
+    /// through escape sequences to highlight exact tokens within source code.
     /// </summary>
     public static PrefabXml FromLiteral(SyntaxToken literal)
     {
@@ -112,7 +112,7 @@ internal sealed class PrefabXml
         return currentLine == line ? index + Math.Max(column - 1, 0) : -1;
     }
 
-    /// <summary>For each character of the literal's value, where it starts in the source; null when that cannot be told.</summary>
+    /// <summary>Maps character indices within the literal's decoded string value back to source text offsets, or <see langword="null"/> if unmappable.</summary>
     private static List<int>? MapLiteral(SyntaxToken literal)
     {
         var text = literal.Text;
@@ -135,7 +135,7 @@ internal sealed class PrefabXml
                 map.Add(start + i);
                 if (text[i] != '\\' || i + 1 >= text.Length - 1)
                     continue;
-                // \uXXXX and \xH..HHHH are longer than two characters; the rest are two
+                // Standard escapes span 2 characters, whereas unicode escapes (\uXXXX, \UXXXXXXXX, \xH..) require variable offsets.
                 var next = text[i + 1];
                 i += next switch
                 {

@@ -2,7 +2,6 @@
 using HarmonyLib.BUTR.Extensions;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -26,77 +25,164 @@ internal static class ViewModelExtensions
     private static readonly GetMethodsDelegate? GetMethods =
         AccessTools2.GetDeclaredPropertyGetterDelegate<GetMethodsDelegate>($"{NestedType}:Methods");
 
-    private static readonly AccessTools.FieldRef<IDictionary>? CachedViewModelProperties =
-        AccessTools2.StaticFieldRefAccess<IDictionary>(typeof(ViewModel), "_cachedViewModelProperties");
-
     public delegate object DataSourceTypeBindingPropertiesCollectionCtorDelegate(Dictionary<string, PropertyInfo> properties, Dictionary<string, MethodInfo> methods);
     public static readonly DataSourceTypeBindingPropertiesCollectionCtorDelegate? DataSourceTypeBindingPropertiesCollectionCtor =
         AccessTools2.GetDeclaredConstructorDelegate<DataSourceTypeBindingPropertiesCollectionCtorDelegate>(NestedType, [typeof(Dictionary<string, PropertyInfo>),
             typeof(Dictionary<string, MethodInfo>)
         ]);
 
-    public static void AddProperty(this ViewModel viewModel, string name, PropertyInfo propertyInfo)
-    {
-        if (!GetOrCreateIndividualStorage(viewModel, out var propDict, out var _))
-            return;
+    /// <summary>
+    /// Determines whether the engine's internal ViewModel binding table reflection members were successfully resolved.
+    /// </summary>
+    private static bool TableIsReachable =>
+        PropertiesAndMethods is not null && GetProperties is not null && GetMethods is not null && DataSourceTypeBindingPropertiesCollectionCtor is not null;
 
-        propDict[name] = propertyInfo;
+    extension(ViewModel viewModel)
+    {
+        /// <summary>
+        /// Registers an individual property on this specific ViewModel instance by cloning and atomically publishing an updated binding table.
+        /// <para>
+        /// TaleWorlds shares a single static binding table per ViewModel type. To ensure per-instance mixin isolation
+        /// without mutating global type tables, registrations allocate an instance-specific copy. For multiple members,
+        /// prefer <see cref="BeginRegistration"/> to perform batch publication in a single clone operation.
+        /// </para>
+        /// </summary>
+        public void AddProperty(string name, PropertyInfo propertyInfo)
+        {
+            using var registration = viewModel.BeginRegistration();
+            registration.AddProperty(name, propertyInfo);
+        }
+
+        /// <summary>
+        /// Registers an individual command method on this specific ViewModel instance by cloning and atomically publishing an updated binding table.
+        /// </summary>
+        public void AddMethod(string name, MethodInfo methodInfo)
+        {
+            using var registration = viewModel.BeginRegistration();
+            registration.AddMethod(name, methodInfo);
+        }
+
+        /// <summary>
+        /// Begins a batched binding registration operation, cloning the instance's binding table upon creation and
+        /// atomically publishing the updated table upon disposal.
+        /// </summary>
+        public ViewModelBindingRegistration BeginRegistration() => new(viewModel);
+
+        /// <summary>
+        /// Resolves the <see cref="PropertyInfo"/> associated with the specified name in this instance's dynamic binding table,
+        /// matching <see cref="ViewModel.GetPropertyValue(string)"/> lookup semantics.
+        /// </summary>
+        public PropertyInfo? SelectProperty(string name)
+        {
+            if (PropertiesAndMethods is null || GetProperties is null)
+                return null;
+            if (PropertiesAndMethods(viewModel) is not { } storage || GetProperties(storage) is not { } properties)
+                return null;
+            return properties.TryGetValue(name, out var propertyInfo) ? propertyInfo : null;
+        }
+
+        /// <summary>
+        /// Resolves the <see cref="MethodInfo"/> associated with the specified command name, checking the instance binding
+        /// table before walking the inheritance hierarchy (matching <see cref="ViewModel.ExecuteCommand"/> semantics).
+        /// </summary>
+        public MethodInfo? SelectMethod(string name)
+        {
+            if (PropertiesAndMethods is not null && GetMethods is not null
+                                                 && PropertiesAndMethods(viewModel) is { } storage && GetMethods(storage) is { } methods
+                                                 && methods.TryGetValue(name, out var registered))
+            {
+                return registered;
+            }
+
+            for (var type = viewModel.GetType(); type is not null; type = type.BaseType)
+            {
+                if (type.GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) is { } methodInfo)
+                    return methodInfo;
+            }
+            return null;
+        }
+
+        public IReadOnlyCollection<PropertyInfo> GetViewModelProperties()
+        {
+            if (!TableIsReachable || PropertiesAndMethods!(viewModel) is not { } storage || GetProperties!(storage) is not { } properties)
+                return [];
+
+            return properties.Values;
+        }
+
+        public IReadOnlyCollection<MethodInfo> GetViewModelMethods()
+        {
+            if (!TableIsReachable || PropertiesAndMethods!(viewModel) is not { } storage || GetMethods!(storage) is not { } methods)
+                return [];
+
+            return methods.Values;
+        }
     }
 
-    public static void AddMethod(this ViewModel viewModel, string name, MethodInfo methodInfo)
+    /// <summary>
+    /// Represents an active batch registration scope. New member registrations are accumulated into a local copy
+    /// and atomically published upon disposal.
+    /// <para>
+    /// Batch operations run synchronously on the main UI thread during ViewModel initialization.
+    /// </para>
+    /// </summary>
+    public readonly struct ViewModelBindingRegistration : IDisposable
     {
-        if (!GetOrCreateIndividualStorage(viewModel, out var _, out var methodDict))
-            return;
+        private readonly ViewModel? _viewModel;
+        private readonly Dictionary<string, PropertyInfo>? _properties;
+        private readonly Dictionary<string, MethodInfo>? _methods;
 
-        methodDict[name] = methodInfo;
-    }
+        internal ViewModelBindingRegistration(ViewModel viewModel)
+        {
+            _viewModel = null;
+            _properties = null;
+            _methods = null;
 
-    public static IReadOnlyCollection<PropertyInfo> GetViewModelProperties(this ViewModel viewModel)
-    {
-        if (PropertiesAndMethods is null || CachedViewModelProperties is null || DataSourceTypeBindingPropertiesCollectionCtor is null || GetProperties is null || GetMethods is null)
-            return Array.Empty<PropertyInfo>();
+            if (!TryCopyCurrent(viewModel, out var properties, out var methods))
+                return;
 
-        if (PropertiesAndMethods(viewModel) is not { } storage)
-            return Array.Empty<PropertyInfo>();
+            _viewModel = viewModel;
+            _properties = properties;
+            _methods = methods;
+        }
 
-        var properties = GetProperties(storage);
-        return properties.Values;
-    }
+        public void AddProperty(string name, PropertyInfo propertyInfo)
+        {
+            _properties?[name] = propertyInfo;
+        }
 
-    public static IReadOnlyCollection<MethodInfo> GetViewModelMethods(this ViewModel viewModel)
-    {
-        if (PropertiesAndMethods is null || CachedViewModelProperties is null || DataSourceTypeBindingPropertiesCollectionCtor is null || GetProperties is null || GetMethods is null)
-            return Array.Empty<MethodInfo>();
+        public void AddMethod(string name, MethodInfo methodInfo)
+        {
+            _methods?[name] = methodInfo;
+        }
 
-        if (PropertiesAndMethods(viewModel) is not { } storage)
-            return Array.Empty<MethodInfo>();
+        /// <summary>
+        /// Atomically publishes the completed binding table to the target ViewModel instance.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_viewModel is null || _properties is null || _methods is null)
+                return;
+            PropertiesAndMethods!(_viewModel) = DataSourceTypeBindingPropertiesCollectionCtor!(_properties, _methods);
+        }
 
-        var methods = GetMethods(storage);
-        return methods.Values;
-    }
+        private static bool TryCopyCurrent(
+            ViewModel viewModel,
+            [NotNullWhen(true)] out Dictionary<string, PropertyInfo>? properties,
+            [NotNullWhen(true)] out Dictionary<string, MethodInfo>? methods)
+        {
+            properties = null;
+            methods = null;
 
-    private static bool GetOrCreateIndividualStorage(ViewModel viewModel, [NotNullWhen(true)] out Dictionary<string, PropertyInfo>? propDict, [NotNullWhen(true)] out Dictionary<string, MethodInfo>? methodDict)
-    {
-        propDict = null;
-        methodDict = null;
+            if (!TableIsReachable || PropertiesAndMethods!(viewModel) is not { } storage)
+                return false;
+            if (GetProperties!(storage) is not { } currentProperties || GetMethods!(storage) is not { } currentMethods)
+                return false;
 
-        if (PropertiesAndMethods is null || CachedViewModelProperties is null || DataSourceTypeBindingPropertiesCollectionCtor is null || GetProperties is null || GetMethods is null)
-            return false;
-
-        if (PropertiesAndMethods(viewModel) is not { } storage || CachedViewModelProperties() is not { } staticStorageDict)
-            return false;
-
-        var type = viewModel.GetType();
-        if (!staticStorageDict.Contains(type) || staticStorageDict[type] is not { } staticStorage)
-            return false;
-
-        if ((propDict = GetProperties(storage)) is null || (methodDict = GetMethods(storage)) is null)
-            return false;
-
-        // TW caches the properties, since we modify each VM individually, we need to copy them
-        if (ReferenceEquals(storage, staticStorage))
-            PropertiesAndMethods(viewModel) = DataSourceTypeBindingPropertiesCollectionCtor(propDict = new(propDict), methodDict = new(methodDict));
-
-        return true;
+            // TaleWorlds shares one static table per ViewModel type; clone current mappings to preserve immutability
+            properties = new(currentProperties);
+            methods = new(currentMethods);
+            return true;
+        }
     }
 }
