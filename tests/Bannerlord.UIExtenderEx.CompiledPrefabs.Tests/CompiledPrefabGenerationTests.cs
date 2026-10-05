@@ -529,6 +529,11 @@ public class CompiledPrefabGenerationTests
         var unrelated = new List<string>();
         if (Assembly.GetEntryAssembly()?.GetName().Name is { } entryAssembly)
             unrelated.Add(entryAssembly);
+        // The test adapter is always next to the tests, and nothing here references it. Needed where there is no entry
+        // assembly (net472 runs the tests in their own AppDomain) and no BLSE (a game downloaded from the depot).
+        var adapter = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NUnit3.TestAdapter.dll");
+        if (System.IO.File.Exists(adapter))
+            unrelated.Add(Assembly.LoadFrom(adapter).GetName().Name);
         var blse = new[] { Environment.GetEnvironmentVariable("BANNERLORD_GAME_DIR"), @"C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord" }
             .Where(x => !string.IsNullOrEmpty(x))
             .Select(x => System.IO.Path.Combine(x!, "bin", "Win64_Shipping_Client", "Bannerlord.BLSE.Shared.dll"))

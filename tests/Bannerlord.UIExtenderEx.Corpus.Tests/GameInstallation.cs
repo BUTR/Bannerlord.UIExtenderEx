@@ -107,10 +107,13 @@ internal sealed class GameInstallation
             Environment.GetEnvironmentVariable("BANNERLORD_GAME_DIR"),
             @"C:\Program Files (x86)\Steam\steamapps\common\Mount & Blade II Bannerlord",
         };
-        return candidates.FirstOrDefault(x =>
+        var directory = candidates.FirstOrDefault(x =>
             !string.IsNullOrEmpty(x) &&
             File.Exists(Path.Combine(x!, "bin", "Win64_Shipping_Client", "TaleWorlds.GauntletUI.dll")) &&
             System.IO.Directory.Exists(Path.Combine(x!, "Modules", "Native", "GUI")));
+        // CI sets BANNERLORD_GAME_DIR to '<workspace>/bannerlord', mixing separators; assembly locations are compared
+        // against this path as a prefix, and they never do
+        return directory is null ? null : Path.GetFullPath(directory);
     }
 
     /// <summary>
