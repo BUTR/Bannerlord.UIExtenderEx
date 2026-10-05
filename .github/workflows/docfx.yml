@@ -73,6 +73,14 @@ jobs:
         SITE: https://bannerlordapi.butr.link
       shell: bash
 
+    - name: Bump the footer copyright year
+      # docfx.json keeps the footer text; CI moves its end year to the year the
+      # site is built, so a deploy never shows a stale range.
+      run: |
+        sed -i -E "s/(\"_appFooter\": \"© 2020-)[0-9]{4}/\1$(date -u +%Y)/" docs/docfx.json
+        grep -q "© 2020-$(date -u +%Y) " docs/docfx.json || { echo "::error::_appFooter year not updated"; exit 1; }
+      shell: bash
+
     - name: Run DocFX
       run: docfx docs/docfx.json
       shell: pwsh
