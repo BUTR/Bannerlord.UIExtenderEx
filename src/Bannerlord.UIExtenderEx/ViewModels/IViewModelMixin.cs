@@ -1,21 +1,21 @@
 ﻿namespace Bannerlord.UIExtenderEx.ViewModels;
 
 /// <summary>
-/// Interface for <see cref="TaleWorlds.Library.ViewModel"/> mixins.<br/>
-/// Should not be used directly, <see cref="BaseViewModelMixin{TViewModel}"/> should be used as base class.
+/// Defines the contract for ViewModel mixin extensions.
+/// <para>
+/// Custom mixins should inherit from <see cref="BaseViewModelMixin{TViewModel}"/> instead of implementing this interface directly.
+/// </para>
 /// </summary>
 public interface IViewModelMixin
 {
     /// <summary>
-    /// Called when the original ViewModel is refreshed. The method name is dynamic, you need to set
-    /// <see cref="Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.RefreshMethodName"/> for the method to be called.<br/>
-    /// Defaults to an empty method.
+    /// Invoked when the host ViewModel executes its designated refresh method (configured via <see cref="Attributes.ViewModelMixinAttribute.RefreshMethodName"/>).
     /// </summary>
     void OnRefresh();
 
     /// <summary>
-    /// Called when the original's <see cref="TaleWorlds.Library.ViewModel.OnFinalize"/> is called.<br/>
-    /// Defaults to an empty method.
+    /// Invoked when the host ViewModel executes <see cref="TaleWorlds.Library.ViewModel.OnFinalize"/>, providing an opportunity
+    /// for cleanup and resource disposal.
     /// </summary>
     void OnFinalize();
 }

@@ -1,0 +1,27 @@
+<!--EXTERNAL_PROPERTIES: AnalyzerRoslynVersion-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+  The code fixes for Bannerlord.UIExtenderEx.Analyzers, shipped in that package next to the analyzer. An assembly of
+  their own because they need the Workspaces layer, which the compiler does not load: an analyzer referencing it would
+  fail to load in csc (RS1038). The analyzer project packs this one's output.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <RootNamespace>Bannerlord.UIExtenderEx.Analyzers.CodeFixes</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(AnalyzerRoslynVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The keys of what a report hands its fix: compiled into both assemblies, as neither references the other -->
+    <Compile Include="..\Bannerlord.UIExtenderEx.Analyzers\FixData.cs" Link="FixData.cs" />
+  </ItemGroup>
+
+</Project>

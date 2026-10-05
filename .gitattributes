@@ -1,0 +1,2 @@
+# Verify snapshots: LF on every checkout, so that they read the same on every machine
+*.verified.cs text eol=lf working-tree-encoding=UTF-8

@@ -10,19 +10,17 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
-using TaleWorlds.GauntletUI.PrefabSystem;
-
 namespace Bannerlord.UIExtenderEx.Patches;
 
 internal static class ParsePatch
 {
     public static void Patch(Harmony harmony)
     {
-        if (AccessTools2.DeclaredMethod(typeof(ConstantDefinition), nameof(ConstantDefinition.GetValue)) is { } getValueMethod)
+        if (!harmony.TryPatch(
+                AccessTools2.DeclaredMethod("TaleWorlds.GauntletUI.PrefabSystem.ConstantDefinition:GetValue"),
+                transpiler: AccessTools2.DeclaredMethod(typeof(ParsePatch), nameof(ConstantDefinition_GetValue_Transpiler))))
         {
-            harmony.Patch(
-                getValueMethod,
-                transpiler: new HarmonyMethod(typeof(ParsePatch), nameof(ConstantDefinition_GetValue_Transpiler)));
+            MessageUtils.DisplayUserWarning("Failed to patch ConstantDefinition.GetValue! On systems that write decimals with a comma, some screens may show elements at the wrong size or position.");
         }
     }
 
@@ -34,7 +32,7 @@ internal static class ParsePatch
         [MethodImpl(MethodImplOptions.NoInlining)]
         IEnumerable<CodeInstruction> ReturnDefault(string place)
         {
-            MessageUtils.DisplayUserWarning("Failed to patch ConstantDefinition.GetValue! {0}", place);
+            MessageUtils.DisplayUserWarning("Failed to patch ConstantDefinition.GetValue ({0})! On systems that write decimals with a comma, some screens may show elements at the wrong size or position.", place);
             return instructionsList.AsEnumerable();
         }
 
@@ -55,9 +53,9 @@ internal static class ParsePatch
         {
             if (instructionsList[i].opcode == OpCodes.Call && Equals(instructionsList[i].operand, decimalParseString))
             {
-                instructionsList.Insert(i, new CodeInstruction(OpCodes.Call, invariantCultureGetter));
+                instructionsList.Insert(i, new(OpCodes.Call, invariantCultureGetter));
                 i++;
-                instructionsList[i] = new CodeInstruction(OpCodes.Call, decimalParseStringProvider);
+                instructionsList[i] = new(OpCodes.Call, decimalParseStringProvider);
                 found = true;
             }
         }

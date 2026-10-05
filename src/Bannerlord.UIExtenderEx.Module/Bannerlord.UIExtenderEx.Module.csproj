@@ -1,0 +1,40 @@
+<!--EXTERNAL_PROPERTIES: GameVersion;HarmonyVersion;BuildResourcesVersion-->
+<Project Sdk="Microsoft.Build.NoTargets/3.7.134">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <Platforms>x64</Platforms>
+    <IsPackable>false</IsPackable>
+    <NoTargetsDoNotReferenceOutputAssemblies>false</NoTargetsDoNotReferenceOutputAssemblies>
+  </PropertyGroup>
+
+  <!--Module Creation-->
+  <PropertyGroup>
+    <ModuleId>Bannerlord.UIExtenderEx</ModuleId>
+    <ModuleName>UIExtenderEx</ModuleName>
+
+    <BuildForWindows>false</BuildForWindows>
+    <BuildForWindowsStore>false</BuildForWindowsStore>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework) == 'net472'">
+    <BuildForWindows>true</BuildForWindows>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework) == 'net6.0'">
+    <BuildForWindowsStore>true</BuildForWindowsStore>
+  </PropertyGroup>
+  <!--Module Creation-->
+
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.BuildResources" Version="$(BuildResourcesVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj" />
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.XmlPrefabs/Bannerlord.UIExtenderEx.XmlPrefabs.csproj" />
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.GamePrefabs/Bannerlord.UIExtenderEx.GamePrefabs.csproj" />
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.CodeGenerator/Bannerlord.UIExtenderEx.CodeGenerator.csproj" />
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.CompiledPrefabs/Bannerlord.UIExtenderEx.CompiledPrefabs.csproj" />
+    <ProjectReference Include="../Bannerlord.UIExtenderEx.Compiler/Bannerlord.UIExtenderEx.Compiler.csproj" />
+  </ItemGroup>
+
+</Project>

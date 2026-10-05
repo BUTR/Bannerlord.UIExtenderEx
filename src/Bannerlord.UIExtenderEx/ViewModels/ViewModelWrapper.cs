@@ -6,7 +6,9 @@ using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.ViewModels;
 
-// TODO: Is there a use for that?
+/// <summary>
+/// Wraps an underlying <see cref="ViewModel"/> instance, forwarding property change notifications and copying member bindings.
+/// </summary>
 internal class ViewModelWrapper : ViewModel
 {
     public ViewModel? Object { get; }
@@ -15,13 +17,17 @@ internal class ViewModelWrapper : ViewModel
     {
         Object = @object;
 
-        foreach (var property in this.GetViewModelProperties())
+        // Publish a single unified binding table; see ViewModelExtensions.BeginRegistration
+        using (var registration = this.BeginRegistration())
         {
-            this.AddProperty(property.Name, property);
-        }
-        foreach (var method in this.GetViewModelMethods())
-        {
-            this.AddMethod(method.Name, method);
+            foreach (var property in this.GetViewModelProperties())
+            {
+                registration.AddProperty(property.Name, property);
+            }
+            foreach (var method in this.GetViewModelMethods())
+            {
+                registration.AddMethod(method.Name, method);
+            }
         }
 
         // Trigger OnPropertyChanged from Object

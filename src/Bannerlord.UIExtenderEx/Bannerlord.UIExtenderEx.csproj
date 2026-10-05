@@ -6,19 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <Platforms>x64</Platforms>
-    <BuildForWindows>true</BuildForWindows>
-    <BuildForWindowsStore>true</BuildForWindowsStore>
-
-    <Configurations>Stable_Debug;Stable_Release;Beta_Debug;Beta_Release</Configurations>
-    <DefineConstants>$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-
-  <!--Module Creation-->
-  <PropertyGroup>
-    <ModuleId>Bannerlord.UIExtenderEx</ModuleId>
-    <ModuleName>UIExtenderEx</ModuleName>
-  </PropertyGroup>
-  <!--Module Creation-->
 
   <!--NuGet Package-->
   <PropertyGroup>
@@ -34,32 +22,37 @@
   <ItemGroup>
     <None Include="../../resources/Butter.png" Pack="true" PackagePath="" />
   </ItemGroup>
+  <ItemGroup Condition="'$(UIExtenderExAnalyzersDependency)' == 'true'">
+    <PackageReference Include="Bannerlord.UIExtenderEx.Analyzers" Version="$(Version)" PrivateAssets="none" />
+  </ItemGroup>
   <!--NuGet Package-->
 
   <ItemGroup>
-    <!-- Keep Bannerlord.Lib.Harmony intil we upgrade to v2.3.3 or higher -->
-    <PackageReference Include="Bannerlord.Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
+    <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="compile" GeneratePathProperty="true" />
     <PackageReference Include="BUTR.MessageBoxPInvoke" Version="1.0.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" />
-   
+
     <PackageReference Include="Bannerlord.BuildResources" Version="$(BuildResourcesVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Bannerlord.BUTR.Shared" Version="$(BUTRSharedVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Bannerlord.ModuleManager.Source" Version="$(BUTRModuleManagerVersion)" PrivateAssets="all" />
     <PackageReference Include="Harmony.Extensions" Version="$(HarmonyExtensionsVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="IsExternalInit" Version="1.0.3" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
-
-    <!--
-    <PackageReference Include="Bannerlord.MCM.Source" Version="$(MCMVersion)"  PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
-    <PackageReference Include="BUTR.DependencyInjection" Version="2.0.0.43" />
-    <PackageReference Include="BUTR.DependencyInjection.LightInject" Version="2.0.0.43" />
-    <PackageReference Include="LightInject.Source" Version="6.6.1" />
-    -->
   </ItemGroup>
+
+  <!--
+  This package is the API mods compile against, and nothing a release shipped may go missing from it. `dotnet pack`
+  compares it with the last release's package and fails on a removed or changed member. Both are netstandard2.0 only.
+  -->
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>2.13.3</PackageValidationBaselineVersion>
+  </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Bannerlord.UIExtenderEx.Tests" />
+    <InternalsVisibleTo Include="Bannerlord.UIExtenderEx.CodeGenerator.Tests" />
+    <InternalsVisibleTo Include="Bannerlord.UIExtenderEx.CompiledPrefabs.Tests" />
   </ItemGroup>
-  
+
 </Project>

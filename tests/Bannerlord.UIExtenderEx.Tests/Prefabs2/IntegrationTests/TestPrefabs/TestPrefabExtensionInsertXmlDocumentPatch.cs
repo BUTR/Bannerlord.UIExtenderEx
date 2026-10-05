@@ -19,6 +19,8 @@ internal class TestPrefabExtensionInsertXmlDocumentPatch : PrefabExtensionInsert
         XmlDocument.LoadXml("<OptionsTab Id=\"Append\" />");
     }
 
+#pragma warning disable CS0618 // Existing patches still use the obsolete attribute
     [PrefabExtensionXmlDocument]
+#pragma warning restore CS0618
     public virtual XmlDocument GetPrefabExtension() => XmlDocument;
 }

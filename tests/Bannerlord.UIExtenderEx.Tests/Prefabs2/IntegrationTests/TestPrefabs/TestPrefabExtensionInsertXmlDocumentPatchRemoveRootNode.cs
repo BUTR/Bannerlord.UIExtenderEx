@@ -22,6 +22,8 @@ internal class TestPrefabExtensionInsertXmlDocumentPatchRemoveRootNode : PrefabE
                             "</DiscardedRoot>");
     }
 
+#pragma warning disable CS0618 // Existing patches still use the obsolete attribute
     [PrefabExtensionXmlDocument(true)]
+#pragma warning restore CS0618
     public virtual XmlDocument GetPrefabExtension() => XmlDocument;
 }

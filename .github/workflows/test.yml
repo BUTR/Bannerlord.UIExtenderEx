@@ -8,6 +8,7 @@ on:
       - dev
     paths:
       - '.github/workflows/test.yml'
+      - '.github/resources/**'
       - 'src/**'
       - 'build/**'
       - 'tests/**'
@@ -18,6 +19,7 @@ on:
     types: [review_requested, ready_for_review]
     paths:
       - '.github/workflows/test.yml'
+      - '.github/resources/**'
       - 'src/**'
       - 'build/**'
   workflow_dispatch:
@@ -29,12 +31,31 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   # Disable sending .NET CLI telemetry to Microsoft.
   DOTNET_CLI_TELEMETRY_OPTOUT: true
-  TEST_FILTERS: "+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]* -[*]System.Diagnostics.CodeAnalysis* -[*]BUTR.DependencyInjection* -[*]Bannerlord.BUTR.Shared* -[*]HarmonyLib.BUTR*"
+  TEST_FILTERS: "+[Bannerlord.UIExtenderEx*]* -[Bannerlord.UIExtenderEx*.Tests]* -[Bannerlord.UIExtenderEx.Tests.Shared]* -[*]System.Diagnostics.CodeAnalysis* -[*]BUTR.DependencyInjection* -[*]Bannerlord.BUTR.Shared* -[*]HarmonyLib.BUTR*"
 
 jobs:
+  versions:
+    name: Game Versions
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.versions.outputs.matrix }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Stable and Beta
+      id: versions
+      run: ./.github/resources/GameVersions.ps1 -Current
+      shell: pwsh
+
   test:
-    name: Test
+    name: Test (${{ matrix.version }}, ${{ matrix.branch }})
+    needs: versions
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.versions.outputs.matrix) }}
     steps:
     - name: Tests Setup
       uses: butr/actions-tests-setup@v1
@@ -42,42 +63,94 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         steam-login: ${{secrets.STEAM_LOGIN}}
         steam-password: ${{secrets.STEAM_PASSWORD}}
-        stable-version: ${{vars.GAME_VERSION_STABLE}}
+        # A Steam branch, not a version: DepotDownloader falls back to public for a branch that does not exist
+        stable-version: ${{matrix.branch}}
 
-    - name: Test
+    - name: Game Version
+      # The game the tests run against is the one Steam served, so it has to be the one asked for
       run: >-
-          $game_version=$env:STABLE_VERSION;
-          $game_version=$game_version.substring(1);
-          dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
-          dotnet test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release -p:GameVersion=$game_version -p:GameFolder="$PWD/bannerlord";
-      env:
-        STABLE_VERSION: ${{vars.GAME_VERSION_STABLE}}
+          $served=([xml](Get-Content bannerlord/bin/Win64_Shipping_Client/Version.xml)).Version.Singleplayer.Value;
+          if ($served -ne 'v${{matrix.version}}') { throw "Branch '${{matrix.branch}}' served $served, not v${{matrix.version}}" };
+          Write-Host "Testing against $served";
       shell: pwsh
 
+    - name: API compatibility
+      if: matrix.branch == 'public'
+      # The package is the API mods compile against; pack compares it with the latest release on NuGet,
+      # whatever PackageValidationBaselineVersion the project still names
+      run: >-
+          $baseline=(Invoke-RestMethod https://api.nuget.org/v3-flatcontainer/bannerlord.uiextenderex/index.json).versions | Where-Object { $_ -notmatch '-' } | Select-Object -Last 1;
+          Write-Host "Baseline: $baseline";
+          dotnet pack src/Bannerlord.UIExtenderEx/Bannerlord.UIExtenderEx.csproj --configuration Release -p:GameVersion=${{matrix.version}} -p:GameFolder="$PWD/bannerlord" -p:PackageValidationBaselineVersion=$baseline;
+      shell: pwsh
+
+    - name: Test
+      # Stable builds against its own reference package as well. A beta's package is a prerelease, which
+      # $(GameVersion).* does not match, so a beta tests the build as it ships, against the oldest supported version
+      run: >-
+          $game_version=@(); if ('${{matrix.branch}}' -eq 'public') { $game_version=@('-p:GameVersion=${{matrix.version}}') };
+          $failed=@();
+          foreach ($project in 'Bannerlord.UIExtenderEx.Tests','Bannerlord.UIExtenderEx.CodeGenerator.Tests','Bannerlord.UIExtenderEx.CompiledPrefabs.Tests','Bannerlord.UIExtenderEx.Corpus.Tests') {
+            foreach ($configuration in 'Debug','Release') {
+              dotnet test tests/$project/$project.csproj --configuration $configuration @game_version -p:GameFolder="$PWD/bannerlord";
+              if ($LASTEXITCODE -ne 0) { $failed+="$project ($configuration)" };
+            }
+          };
+          if ($failed.Count -gt 0) { throw "Failed: $($failed -join ', ')" };
+      env:
+        BANNERLORD_GAME_DIR: ${{github.workspace}}/bannerlord
+        # The oracles write their reports under the temp folder; this one is uploaded below
+        TMP: ${{runner.temp}}
+        TEMP: ${{runner.temp}}
+      shell: pwsh
+
+    - name: Analyzer Tests
+      if: matrix.branch == 'public'
+      # Needs no game: the code under test compiles against reference packages
+      run: >-
+          dotnet test tests/Bannerlord.UIExtenderEx.Analyzers.Tests/Bannerlord.UIExtenderEx.Analyzers.Tests.csproj --configuration Release -p:GameVersion=${{matrix.version}} -p:GameFolder="$PWD/bannerlord";
+      shell: pwsh
+
+    - name: Oracle Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: oracle-reports-${{matrix.version}}
+        path: ${{runner.temp}}/UIExtenderEx-oracle/*.txt
+        if-no-files-found: ignore
+
     - name: Test Coverage
+      if: matrix.branch == 'public'
       run: >-
           opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Debug --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_uiextenderex_debug.xml -mergebyhash;
           opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.Tests/Bannerlord.UIExtenderEx.Tests.csproj --configuration Release --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_uiextenderex_release.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.CodeGenerator.Tests/Bannerlord.UIExtenderEx.CodeGenerator.Tests.csproj --configuration Debug --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_codegenerator_debug.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.CodeGenerator.Tests/Bannerlord.UIExtenderEx.CodeGenerator.Tests.csproj --configuration Release --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_codegenerator_release.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.CompiledPrefabs.Tests/Bannerlord.UIExtenderEx.CompiledPrefabs.Tests.csproj --configuration Debug --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_compiledprefabs_debug.xml -mergebyhash;
+          opencover/OpenCover.Console.exe -register -target:"dotnet.exe" -targetargs:"test tests/Bannerlord.UIExtenderEx.CompiledPrefabs.Tests/Bannerlord.UIExtenderEx.CompiledPrefabs.Tests.csproj --configuration Release --no-build" -filter:"${{env.TEST_FILTERS}}" -excludebyattribute:"*.ExcludeFromCodeCoverage*" -output:coverage_compiledprefabs_release.xml -mergebyhash;
       shell: pwsh
 
     - name: ReportGenerator
+      if: matrix.branch == 'public'
       uses: danielpalme/ReportGenerator-GitHub-Action@5.4.13
       with:
-        reports: 'coverage_uiextenderex_debug.xml;coverage_uiextenderex_release.xml'
+        reports: 'coverage_uiextenderex_debug.xml;coverage_uiextenderex_release.xml;coverage_codegenerator_debug.xml;coverage_codegenerator_release.xml;coverage_compiledprefabs_debug.xml;coverage_compiledprefabs_release.xml'
         targetdir: 'coveragereport'
         reporttypes: 'HtmlInline;Cobertura'
         sourcedirs: './'
         tag: '${{ github.run_number }}_${{ github.run_id }}' # Optional tag or build version.
 
     - name: Upload ReportGenerator to GitHub
+      if: matrix.branch == 'public'
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coveragereport
 
     - name: Upload ReportGenerator to CodeCov
-      uses: codecov/codecov-action@v5.5.1
+      if: matrix.branch == 'public'
+      uses: codecov/codecov-action@v5.5.5
       with:
         token: ${{secrets.CODECOV_TOKEN}}
-        file: coveragereport/Cobertura.xml
+        files: coveragereport/Cobertura.xml
         fail_ci_if_error: true

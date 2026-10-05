@@ -3,16 +3,16 @@
 namespace Bannerlord.UIExtenderEx.Prefabs;
 
 /// <summary>
-/// Custom patch on either whole XmlDocument (if T is XmlDocument) or Xpath specified node (if XmlNode is the generic argument)
+/// Defines a custom prefab patch operating directly on an <see cref="XmlDocument"/> or an <see cref="XmlNode"/> selected via XPath.
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">The XML node type targeted by the patch.</typeparam>
 public abstract class CustomPatch<T> : IPrefabPatch where T : XmlNode
 {
     public abstract string Id { get; }
 
     /// <summary>
-    /// Apply this patch to obj
+    /// Applies modifications to the targeted XML document or node.
     /// </summary>
-    /// <param name="obj"></param>
+    /// <param name="obj">The XML document or node to modify.</param>
     public abstract void Apply(T obj);
 }

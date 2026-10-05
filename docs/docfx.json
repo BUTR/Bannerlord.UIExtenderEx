@@ -15,7 +15,7 @@
     "xref": [
       "https://learn.microsoft.com/en-us/dotnet/.xrefmap.json",
       "xrefs/Newtonsoft.Json-xrefmap.yml",
-      "https://butr.github.io/Bannerlord.ReferenceAssemblies.Documentation/xrefmap.yml"
+      "xrefs/bannerlord-api-xrefmap.yml"
     ],
     "content": [
       { "files": [ "**/**.{md,yml}" ], "exclude": [ "_site/**", "obj/**" ] }
@@ -29,7 +29,6 @@
       "_enableSearch": "true",
       "_appTitle": "UIExtenderEx Documentation",
       "_appName": "UIExtenderEx",
-      "_appLogoPath": "images/BUTR48.svg",
       "_appFooter": "© 2020-2024 Bannerlord's Unofficial Tools & Resources"
     },
     "template": [

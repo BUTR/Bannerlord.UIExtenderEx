@@ -15,8 +15,7 @@ public class Prefabs2Tests : BaseTests
     public void Setup()
     {
         _uiExtender = UIExtender.Create("TestModule");
-        _uiExtender.Register(new[]
-        {
+        _uiExtender.Register([
             typeof(TestPrefabExtensionInsertFileNamePatch),
             typeof(TestPrefabExtensionInsertFileNamePatchRemoveRootNode),
             typeof(TestPrefabExtensionInsertTextPatch),
@@ -28,7 +27,7 @@ public class Prefabs2Tests : BaseTests
             typeof(TestPrefabExtensionInsertXmlNodesPatch),
             typeof(TestPrefabExtensionRemovePatch),
             typeof(TestPrefabExtensionSetAttributePatch),
-        });
+        ]);
         _uiExtender.Enable();
     }
 

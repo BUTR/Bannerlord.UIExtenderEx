@@ -1,0 +1,98 @@
+<!--EXTERNAL_PROPERTIES: AnalyzerRoslynVersion;Version;GITHUB_RUN_NUMBER-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <RootNamespace>Bannerlord.UIExtenderEx.Analyzers</RootNamespace>
+  </PropertyGroup>
+
+  <!--NuGet Package-->
+  <PropertyGroup>
+    <AnalyzerBuildNumber Condition="'$(AnalyzerBuildNumber)' == ''">$(GITHUB_RUN_NUMBER)</AnalyzerBuildNumber>
+    <AnalyzerBuildNumber Condition="'$(AnalyzerBuildNumber)' == ''">0</AnalyzerBuildNumber>
+    <Version>$(Version).$(AnalyzerBuildNumber)</Version>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PackageId>Bannerlord.UIExtenderEx.Analyzers</PackageId>
+    <PackageDescription>Build-time checks for UIExtenderEx ViewModel mixins and prefab XML: members that replace the game's, names two mixins both add, refresh methods that do not exist, mixins that can never run or cannot be created, widget attributes that do not exist or cannot be converted, and bindings to members the ViewModel does not have. With code fixes for most of them.</PackageDescription>
+    <Title>UIExtenderEx Analyzers</Title>
+    <Authors>BUTR</Authors>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
+    <PackageIcon>Butter.png</PackageIcon>
+    <PackageTags>bannerlord uiextenderex analyzers</PackageTags>
+    <!-- The analyzer goes into analyzers/dotnet/cs, not lib/; its one dependency is the game's GUI data, below -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Nothing in lib/ means no symbols to put into a snupkg -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../resources/Butter.png" Pack="true" PackagePath="" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="build\Bannerlord.UIExtenderEx.Analyzers.targets" Pack="true" PackagePath="build" />
+  </ItemGroup>
+  <!--
+  The code fixes go next to the analyzer. Built first, and not referenced: the analyzer must not load the Workspaces
+  layer they need.
+  -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddCodeFixesToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bannerlord.UIExtenderEx.Analyzers.CodeFixes\Bannerlord.UIExtenderEx.Analyzers.CodeFixes.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+  </ItemGroup>
+  <Target Name="_AddCodeFixesToPackage">
+    <MSBuild Projects="..\Bannerlord.UIExtenderEx.Analyzers.CodeFixes\Bannerlord.UIExtenderEx.Analyzers.CodeFixes.csproj" Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="_CodeFixesAssembly" />
+    </MSBuild>
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_CodeFixesAssembly)" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
+  <!--
+  The task the targets infer the game version with, next to the targets, with the one assembly of FetchBannerlordVersion
+  it needs; what else it uses, MSBuild brings.
+  -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddTasksToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bannerlord.UIExtenderEx.Analyzers.Tasks\Bannerlord.UIExtenderEx.Analyzers.Tasks.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+  </ItemGroup>
+  <Target Name="_AddTasksToPackage">
+    <MSBuild Projects="..\Bannerlord.UIExtenderEx.Analyzers.Tasks\Bannerlord.UIExtenderEx.Analyzers.Tasks.csproj" Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="_TasksAssembly" />
+    </MSBuild>
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(_TasksAssembly)" PackagePath="build" />
+      <TfmSpecificPackageFile Include="@(_TasksAssembly->'%(RootDir)%(Directory)FetchBannerlordVersion.Source.dll')" PackagePath="build" />
+    </ItemGroup>
+  </Target>
+  <!--NuGet Package-->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(AnalyzerRoslynVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!--
+  The game's GUI data, every release version in one package, so every mod gets the checks that need it without adding
+  anything. The only GUI package that can be a dependency: it is versioned by date, the per-build ones by the game build
+  a mod compiles against, which a dependency cannot follow. PrivateAssets none puts its build props, which expose the
+  data to the targets, into the dependency. A mod that wants a newer bundle than this release's references it itself.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Bannerlord.ReferenceAssemblies.GUI.v3.All" Version="$(GuiBundleVersion)" PrivateAssets="none" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+</Project>

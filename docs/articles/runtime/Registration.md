@@ -1,3 +1,0 @@
-﻿# Registration
-
-![image](Registration.svg)

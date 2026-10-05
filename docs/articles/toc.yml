@@ -2,15 +2,18 @@ items:
 - name: General
   href: general/toc.yml
   homepage: general/Overview.md
+- name: APIv3
+  href: v3/toc.yml
+  homepage: v3/Overview.md
 - name: APIv2
   href: v2/toc.yml
   homepage: v2/Overview.md
 - name: APIv1
   href: v1/toc.yml
   homepage: v1/Overview.md
-- name: Interface
-  href: interface/toc.yml
-  homepage: interface/Overview.md
-- name: Runtime
+- name: Core Internals
   href: runtime/toc.yml
   homepage: runtime/Overview.md
+- name: Compiled Prefabs
+  href: compiled-prefabs/toc.yml
+  homepage: compiled-prefabs/Overview.md

@@ -1,0 +1,64 @@
+<Project>
+
+  <!--
+  Supplies mod prefab XML files to the compiler as AdditionalFiles items (embedded XML resources and files in GUI/ directories).
+  Set UIExtenderExAnalyzePrefabs to 'false' to disable prefab analysis.
+  -->
+  <ItemGroup Condition="'$(UIExtenderExAnalyzePrefabs)' != 'false'">
+    <AdditionalFiles Include="@(EmbeddedResource->WithMetadataValue('Extension', '.xml'))" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\**\GUI\**\*.xml" Exclude="$(MSBuildProjectDirectory)\bin\**;$(MSBuildProjectDirectory)\obj\**" />
+  </ItemGroup>
+
+  <!--
+  Passes game GUI package data (BannerlordGameGuiData items from Bannerlord.ReferenceAssemblies.GUI.v3) as AdditionalFiles items.
+  Tags each item with UIExtenderExGamePackage metadata so the analyzer distinguishes game data from mod assets.
+  Set UIExtenderExAnalyzeGamePrefabs to 'false' to disable game package analysis.
+  -->
+  <ItemGroup Condition="'$(UIExtenderExAnalyzePrefabs)' != 'false' AND '$(UIExtenderExAnalyzeGamePrefabs)' != 'false'">
+    <AdditionalFiles Include="@(BannerlordGameGuiData)" UIExtenderExGamePackage="%(Package)" />
+  </ItemGroup>
+  <ItemGroup>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="UIExtenderExGamePackage" />
+  </ItemGroup>
+
+  <!--
+  Identifies the targeted game version (e.g. [v1.3.4]) for diagnostic prefixes and GUI bundle version matching.
+  Resolved from UIExtenderExGameVersion, GameVersion (set by Bannerlord.BUTRModule.Sdk / Bannerlord.BuildResources),
+  or inferred from referenced assemblies below.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="UIExtenderExGameVersion" />
+    <CompilerVisibleProperty Include="GameVersion" />
+    <CompilerVisibleProperty Include="UIExtenderExInferredGameVersion" />
+  </ItemGroup>
+
+  <!--
+  Infers the target game version from resolved assembly references when neither explicit property is specified.
+  Evaluates NuGet package IDs / versions (Bannerlord.ReferenceAssemblies) or inspects local game install folders
+  via TaleWorlds.Library.dll path resolution.
+  -->
+  <UsingTask TaskName="Bannerlord.UIExtenderEx.Analyzers.Tasks.InferGameVersion" AssemblyFile="$(MSBuildThisFileDirectory)Bannerlord.UIExtenderEx.Analyzers.Tasks.dll" />
+  <Target Name="_UIExtenderExInferGameVersion" BeforeTargets="GenerateMSBuildEditorConfigFileCore" DependsOnTargets="ResolveAssemblyReferences"
+          Condition="'$(UIExtenderExGameVersion)' == '' AND '$(GameVersion)' == ''">
+    <InferGameVersion References="@(ReferencePath)" ContinueOnError="true">
+      <Output TaskParameter="Version" PropertyName="UIExtenderExInferredGameVersion" />
+    </InferGameVersion>
+  </Target>
+
+  <!--
+  Exposes the list of game versions supported by the mod (for multi-version checking against GUI.v3.All bundles).
+  Sourced from SGVItem items (populated by Bannerlord.BUTRModule.Sdk from supported-game-versions.txt) or UIExtenderExGameVersions.
+  Formatted with commas to avoid semicolon comment truncation in generated editorconfig properties.
+  -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="UIExtenderExGameVersions" />
+    <CompilerVisibleProperty Include="OverrideGameVersion" />
+  </ItemGroup>
+  <Target Name="_UIExtenderExGameVersions" BeforeTargets="GenerateMSBuildEditorConfigFileCore">
+    <PropertyGroup>
+      <UIExtenderExGameVersions Condition="'$(UIExtenderExGameVersions)' == '' AND '@(SGVItem)' != ''">@(SGVItem, ',')</UIExtenderExGameVersions>
+      <UIExtenderExGameVersions>$(UIExtenderExGameVersions.Replace(';', ','))</UIExtenderExGameVersions>
+    </PropertyGroup>
+  </Target>
+
+</Project>

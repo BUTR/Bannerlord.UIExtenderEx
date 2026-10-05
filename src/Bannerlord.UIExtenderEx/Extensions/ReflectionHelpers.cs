@@ -1,68 +1,130 @@
-﻿using HarmonyLib;
-using HarmonyLib.BUTR.Extensions;
+﻿using HarmonyLib.BUTR.Extensions;
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Bannerlord.UIExtenderEx.Extensions;
 
+/// <summary>
+/// Provides cached reflection and compiled expression-tree accessors for reading and writing private members on host objects.
+/// </summary>
 internal static class ReflectionHelpers
 {
-    private delegate void SetMemberValue<in T>(object instance, T? value);
-    private delegate T? GetMemberValue<out T>(object instance);
+    /// <summary>
+    /// Caches member lookups across type hierarchies. Properties take precedence over fields of the same name.
+    /// </summary>
+    private static readonly ConcurrentDictionary<(Type Type, string Name), MemberInfo?> Members = new();
 
-    private static readonly ConcurrentDictionary<Type, Dictionary<string, MemberInfo>> _fieldPropertyCache = new();
-    private static readonly ConcurrentDictionary<MemberInfo, Delegate?> _getDelegateCache = new();
-    private static readonly ConcurrentDictionary<MemberInfo, Delegate?> _setDelegateCache = new();
+    private static MemberInfo? FindMember(Type type, string name) => Members.GetOrAdd((type, name), static key =>
+        (MemberInfo?) AccessTools2.Property(key.Type, key.Name, logErrorInTrace: false) ?? AccessTools2.Field(key.Type, key.Name, logErrorInTrace: false));
 
     /// <summary>
-    /// Can be null
+    /// Caches compiled expression-tree getter and setter delegates per member and value type to eliminate reflection overhead in polled UI paths.
     /// </summary>
-    public static T? PrivateValue<T>(this object? o, string fieldPropertyName)
+    private static class Accessors<T>
     {
-        if (o is null) return default;
+        public static readonly ConcurrentDictionary<MemberInfo, Func<object, T?>?> Getters = new();
+        public static readonly ConcurrentDictionary<MemberInfo, Action<object, T?>?> Setters = new();
+    }
 
-        var membersCache = _fieldPropertyCache.GetOrAdd(o.GetType(), static x => x.GetProperties().OfType<MemberInfo>().Concat(x.GetFields()).ToDictionary(x => x.Name, x => x));
-        if (!membersCache.TryGetValue(fieldPropertyName, out var member)) return default;
-        var @delegate = _getDelegateCache.GetOrAdd(member, static x => x switch
+    extension(object? o)
+    {
+        /// <summary>
+        /// Retrieves the value of a private or non-public field or property on the target instance.
+        /// </summary>
+        public T? PrivateValue<T>(string fieldPropertyName)
         {
-            FieldInfo fieldInfo => AccessTools2.FieldRefAccess<object, T>(fieldInfo.Name),
-            PropertyInfo propertyInfo => AccessTools2.GetPropertyGetterDelegate<GetMemberValue<T>>(propertyInfo),
-            var _ => null
-        });
-        switch (@delegate)
+            if (o is null || FindMember(o.GetType(), fieldPropertyName) is not { } member) return default;
+
+            var getter = Accessors<T>.Getters.GetOrAdd(member, CreateGetter<T>);
+            return getter is null ? default : getter(o);
+        }
+
+        /// <summary>
+        /// Sets the value of a private or non-public field or property on the target instance.
+        /// </summary>
+        public void PrivateValueSet<T>(string fieldPropertyName, T? value)
         {
-            case GetMemberValue<T> del:
-                return del(o);
-            case AccessTools.FieldRef<object, T> del:
-                return del(o);
-            case var _:
-                return default;
+            if (o is null || FindMember(o.GetType(), fieldPropertyName) is not { } member) return;
+
+            Accessors<T>.Setters.GetOrAdd(member, CreateSetter<T>)?.Invoke(o, value);
         }
     }
 
-    public static void PrivateValueSet<T>(this object? o, string fieldPropertyName, T? value)
+    private static Func<object, T?>? CreateGetter<T>(MemberInfo member)
     {
-        if (o is null) return;
+        if (member is PropertyInfo { CanRead: false } || MemberType(member) is not { } memberType) return null;
 
-        var membersCache = _fieldPropertyCache.GetOrAdd(o.GetType(), static x => x.GetProperties().OfType<MemberInfo>().Concat(x.GetFields()).ToDictionary(x => x.Name, x => x));
-        if (!membersCache.TryGetValue(fieldPropertyName, out var member)) return;
-        var @delegate = _setDelegateCache.GetOrAdd(member, static x => x switch
+        // Fall back to reflection if the member type is broader than T (e.g. an object field holding a string value)
+        Func<object, T?> reflection = instance => GetValue(member, instance) is T typed ? typed : default;
+        if (!IsInstanceMemberOfClass(member) || !typeof(T).IsAssignableFrom(memberType)) return reflection;
+
+        try
         {
-            FieldInfo fieldInfo => AccessTools2.FieldRefAccess<object, T?>(fieldInfo.Name),
-            PropertyInfo propertyInfo => AccessTools2.GetPropertySetterDelegate<SetMemberValue<T>>(propertyInfo),
-            var _ => null
-        });
-        switch (@delegate)
+            var instance = Expression.Parameter(typeof(object));
+            var access = Expression.MakeMemberAccess(Expression.Convert(instance, member.DeclaringType!), member);
+            return Expression.Lambda<Func<object, T?>>(Expression.Convert(access, typeof(T)), instance).Compile();
+        }
+        catch (Exception)
         {
-            case SetMemberValue<T> del:
-                del(o, value);
+            return reflection;
+        }
+    }
+
+    private static Action<object, T?>? CreateSetter<T>(MemberInfo member)
+    {
+        if (member is PropertyInfo { CanWrite: false } || MemberType(member) is not { } memberType) return null;
+
+        Action<object, T?> reflection = (instance, value) => SetValue(member, instance, value);
+        // A readonly field can only be written through reflection
+        if (!IsInstanceMemberOfClass(member) || member is FieldInfo { IsInitOnly: true } || !memberType.IsAssignableFrom(typeof(T))) return reflection;
+
+        try
+        {
+            var instance = Expression.Parameter(typeof(object));
+            var value = Expression.Parameter(typeof(T));
+            var access = Expression.MakeMemberAccess(Expression.Convert(instance, member.DeclaringType!), member);
+            return Expression.Lambda<Action<object, T?>>(Expression.Assign(access, Expression.Convert(value, memberType)), instance, value).Compile();
+        }
+        catch (Exception)
+        {
+            return reflection;
+        }
+    }
+
+    private static Type? MemberType(MemberInfo member) => member switch
+    {
+        PropertyInfo property => property.PropertyType,
+        FieldInfo field => field.FieldType,
+        _ => null,
+    };
+
+    /// <summary>A static member, or one of a struct the instance is a boxed copy of, is left to reflection.</summary>
+    private static bool IsInstanceMemberOfClass(MemberInfo member) => member.DeclaringType is { IsValueType: false } && member switch
+    {
+        PropertyInfo property => !(property.GetMethod ?? property.SetMethod)!.IsStatic,
+        FieldInfo field => !field.IsStatic,
+        _ => false,
+    };
+
+    private static object? GetValue(MemberInfo member, object instance) => member switch
+    {
+        PropertyInfo property => property.GetValue(instance),
+        FieldInfo field => field.GetValue(instance),
+        _ => null,
+    };
+
+    private static void SetValue(MemberInfo member, object instance, object? value)
+    {
+        switch (member)
+        {
+            case PropertyInfo property:
+                property.SetValue(instance, value);
                 break;
-            case AccessTools.FieldRef<object, T> del:
-                del(o) = value;
+            case FieldInfo field:
+                field.SetValue(instance, value);
                 break;
         }
     }
