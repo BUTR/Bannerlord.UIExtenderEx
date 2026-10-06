@@ -2,6 +2,8 @@
 Version: 3.0.1
 Game Versions: v1.3.x,v1.4.x,v1.5.x
 * Fixed Ambiguous match found on a Mixin
+* Fixed a crash when trying to load compiled prefabs from a disabled mod
+* Fixed a crash when trying to load compiled prefabs from mods with delayed dll loading
 ---------------------------------------------------------------------------------------------------
 Version: 3.0.0
 Game Versions: v1.3.x,v1.4.x,v1.5.x

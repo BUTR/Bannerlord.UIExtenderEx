@@ -130,7 +130,13 @@ public sealed class PrefabCache
     /// <summary>
     /// Executes the specified delegate for each cached build across the local archive and seed archives.
     /// </summary>
-    public void ForEachBuild(Action<PrefabCacheEntry, byte[]> action)
+    public void ForEachBuild(Action<PrefabCacheEntry, byte[]> action) => ForEachBuild(static _ => true, action);
+
+    /// <summary>
+    /// Executes the specified delegate for each cached build accepted by <paramref name="include"/>, across the local archive
+    /// and seed archives. A build that is not included is not read.
+    /// </summary>
+    public void ForEachBuild(Func<PrefabCacheEntry, bool> include, Action<PrefabCacheEntry, byte[]> action)
     {
         List<PrefabCacheEntry> local;
         Dictionary<string, byte[]> unwritten;
@@ -141,6 +147,10 @@ public sealed class PrefabCache
             unwritten = new(_unwritten, StringComparer.Ordinal);
             seeds = [.. _seeded.Values.Where(x => !_local.ContainsKey(x.Entry.Key)).GroupBy(x => x.File, x => x.Entry, StringComparer.OrdinalIgnoreCase)];
         }
+
+        // Outside the lock: the predicate may be slow (dependency checks)
+        local = [.. local.Where(include)];
+        seeds = [.. seeds.SelectMany(x => x.Where(include).Select(y => (File: x.Key, Entry: y))).GroupBy(x => x.File, x => x.Entry, StringComparer.OrdinalIgnoreCase)];
 
         foreach (var entry in local.Where(x => unwritten.ContainsKey(x.Key)))
             action(entry, unwritten[entry.Key]);

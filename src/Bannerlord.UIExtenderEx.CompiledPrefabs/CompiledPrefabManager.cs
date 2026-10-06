@@ -53,8 +53,15 @@ public sealed class CompiledPrefabManager
     private readonly HashSet<(PrefabKey Key, string Fingerprint)> _warned = [];
     private readonly HashSet<string> _unreadableReferences = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<CompileJobResult> _finished = new();
-    /// <summary>Cached assemblies preloaded on background worker threads at startup, keyed by <see cref="PrefabCacheEntry.Key"/>.</summary>
-    private readonly ConcurrentDictionary<string, (PrefabCacheEntry Entry, Assembly Assembly)> _preloaded = new(StringComparer.Ordinal);
+    /// <summary>A cached build and its one load into the process, shared by the preload and the main thread.</summary>
+    private sealed record CachedLoad(PrefabCacheEntry Entry, Lazy<Assembly> Assembly);
+
+    /// <summary>
+    /// Cached builds loaded or being loaded, keyed by <see cref="PrefabCacheEntry.Key"/>. A build is loaded at most once:
+    /// a movie asking for one the preload is still loading waits for it instead of loading a second copy.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, CachedLoad> _cachedLoads = new(StringComparer.Ordinal);
+    private bool _deferredPreloaded;
     private readonly object _cacheLock = new();
     private bool _cacheChecked;
     private PrefabCache? _cache;
@@ -120,7 +127,7 @@ public sealed class CompiledPrefabManager
             var references = PrefabReferenceSet.CollectPaths(null, null);
             _environment.RunInBackground(() =>
             {
-                PreloadCache();
+                PreloadCache("while the modules load");
                 WarmUpGenerator();
 
                 var stopwatch = Stopwatch.StartNew();
@@ -142,6 +149,30 @@ public sealed class CompiledPrefabManager
         catch (Exception e)
         {
             Trace.TraceWarning("UIExtenderEx: compiler warm-up could not be scheduled: {0}", e.Message);
+        }
+    }
+
+    /// <summary>
+    /// Preloads the cached builds the start-up preload had to leave out because an assembly they reference was not loaded yet.
+    /// </summary>
+    /// <remarks>
+    /// Invoked during <c>SubModule.OnBeforeInitialModuleScreenSetAsRoot</c>, when module loaders have loaded their game
+    /// implementations (MCM's, for one). A build whose references are still not loaded (a disabled module's) is never preloaded;
+    /// the movie that asks for it checks it and loads it then, or compiles it again. Idempotent.
+    /// </remarks>
+    public void PreloadDeferredBuilds()
+    {
+        if (IsDisabled || _deferredPreloaded || !_environment.IsEnabled)
+            return;
+        _deferredPreloaded = true;
+
+        try
+        {
+            _environment.RunInBackground(() => PreloadCache("once the modules have loaded"));
+        }
+        catch (Exception e)
+        {
+            Trace.TraceWarning("UIExtenderEx: the preload of the remaining cached prefabs could not be scheduled: {0}", e.Message);
         }
     }
 
@@ -583,22 +614,38 @@ public sealed class CompiledPrefabManager
     }
 
     /// <summary>
-    /// Preloads cached prefab assemblies into memory on a background worker thread during startup.
+    /// Preloads, on a background worker thread, the cached prefab assemblies whose referenced assemblies are all loaded.
     /// </summary>
-    private void PreloadCache()
+    /// <remarks>
+    /// A build referencing an assembly that is not loaded yet is left for <see cref="PreloadDeferredBuilds"/> or for the movie
+    /// that asks for it. Loading it now would put it in the process before what it references, and if that never arrives (a disabled
+    /// module) the game's own type scans of the loaded assemblies fail on it.
+    /// </remarks>
+    private void PreloadCache(string stage)
     {
         if (GetCache() is not { } cache)
             return;
 
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
+        var waiting = 0;
         try
         {
-            cache.ForEachBuild((entry, bytes) =>
+            cache.ForEachBuild(entry =>
+            {
+                if (_cachedLoads.ContainsKey(entry.Key))
+                    return false;
+                if (PrefabDependencies.FindNotLoaded(entry.Dependencies) is not { } missing)
+                    return true;
+                waiting++;
+                Trace.TraceInformation("UIExtenderEx: the cached build of '{0}' for '{1}' is not preloaded {2}, '{3}' is not loaded",
+                    entry.Movie, entry.Variant, stage, missing);
+                return false;
+            }, (entry, bytes) =>
             {
                 try
                 {
-                    _preloaded[entry.Key] = (entry, _environment.LoadAssembly(bytes));
+                    _ = LoadOnce(entry, bytes).Assembly.Value;
                     count++;
                 }
                 catch (Exception e)
@@ -611,34 +658,49 @@ public sealed class CompiledPrefabManager
         {
             Trace.TraceWarning("UIExtenderEx: could not preload the compiled prefab cache: {0}", e.Message);
         }
-        if (count > 0)
+        if (count > 0 || waiting > 0)
         {
-            Trace.TraceInformation("UIExtenderEx: preloaded {0} cached prefab assemblies in {1} ms", count, stopwatch.ElapsedMilliseconds);
-            RecordTiming("preload", null, null, stopwatch, $"{count} cached assemblies, on a worker");
+            Trace.TraceInformation("UIExtenderEx: preloaded {0} cached prefab assemblies {1} in {2} ms, {3} left out", count, stage, stopwatch.ElapsedMilliseconds, waiting);
+            RecordTiming("preload", null, null, stopwatch, $"{count} cached assemblies {stage}, {waiting} left out, on a worker");
         }
     }
+
+    /// <summary>
+    /// Returns the single load of a cached build, starting it from <paramref name="bytes"/> unless one is already loaded or loading.
+    /// </summary>
+    /// <remarks>
+    /// The load runs once even when the preload and a movie ask at the same time. If it fails, the failure is remembered for the
+    /// session and the movie compiles the build again.
+    /// </remarks>
+    private CachedLoad LoadOnce(PrefabCacheEntry entry, byte[] bytes) =>
+        _cachedLoads.GetOrAdd(entry.Key, _ => new CachedLoad(entry, new Lazy<Assembly>(() => _environment.LoadAssembly(bytes))));
 
     /// <summary>
     /// Retrieves a valid compiled assembly for the specified key and fingerprint from preloaded memory or disk cache.
     /// </summary>
     private (PrefabCacheEntry Entry, Assembly Assembly)? TryReadFromCache(PrefabKey key, string fingerprint)
     {
-        if (_preloaded.TryGetValue(PrefabCacheEntry.KeyOf(key.Movie, key.Variant, fingerprint), out var preloaded)
-            && FindChangedDependency(key, preloaded.Entry.Dependencies) is null)
-            return preloaded;
-
-        if (GetCache() is not { } cache)
-            return null;
-
         try
         {
-            // Loads the assembly synchronously on the main thread if not preloaded during startup.
+            if (_cachedLoads.TryGetValue(PrefabCacheEntry.KeyOf(key.Movie, key.Variant, fingerprint), out var loaded))
+            {
+                // The disk holds the same build under this key, no need to read it again when it no longer fits
+                if (FindChangedDependency(key, loaded.Entry.Dependencies) is not null)
+                    return null;
+                return (loaded.Entry, loaded.Assembly.Value);
+            }
+
+            if (GetCache() is not { } cache)
+                return null;
+
+            // Loads the assembly synchronously on the main thread if the preload did not, or waits for the preload loading it
             var stopwatch = Stopwatch.StartNew();
             if (cache.TryRead(key.Movie, key.Variant, fingerprint, x => FindChangedDependency(key, x.Dependencies) is null) is not { } found)
                 return null;
-            var loaded = _environment.LoadAssembly(found.Assembly);
+            var load = LoadOnce(found.Entry, found.Assembly);
+            var assembly = load.Assembly.Value;
             RecordTiming("load assembly", key.Movie, key.Variant, stopwatch, "cached, on the main thread");
-            return (found.Entry, loaded);
+            return (load.Entry, assembly);
         }
         catch (Exception e)
         {

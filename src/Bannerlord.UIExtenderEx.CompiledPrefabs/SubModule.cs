@@ -37,10 +37,15 @@ public class SubModule : MBSubModuleBase
 
     private bool _mainMenuSet;
 
+    /// <summary>
+    /// Every module, including what module loaders load in their own <c>OnSubModuleLoad</c>, is loaded by now: preloads the cached
+    /// builds that had to wait for it.
+    /// </summary>
     protected override void OnBeforeInitialModuleScreenSetAsRoot()
     {
         base.OnBeforeInitialModuleScreenSetAsRoot();
         _mainMenuSet = true;
+        CompiledPrefabRuntime.PreloadDeferredBuilds();
     }
 
     /// <summary>

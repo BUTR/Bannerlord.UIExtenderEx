@@ -86,6 +86,11 @@ public sealed class CompiledPrefabRuntime : IPrefabRuntime
     public static void WarmUp() => Manager.WarmUpCompilers();
 
     /// <summary>
+    /// Preloads the cached builds the start-up preload left out because a module had not loaded what they reference yet.
+    /// </summary>
+    public static void PreloadDeferredBuilds() => Manager.PreloadDeferredBuilds();
+
+    /// <summary>
     /// Attempts to serve a compiled movie variant for the specified movie name and ViewModel data source.
     /// </summary>
     /// <param name="widgetFactory">The widget factory resolving prefabs and widgets.</param>
