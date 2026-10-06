@@ -1,8 +1,11 @@
 ﻿using Bannerlord.BUTR.Shared.Helpers;
 
+using Bannerlord.UIExtenderEx.Runtimes;
+
 using BUTR.MessageBoxPInvoke.Helpers;
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -43,6 +46,16 @@ public class SubModule : MBSubModuleBase
 
     public SubModule()
     {
+        // The game loads the prefab runtimes' DLLs after constructing this, and crashes on one Windows refuses to load
+        try
+        {
+            RuntimeSubModules.RejectUnloadable(typeof(SubModule));
+        }
+        catch (Exception e)
+        {
+            Trace.TraceError("UIExtenderEx: the prefab runtime DLLs could not be checked, one that cannot be loaded crashes the game: {0}", e);
+        }
+
         ValidateLoadOrder();
     }
 
@@ -63,6 +76,12 @@ public class SubModule : MBSubModuleBase
                 Utils.MessageUtils.DisplayUserError("Failed to apply UIExtenderEx patches! Exception: {0}", e);
             }
         }
+    }
+
+    protected override void OnBeforeInitialModuleScreenSetAsRoot()
+    {
+        base.OnBeforeInitialModuleScreenSetAsRoot();
+        RuntimeSubModules.ReportRejected();
     }
 
     private static void ValidateLoadOrder()
