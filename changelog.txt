@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.2
+Game Versions: v1.3.x,v1.4.x,v1.5.x
+* Fixed a crash when Windows blocks one of the prefab runtime DLLs (Smart App Control), UIExtenderEx now carries on without it
+* This means that UIExtenderEx will work, but wont have the prefab compilation enabled
+---------------------------------------------------------------------------------------------------
 Version: 3.0.1
 Game Versions: v1.3.x,v1.4.x,v1.5.x
 * Fixed Ambiguous match found on a Mixin
