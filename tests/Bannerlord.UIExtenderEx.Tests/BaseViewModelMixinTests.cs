@@ -2,6 +2,9 @@
 
 using NUnit.Framework;
 
+using System.Collections.Generic;
+using System.Diagnostics;
+
 using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Tests;
@@ -94,5 +97,33 @@ public class BaseViewModelMixinTests
 
         Assert.That(mixin.Get<string>("NoSuchMember"), Is.Null);
         Assert.DoesNotThrow(() => mixin.Set("NoSuchMember", "value"));
+    }
+
+    /// <summary>Verifies that a name matching no field or property is reported once, not on every read and write.</summary>
+    [Test]
+    public void AnUnknownName_IsReportedOnce()
+    {
+        var mixin = new PrivateStateMixin(new PrivateStateVM());
+        var listener = new CollectingListener();
+        Trace.Listeners.Add(listener);
+        try
+        {
+            mixin.Get<string>("NoSuchReportedMember");
+            mixin.Get<string>("NoSuchReportedMember");
+            mixin.Set("NoSuchReportedMember", "value");
+        }
+        finally
+        {
+            Trace.Listeners.Remove(listener);
+        }
+
+        Assert.That(listener.Lines.FindAll(x => x.Contains($"{typeof(PrivateStateVM).FullName} has no field or property NoSuchReportedMember")), Has.Count.EqualTo(1));
+    }
+
+    private sealed class CollectingListener : TraceListener
+    {
+        public List<string> Lines { get; } = [];
+        public override void Write(string? message) { }
+        public override void WriteLine(string? message) { if (message is not null) lock (Lines) Lines.Add(message); }
     }
 }

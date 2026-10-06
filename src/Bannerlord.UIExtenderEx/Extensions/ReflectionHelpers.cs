@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -18,7 +19,14 @@ internal static class ReflectionHelpers
     private static readonly ConcurrentDictionary<(Type Type, string Name), MemberInfo?> Members = new();
 
     private static MemberInfo? FindMember(Type type, string name) => Members.GetOrAdd((type, name), static key =>
-        (MemberInfo?) AccessTools2.Property(key.Type, key.Name, logErrorInTrace: false) ?? AccessTools2.Field(key.Type, key.Name, logErrorInTrace: false));
+    {
+        // No property is expected for a field; neither is reported, once per type and name, as reads then give default and writes do nothing
+        if (((MemberInfo?) AccessTools2.Property(key.Type, key.Name, logErrorInTrace: false) ?? AccessTools2.Field(key.Type, key.Name, logErrorInTrace: false)) is { } member)
+            return member;
+
+        Trace.TraceWarning("UIExtenderEx: {0} has no field or property {1}; GetPrivate reads it as default and SetPrivate writes nothing", key.Type.FullName, key.Name);
+        return null;
+    });
 
     /// <summary>
     /// Caches compiled expression-tree getter and setter delegates per member and value type to eliminate reflection overhead in polled UI paths.
