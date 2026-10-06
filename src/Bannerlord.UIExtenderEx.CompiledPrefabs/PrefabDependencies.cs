@@ -114,6 +114,44 @@ public static class PrefabDependencies
     }
 
     /// <summary>
+    /// Identifies the first dependency that no currently loaded assembly satisfies, or <see langword="null"/> if every one is loaded as recorded.
+    /// </summary>
+    /// <param name="dependencies">The list of recorded dependency entries to validate.</param>
+    /// <returns>The name of the first dependency that is not loaded as recorded; otherwise, <see langword="null"/>.</returns>
+    /// <remarks>
+    /// Stricter than <see cref="FindChanged"/>: a matching file on disk does not count. Loading a build ahead of need is only
+    /// safe once what it references is in the process. A module's own loader may load its assembly later (MCM loads its game
+    /// implementation that way), and a disabled module's assembly never arrives. On Mono, the game scanning the types of a build
+    /// whose field types cannot be resolved throws during start-up.
+    /// </remarks>
+    public static string? FindNotLoaded(IReadOnlyList<string> dependencies)
+    {
+        if (dependencies.Count == 0)
+            return null;
+
+        lock (Lock)
+        {
+            var shipped = PrefabFingerprint.ShippedDirectories;
+            ILookup<string, Assembly>? loaded = null;
+            foreach (var dependency in dependencies)
+            {
+                if (HeldByLoaded.Contains(dependency))
+                    continue;
+                var separator = dependency.IndexOf(':');
+                if (separator <= 0)
+                    return dependency;
+                var name = dependency.Substring(0, separator);
+                var recorded = dependency.Substring(separator + 1);
+                loaded ??= LoadedByName();
+                if (!loaded[name].Any(x => Describe(x, shipped) == recorded))
+                    return name;
+                HeldByLoaded.Add(dependency);
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Validates a single dependency entry against loaded assemblies and disk references.
     /// </summary>
     /// <param name="dependency">The dependency entry string (<c>name:description</c>).</param>

@@ -96,6 +96,7 @@ public class CompilerMissingTests
             Assert.That(manager.GetMethod(nameof(CompiledPrefabManager.TryUseCompiledPrefab))!.Invoke(instance, [null, "SomeMovie", null]), Is.False);
             Assert.That(() => manager.GetMethod(nameof(CompiledPrefabManager.OnPrefabsCollected))!.Invoke(instance, [new GeneratedPrefabContext()]), Throws.Nothing);
             Assert.That(() => manager.GetMethod(nameof(CompiledPrefabManager.WarmUpCompilers))!.Invoke(instance, []), Throws.Nothing);
+            Assert.That(() => manager.GetMethod(nameof(CompiledPrefabManager.PreloadDeferredBuilds))!.Invoke(instance, []), Throws.Nothing);
         }
         finally
         {

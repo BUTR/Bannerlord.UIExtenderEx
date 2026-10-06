@@ -4,6 +4,10 @@ using Bannerlord.UIExtenderEx.ViewModels;
 
 using NUnit.Framework;
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+
 using TaleWorlds.Library;
 
 namespace Bannerlord.UIExtenderEx.Tests.MixinHooks;
@@ -63,6 +67,12 @@ public class HookLateVM : ViewModel
 public class HookRetiredVM : ViewModel
 {
     public override void OnFinalize() => base.OnFinalize();
+}
+
+public class HookOverloadedRefreshVM : ViewModel
+{
+    public void Update(int value) { }
+    public void Update(string value) { }
 }
 
 public static class HookCounters
@@ -258,6 +268,38 @@ public class ViewModelMixinHookTests : BaseTests
     [Test]
     public void AMissingRefreshMethod_IsNotAnError()
     {
-        Assert.DoesNotThrow(() => ViewModelWithMixinPatch.Patch(UIExtender.Harmony, typeof(HookRefreshingVM), "NoSuchRefreshMethod"));
+        var lines = Traced(() => Assert.DoesNotThrow(() => ViewModelWithMixinPatch.Patch(UIExtender.Harmony, typeof(HookRefreshingVM), "NoSuchRefreshMethod")));
+
+        Assert.That(lines, Has.Some.Contains($"{typeof(HookRefreshingVM).FullName} has no method NoSuchRefreshMethod!"));
+    }
+
+    [Test]
+    public void AnOverloadedRefreshMethodWithoutAParameterlessOverload_IsReportedAsOverloaded()
+    {
+        var lines = Traced(() => ViewModelWithMixinPatch.Patch(UIExtender.Harmony, typeof(HookOverloadedRefreshVM), nameof(HookOverloadedRefreshVM.Update)));
+
+        Assert.That(lines, Has.Some.Contains("has no method Update to hook: it is overloaded, and no overload takes no parameters!"));
+    }
+
+    private static List<string> Traced(Action action)
+    {
+        var listener = new CollectingListener();
+        Trace.Listeners.Add(listener);
+        try
+        {
+            action();
+        }
+        finally
+        {
+            Trace.Listeners.Remove(listener);
+        }
+        return listener.Lines;
+    }
+
+    private sealed class CollectingListener : TraceListener
+    {
+        public List<string> Lines { get; } = [];
+        public override void Write(string? message) { }
+        public override void WriteLine(string? message) { if (message is not null) lock (Lines) Lines.Add(message); }
     }
 }

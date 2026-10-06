@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using TaleWorlds.Library;
@@ -144,8 +143,9 @@ public abstract class BaseViewModelMixin<TViewModel> : IViewModelMixin, IViewMod
     {
         if (_subscribed || ViewModel is not { } viewModel)
             return;
+        // A mixin may declare its own methods of the same name (e.g. a v2-era PropertyChanged handler), so the overload is picked by signature
         if (!HearsNotifications.GetOrAdd(GetType(), static type =>
-                type.GetMethod(nameof(OnViewModelPropertyChanged), BindingFlags.Instance | BindingFlags.NonPublic)?.DeclaringType is { } declaring
+                AccessTools2.Method(type, nameof(OnViewModelPropertyChanged), [typeof(string)])?.DeclaringType is { } declaring
                 && !(declaring.IsGenericType && declaring.GetGenericTypeDefinition() == typeof(BaseViewModelMixin<>))))
             return;
 

@@ -1,6 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.1
+Game Versions: v1.3.x,v1.4.x,v1.5.x
+* Fixed Ambiguous match found on a Mixin
+* Fixed a crash when trying to load compiled prefabs from a disabled mod
+* Fixed a crash when trying to load compiled prefabs from mods with delayed dll loading
+---------------------------------------------------------------------------------------------------
 Version: 3.0.0
-Game Versions: v1.3.4,v1.4.x,v1.5.x
+Game Versions: v1.3.x,v1.4.x,v1.5.x
 * Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
 * Added name-based property binding fallback for ViewModel subtypes not declared on the parent
 * Improved unparseable prefab error logging with name and file details

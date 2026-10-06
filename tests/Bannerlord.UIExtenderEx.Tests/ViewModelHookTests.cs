@@ -94,6 +94,32 @@ public class ViewModelHookTests
         Assert.That(mixin.Heard, Is.Empty);
     }
 
+    /// <summary>
+    /// Verifies that a mixin declaring its own method named <c>OnViewModelPropertyChanged</c> with another signature
+    /// is constructed without an ambiguous match and is not subscribed.
+    /// </summary>
+    [Test]
+    public void AMixinWithASameNameHandler_IsConstructedAndNotSubscribed()
+    {
+        Enable(nameof(AMixinWithASameNameHandler_IsConstructedAndNotSubscribed), typeof(SameNameHandlerMixin));
+        var viewModel = new NotifyingVM();
+
+        viewModel.Count = 3;
+
+        Assert.That(ViewModelMixins.Get<SameNameHandlerMixin>(viewModel)!.Heard, Is.Empty);
+    }
+
+    [Test]
+    public void AMixinWithAnOverloadNextToTheOverride_HearsNotifications()
+    {
+        Enable(nameof(AMixinWithAnOverloadNextToTheOverride_HearsNotifications), typeof(OverloadedListeningMixin));
+        var viewModel = new NotifyingVM();
+
+        viewModel.Count = 3;
+
+        Assert.That(ViewModelMixins.Get<OverloadedListeningMixin>(viewModel)!.Heard, Is.EqualTo(new[] { "Count" }));
+    }
+
     // ---------------------------------------------------------------- BUTRViewModelOverride
 
     [Test]
@@ -296,6 +322,29 @@ public class ListeningMixin : BaseViewModelMixin<NotifyingVM>
     public List<string> Heard { get; } = [];
 
     protected override void OnViewModelPropertyChanged(string propertyName) => Heard.Add(propertyName);
+}
+
+/// <summary>A v2-era mixin whose own handler shares the name of the hook without overriding it.</summary>
+[ViewModelMixin]
+public class SameNameHandlerMixin : BaseViewModelMixin<NotifyingVM>
+{
+    public SameNameHandlerMixin(NotifyingVM vm) : base(vm) { }
+
+    public List<string> Heard { get; } = [];
+
+    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) => Heard.Add(e.PropertyName);
+}
+
+[ViewModelMixin]
+public class OverloadedListeningMixin : BaseViewModelMixin<NotifyingVM>
+{
+    public OverloadedListeningMixin(NotifyingVM vm) : base(vm) { }
+
+    public List<string> Heard { get; } = [];
+
+    protected override void OnViewModelPropertyChanged(string propertyName) => Heard.Add(propertyName);
+
+    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) => Heard.Add("overload");
 }
 
 // ---------------------------------------------------------------- overrides

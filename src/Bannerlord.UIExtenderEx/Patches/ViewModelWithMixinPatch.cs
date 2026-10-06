@@ -73,7 +73,13 @@ internal static class ViewModelWithMixinPatch
 
             if (DeclaredImplementation(viewModelType, refreshMethodName) is not { } method)
             {
-                MessageUtils.DisplayUserWarning("{0} has no method {1}! Information mods add to that screen will not update while it is open.", viewModelType.FullName!, refreshMethodName);
+                // A method of that name that was not resolved is overloaded, with no overload that takes no parameters to hook
+                var overloaded = false;
+                for (var type = viewModelType; type is not null && !overloaded; type = type.BaseType)
+                    overloaded = AccessTools.GetDeclaredMethods(type).Any(x => x.Name == refreshMethodName);
+                MessageUtils.DisplayUserWarning(overloaded
+                    ? "{0} has no method {1} to hook: it is overloaded, and no overload takes no parameters! Information mods add to that screen will not update while it is open."
+                    : "{0} has no method {1}! Information mods add to that screen will not update while it is open.", viewModelType.FullName!, refreshMethodName);
                 return;
             }
 

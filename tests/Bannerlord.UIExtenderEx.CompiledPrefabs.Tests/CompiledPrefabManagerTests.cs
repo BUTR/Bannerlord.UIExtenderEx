@@ -581,6 +581,78 @@ public class CompiledPrefabManagerTests
         Assert.That(_compiler.Calls, Is.EqualTo(0));
     }
 
+    /// <summary>
+    /// A build of a disabled module references an assembly that never loads. Loading it anyway put it where the game's start-up
+    /// type scan found it, which fails on Mono (issue #357).
+    /// </summary>
+    [Test]
+    public void ABuildWhoseReferenceIsGone_IsNeverPreloaded()
+    {
+        WriteBuild(_cacheDirectory, "fingerprint-a", null, "generation-1", ["Some.Assembly.Nobody.Has:0123456789abcdef"]);
+        _environment.RunImmediately = false;
+
+        _manager.WarmUpCompilers();
+        _environment.Background.Dequeue()();
+        _manager.PreloadDeferredBuilds();
+        _environment.Background.Dequeue()();
+
+        Assert.That(_environment.LoadedAssemblies, Is.Empty);
+        Assert.That(TryUse(), Is.False, "compiled again instead");
+        Assert.That(_environment.LoadedAssemblies, Is.Empty, "not loaded when the movie opens either");
+    }
+
+    /// <summary>
+    /// A module loader (MCM's) loads its game implementation in its own <c>OnSubModuleLoad</c>, after the start-up preload.
+    /// A build referencing it waits for the second stage instead of being loaded before what it references.
+    /// </summary>
+    [Test]
+    public void ABuildWhoseReferenceLoadsLater_IsPreloadedOnceItHas()
+    {
+        var late = CompileStandaloneAssembly("UIExtenderEx.Tests.Late" + Guid.NewGuid().ToString("N"));
+        WriteBuild(_cacheDirectory, "fingerprint-a", null, "generation-1", PrefabDependencies.Compose(new Dictionary<string, string>(), [late]));
+        _environment.RunImmediately = false;
+
+        _manager.WarmUpCompilers();
+        _environment.Background.Dequeue()();
+        Assert.That(_environment.LoadedAssemblies, Is.Empty, "what it references is not loaded yet");
+
+        System.Reflection.Assembly.LoadFrom(late);
+        _manager.PreloadDeferredBuilds();
+        _environment.Background.Dequeue()();
+        Assert.That(_environment.LoadedAssemblies, Has.Count.EqualTo(1));
+
+        Assert.That(TryUse(), Is.True);
+        Assert.That(_environment.LoadedAssemblies, Has.Count.EqualTo(1), "served from the preload");
+    }
+
+    [Test]
+    public void ABuildAMovieLoadedFirst_IsNotLoadedAgainByThePreload()
+    {
+        CacheOnDisk("fingerprint-a");
+        _environment.RunImmediately = false;
+        _manager.WarmUpCompilers();
+        var preload = _environment.Background.Dequeue();
+
+        Assert.That(TryUse(), Is.True);
+        preload();
+
+        Assert.That(_environment.LoadedAssemblies, Has.Count.EqualTo(1), "one build, one load");
+    }
+
+    [Test]
+    public void DeferredPreload_RunsOnce_AndNotWhenDisabledBySetting()
+    {
+        _environment.RunImmediately = false;
+
+        _manager.PreloadDeferredBuilds();
+        _manager.PreloadDeferredBuilds();
+        Assert.That(_environment.Background, Has.Count.EqualTo(1));
+
+        var disabled = new FakeEnvironment { CacheDirectory = _cacheDirectory, IsEnabled = false, RunImmediately = false };
+        new CompiledPrefabManager(disabled).PreloadDeferredBuilds();
+        Assert.That(disabled.Background, Is.Empty);
+    }
+
     [Test]
     public void CachedAssembly_WithoutPreload_IsLoadedWhenTheMovieOpens()
     {

@@ -6,3 +6,11 @@
   width: auto;
   margin-right: .5rem;
 }
+
+/* The LastModified plugin appends an <hr> and a .last-modified block to every
+   conceptual article and has no per-page opt-out. On the 404 page it would date
+   a page the reader never asked for, so hide it there. */
+article[data-uid="not-found"] > hr:has(+ .last-modified),
+article[data-uid="not-found"] > .last-modified {
+  display: none;
+}
