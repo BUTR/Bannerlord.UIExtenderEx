@@ -1,0 +1,737 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Analyzers | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Analyzers | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/general/Analyzers.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="analyzers">Analyzers</h1>
+
+<p><strong><code>Bannerlord.UIExtenderEx.Analyzers</code></strong> is a Roslyn-based code analyzer package that inspects your ViewModel mixins, C# patch classes, and Gauntlet XML prefabs at compile time.</p>
+<p>Many common UI modding bugs—such as mistyped property bindings, broken XPath selectors, invalid method signatures, or unsupported XML structures—silently fail or crash the game when a screen opens at runtime. This analyzer package catches these issues during your build and provides automated <strong>Code Fixes</strong> (Quick Actions) in your IDE to resolve them instantly.</p>
+<hr>
+<h2 id="installing">Installing</h2>
+<p>Add the package alongside your <code>Bannerlord.UIExtenderEx</code> reference. Because it is an analyzer, it runs inside the compiler and adds no runtime dependencies to your compiled mod:</p>
+<pre><code class="lang-xml">&lt;PackageReference Include=&quot;Bannerlord.UIExtenderEx.Analyzers&quot; Version=&quot;$(UIExtenderExVersion).*&quot; PrivateAssets=&quot;all&quot; /&gt;
+</code></pre>
+<h3 id="requirements--compatibility">Requirements &amp; Compatibility</h3>
+<ul>
+<li><strong>SDK:</strong> Requires the .NET 8 SDK or Visual Studio 2022 (17.8 or higher) / JetBrains Rider.</li>
+<li><strong>UIExtenderEx Versions:</strong> Compatible with UIExtenderEx 2.x and 3.x. Rules adapt their validation logic to the specific UIExtenderEx version referenced by your project.</li>
+<li><strong>Attributes:</strong> Rules inspecting <code>[BUTRViewModelOverride]</code> and <code>[BUTRUnsafeAccessor]</code> (<a href="#uix0008">UIX0008</a>–<a href="#uix0010">UIX0010</a>) require UIExtenderEx 3.0+. For older versions, the analyzer automatically injects an <code>internal</code> copy of the <a href="../v2/PrefabLink.html"><code>[PrefabLink]</code></a> attribute into your project if it is not already present.</li>
+<li><strong>Prefab Analysis:</strong> The analyzer automatically inspects XML files embedded in your assembly or located under your project's <code>GUI/</code> directory. To disable XML prefab analysis, add <code>&lt;UIExtenderExAnalyzePrefabs&gt;false&lt;/UIExtenderExAnalyzePrefabs&gt;</code> to your <code>.csproj</code>.</li>
+</ul>
+<hr>
+<h2 id="checking-against-the-games-prefabs">Checking Against the Game's Prefabs</h2>
+<p>Prefab patches (such as <code>[PrefabExtension]</code> classes) modify the game's own prefabs rather than local files in your project. To validate them, the analyzer inspects vanilla GUI metadata: movie prefabs, default ViewModel bindings, and widget property signatures.</p>
+<p>The analyzer package includes a dependency on <code>Bannerlord.ReferenceAssemblies.GUI.v3.All</code>, which bundles GUI definitions for the latest build of every release game version (both base game and War Sails). Simply referencing the analyzer enables vanilla prefab and ViewModel validation out of the box:</p>
+<ul>
+<li><strong>Comprehensive Validation:</strong> Your patches are validated against every version listed in your <code>supported-game-versions.txt</code> (or configured via <code>&lt;UIExtenderExGameVersions&gt;v1.2.12;v1.3.4;v1.4.8&lt;/UIExtenderExGameVersions&gt;</code>). If no list is specified, patches are validated against the game version your project builds against (see below). Validation covers XPath expressions (<a href="#uix0020">UIX0020</a>), ViewModel property bindings and command methods (<a href="#uix0015">UIX0015</a>), <code>[PrefabLink]</code> associations (<a href="#uix0022">UIX0022</a>), widget attributes and enum values (<a href="#uix0012">UIX0012</a>, <a href="#uix0013">UIX0013</a>), and bound data types (<a href="#uix0025">UIX0025</a>), reading each version's layout from its own <code>types.json</code>.</li>
+<li><strong>Custom &amp; Mixin Symbols:</strong> Members declared in your own mod (such as mixin properties and methods) are automatically recognized across all versions. Any custom ViewModel or widget not recorded in base game packages is validated against your project's compiled symbols.</li>
+<li><strong>Cross-Version Discrepancies:</strong> If a patch succeeds in some targeted versions but fails in others (for example, if a node ID or ViewModel property was introduced or removed in a game update), the analyzer flags it as <a href="#uix0024">UIX0024</a>, clearly detailing the affected versions.</li>
+<li><strong>Missing Version Alerts:</strong> Any targeted version not included in the GUI bundle (such as a beta branch or a game update released after the analyzer package) is flagged as <a href="#uix0030">UIX0030</a>.</li>
+</ul>
+<p>The bundle dependency bundled with the analyzer reflects the latest game versions available when that analyzer was published. To validate against game versions released after your current analyzer package, reference a newer bundle package directly:</p>
+<pre><code class="lang-xml">&lt;PackageReference Include=&quot;Bannerlord.ReferenceAssemblies.GUI.v3.All&quot; Version=&quot;*&quot; PrivateAssets=&quot;all&quot; /&gt;
+</code></pre>
+<p>Individual per-build packages provide GUI definitions for a single specific game build. Reference these when validating against versions the bundle does not contain (such as beta or Early Access branches), or to target the exact patch build your project compiles against. If a version is provided by both the bundle and a per-build reference, the per-build package takes precedence:</p>
+<pre><code class="lang-xml">&lt;PackageReference Include=&quot;Bannerlord.ReferenceAssemblies.GUI.v3&quot; Version=&quot;$(GameVersion).*&quot; PrivateAssets=&quot;all&quot; /&gt;
+&lt;PackageReference Include=&quot;Bannerlord.ReferenceAssemblies.GUI.v3.NavalDLC&quot; Version=&quot;$(GameVersion).*&quot; PrivateAssets=&quot;all&quot; /&gt;
+</code></pre>
+<ul>
+<li>For Early Access versions (<code>e1.x</code>), use <code>Bannerlord.ReferenceAssemblies.GUI.v3.EarlyAccess</code>.</li>
+<li>For beta branches, use <code>$(GameVersion).*-*</code> to match the <code>-beta</code> prerelease suffix.</li>
+<li>To disable checks against vanilla prefabs entirely, set <code>&lt;UIExtenderExAnalyzeGamePrefabs&gt;false&lt;/UIExtenderExAnalyzeGamePrefabs&gt;</code>.</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The analyzer receives GUI definitions and discovered prefab paths via MSBuild targets. If you consume the analyzer transitively (such as through a <code>Bannerlord.UIExtenderEx</code> package reference) with restricted asset inclusion like <code>IncludeAssets=&quot;compile&quot;</code>, MSBuild targets are not imported. In that case, neither vanilla prefab validation nor local XML checks will run. Reference <code>Bannerlord.UIExtenderEx.Analyzers</code> directly to ensure the targets are imported.</p>
+</div>
+<h3 id="the-game-version-you-build-against">The Game Version You Build Against</h3>
+<p>When no list of supported versions is specified, the analyzer checks your patches against the specific game version your project builds against. This version tags every diagnostic message (e.g. <code>[v1.4.8]</code>). The analyzer resolves this version using the following precedence:</p>
+<ol>
+<li><code>&lt;UIExtenderExGameVersion&gt;v1.4.8&lt;/UIExtenderExGameVersion&gt;</code>, set explicitly in your project.</li>
+<li><code>$(GameVersion)</code>, set by <code>Bannerlord.BUTRModule.Sdk</code> or <code>Bannerlord.BuildResources</code>.</li>
+<li>Inferred automatically from your project references:
+<ul>
+<li><strong>NuGet Packages:</strong> Inferred from <code>Bannerlord.ReferenceAssemblies.*</code> (e.g., <code>1.3.4.102430</code> resolves to <code>v1.3.4</code>, and <code>.EarlyAccess</code> packages resolve to <code>e1.9.0</code>).</li>
+<li><strong>Local Game Folders:</strong> When referencing local game binaries, the analyzer inspects the directory containing <code>TaleWorlds.Library.dll</code> using <a href="https://github.com/BUTR/FetchBannerlordVersion">FetchBannerlordVersion</a> to locate and read <code>Version.xml</code>.</li>
+</ul>
+</li>
+<li>The newest version available in the GUI bundle (fallback).</li>
+</ol>
+<hr>
+<h2 id="code-fixes">Code Fixes</h2>
+<p>Most analyzer warnings include built-in Roslyn code fixes accessible via your IDE's Quick Actions menu (<code>Ctrl+.</code> in Visual Studio, <code>Alt+Enter</code> in JetBrains Rider):</p>
+<ol>
+<li><strong>Automated Structural Fixes:</strong> Rules like <a href="#uix0004">UIX0004</a>, <a href="#uix0006">UIX0006</a>, <a href="#uix0007">UIX0007</a>, <a href="#uix0010">UIX0010</a>, <a href="#uix0017">UIX0017</a>, and <a href="#uix0019">UIX0019</a> have a single unambiguous solution. These fixes support <strong>&quot;Fix All in Solution/Project&quot;</strong>.</li>
+<li><strong>Fuzzy Name Suggestions:</strong> For misspelled property names, attributes, or parameters (<a href="#uix0003">UIX0003</a>, <a href="#uix0012">UIX0012</a>–<a href="#uix0016">UIX0016</a>), the analyzer offers up to three closest matching names ranked by Levenshtein distance.</li>
+<li><strong>XML File &amp; String Literal Fixes:</strong> Code fixes can modify both standalone <code>.xml</code> files in your project and XML string literals embedded in C# patch classes.</li>
+</ol>
+<hr>
+<h2 id="which-viewmodel-your-xml-binds">Which ViewModel Your XML Binds</h2>
+<p>To validate bindings (<code>@PropertyName</code>) and commands (<code>Command.Click=&quot;MethodName&quot;</code>), the analyzer determines the active ViewModel context for each XML node:</p>
+<ul>
+<li><strong>Automatic Mixin Discovery:</strong> If your patch binds a property added by one of your mixins, the analyzer automatically infers that the patch targets that mixin's <code>ViewModel</code>.</li>
+<li><strong>Explicit Linking via <code>[PrefabLink]</code>:</strong> When a patch binds only vanilla ViewModel members, or when multiple mixins could match, annotate your assembly with <a href="../v2/PrefabLink.html"><code>[assembly: PrefabLink]</code></a> to explicitly declare the target:
+<pre><code class="lang-csharp">[assembly: PrefabLink(typeof(MyOptionsPatch), typeof(OptionsVM), typeof(OptionsVMMixin))]
+</code></pre>
+</li>
+<li><strong>Replacement Prefabs:</strong> For standalone prefabs that replace vanilla screens, link the prefab name directly to the ViewModel:
+<pre><code class="lang-csharp">[assembly: PrefabLink(&quot;ClansPanel&quot;, typeof(ClanManagementVM))]
+</code></pre>
+</li>
+<li><strong>Hierarchical Scope Resolution:</strong> The analyzer follows <code>DataSource=&quot;{...}&quot;</code> navigation paths, list item templates, parameter delegations, and nested custom prefabs recursively.</li>
+</ul>
+<hr>
+<h2 id="rules-summary-table">Rules Summary Table</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Rule</th>
+<th style="text-align: left;">Severity</th>
+<th style="text-align: left;">Category</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Code Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><a href="#uix0001">UIX0001</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Mixin member replaces an existing member of the target ViewModel</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0002">UIX0002</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Two mixins register conflicting duplicate member names on the same ViewModel</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0003">UIX0003</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Refresh method named in <code>[ViewModelMixin]</code> not found on target ViewModel</td>
+<td style="text-align: left;">Suggests matching method</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0004">UIX0004</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Mixin extends an abstract ViewModel without <code>handleDerived: true</code></td>
+<td style="text-align: left;">Adds <code>handleDerived: true</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0005">UIX0005</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Cannot determine target ViewModel from mixin inheritance hierarchy</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0006">UIX0006</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Mixin cannot be instantiated (invalid constructor or abstract class)</td>
+<td style="text-align: left;">Generates valid constructor</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0007">UIX0007</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">ViewModel Mixin</td>
+<td style="text-align: left;">Member annotated with <code>[DataSourceProperty]</code> or <code>[DataSourceMethod]</code> is not public</td>
+<td style="text-align: left;">Makes member public</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0008">UIX0008</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Method Override</td>
+<td style="text-align: left;"><code>[BUTRViewModelOverride]</code> matches no method on the target ViewModel</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0009">UIX0009</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Unsafe Accessor</td>
+<td style="text-align: left;"><code>[BUTRUnsafeAccessor]</code> stub member not found on target type</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0010">UIX0010</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Unsafe Accessor</td>
+<td style="text-align: left;"><code>[BUTRUnsafeAccessor]</code> stub is missing <code>MethodImplOptions.NoInlining</code></td>
+<td style="text-align: left;">Adds <code>[MethodImpl]</code> attribute</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0011">UIX0011</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">Prefab XML syntax is malformed or invalid</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0012">UIX0012</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">Attribute does not exist on the target Widget class</td>
+<td style="text-align: left;">Suggests matching property</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0013">UIX0013</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">Attribute literal value cannot be converted to the target property type</td>
+<td style="text-align: left;">Suggests valid enum/bool value</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0014">UIX0014</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">Prefab parameter is not declared or referenced</td>
+<td style="text-align: left;">Suggests matching parameter</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0015">UIX0015</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">Binding or command name not found on the active ViewModel or mixin</td>
+<td style="text-align: left;">Suggests matching member</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0016">UIX0016</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">Patch binds a member that none of your mixins provide</td>
+<td style="text-align: left;">Suggests member or <code>PrefabLink</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0017">UIX0017</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">Prefab Patch</td>
+<td style="text-align: left;">Insert patch content member cannot be read by UIExtenderEx</td>
+<td style="text-align: left;">Fixes accessibility / attribute</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0018">UIX0018</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Prefab Link</td>
+<td style="text-align: left;"><code>[PrefabLink]</code> type configuration is invalid or inconsistent</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0019">UIX0019</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Prefab Link</td>
+<td style="text-align: left;">Linked XML does not bind any members of the linked mixin</td>
+<td style="text-align: left;">Removes unused mixin</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0020">UIX0020</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XPath Patch</td>
+<td style="text-align: left;">Patch XPath matches zero nodes in the target prefab</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0021">UIX0021</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XPath Patch</td>
+<td style="text-align: left;">Patch XPath matches multiple nodes (only first will be patched)</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0022">UIX0022</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Prefab Link</td>
+<td style="text-align: left;"><code>[PrefabLink]</code> specifies a different ViewModel than the game binds at the node</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0023">UIX0023</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">XPath Patch</td>
+<td style="text-align: left;">Patch XPath expression is syntactically invalid</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0024">UIX0024</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">Multi-Version</td>
+<td style="text-align: left;">Patch XPath or binding fails in a subset of supported game versions</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0025">UIX0025</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">Data Binding</td>
+<td style="text-align: left;">Incompatible binding types between widget and ViewModel will throw</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0026">UIX0026</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">Data Binding</td>
+<td style="text-align: left;">Multi-step DataSource path will not refresh when replaced in XML loader</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0027">UIX0027</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">Data Binding</td>
+<td style="text-align: left;">Parameter inside <code>&lt;LogicalChildrenLocation /&gt;</code> is not forwarded properly</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0028">UIX0028</a></td>
+<td style="text-align: left;">Error</td>
+<td style="text-align: left;">Data Binding</td>
+<td style="text-align: left;">Indexed DataSource path (<code>{List\0}</code>) is not tracked dynamically in XML loader</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0029">UIX0029</a></td>
+<td style="text-align: left;">Warning</td>
+<td style="text-align: left;">XML Prefab</td>
+<td style="text-align: left;">XML tag matches neither a known Widget class nor a registered prefab</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a href="#uix0030">UIX0030</a></td>
+<td style="text-align: left;">Info</td>
+<td style="text-align: left;">Multi-Version</td>
+<td style="text-align: left;">Targeted game version is missing from GUI reference packages; patches cannot be validated against it</td>
+<td style="text-align: left;">—</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="detailed-rules-reference">Detailed Rules Reference</h2>
+<h3 id="uix0001">UIX0001</h3>
+<p><strong>A mixin member replaces an existing member of the ViewModel it extends.</strong><br>
+<em>Severity: Warning</em></p>
+<p>When a mixin defines a <code>[DataSourceProperty]</code> or <code>[DataSourceMethod]</code> with the same name as a member on the target ViewModel, the mixin member shadows the original in Gauntlet's binding table. While UI bindings will resolve to your mixin, internal game code continues to invoke the original ViewModel method directly. For example, replacing <code>ExecuteDone</code> via a mixin method causes a button click to run your code, but hotkeys or engine callers will continue invoking vanilla logic.</p>
+<pre><code class="lang-csharp">[ViewModelMixin]
+public sealed class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+{
+    public OptionsVMMixin(OptionsVM vm) : base(vm) { }
+
+    // Warning UIX0001: OptionsVM already defines ExecuteDone
+    [DataSourceMethod] 
+    public void ExecuteDone() { } 
+}
+</code></pre>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>If you did not intend to override vanilla behavior, rename the member with a unique prefix (e.g., <code>MyMod_ExecuteDone</code>).</li>
+<li>If you <strong>do</strong> want to intercept and take over the method, use <code>[BUTRViewModelOverride]</code> (UIExtenderEx 3.0+). Unlike basic mixin shadowing, an override replaces the method for all callers and allows chaining the original implementation:
+<pre><code class="lang-csharp">[BUTRViewModelOverride(nameof(OptionsVM.ExecuteDone))]
+private void ExecuteDone(Action original)
+{
+    SaveCustomSettings();
+    original(); // Call vanilla implementation
+}
+</code></pre>
+</li>
+</ul>
+<hr>
+<h3 id="uix0002">UIX0002</h3>
+<p><strong>Two mixins add the same member name to one ViewModel.</strong><br>
+<em>Severity: Warning</em></p>
+<p>If two distinct mixins in your mod declare a property or method with identical names on the same target ViewModel, both write to the binding table. UIExtenderEx routes bindings to whichever mixin was registered last, leaving the earlier mixin's member unbound. A warning naming both mixins is logged.</p>
+<p><strong>Resolution:</strong> Rename one of the members to ensure unique property/method names per ViewModel.</p>
+<hr>
+<h3 id="uix0003">UIX0003</h3>
+<p><strong>The refresh method specified in <code>[ViewModelMixin]</code> cannot be found on the ViewModel.</strong><br>
+<em>Severity: Warning</em></p>
+<p>When configuring <code>[ViewModelMixin(&quot;RefreshMethodName&quot;)]</code>, UIExtenderEx looks for a parameterless method on the target ViewModel. If the name is misspelled or does not exist, the <code>OnRefresh</code> lifecycle hook is never triggered.</p>
+<pre><code class="lang-csharp">// Warning UIX0003: &quot;RefreshValuez&quot; does not exist on OptionsVM
+[ViewModelMixin(&quot;RefreshValuez&quot;)] 
+</code></pre>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Use <code>nameof(TargetVM.RefreshValues)</code> so the C# compiler validates the method name. The automated code fix suggests matching parameterless methods found on the ViewModel.</p>
+<hr>
+<h3 id="uix0004">UIX0004</h3>
+<p><strong>A mixin extends an abstract ViewModel without <code>handleDerived: true</code>.</strong><br>
+<em>Severity: Warning</em></p>
+<p>UIExtenderEx attaches mixins to instances whose concrete runtime type matches the target ViewModel. Because <code>abstract</code> classes cannot be instantiated, a mixin targeting an abstract ViewModel without derived handling will never execute.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the code fix to add <code>handleDerived: true</code> to your <code>[ViewModelMixin]</code> attribute, or change the target type to a concrete subclass.</p>
+<hr>
+<h3 id="uix0005">UIX0005</h3>
+<p><strong>UIExtenderEx cannot determine which ViewModel the mixin extends.</strong><br>
+<em>Severity: Warning</em></p>
+<p>UIExtenderEx inspects the generic parameter of <code>BaseViewModelMixin&lt;TViewModel&gt;</code> to identify the target type. If a class implements <code>IViewModelMixin</code> directly or through complex multiple interfaces, the target type cannot be reliably determined.</p>
+<p><strong>Resolution:</strong> Inherit directly or indirectly from <code>BaseViewModelMixin&lt;TViewModel&gt;</code>.</p>
+<hr>
+<h3 id="uix0006">UIX0006</h3>
+<p><strong>The mixin cannot be instantiated by UIExtenderEx.</strong><br>
+<em>Severity: Error</em></p>
+<p>UIExtenderEx instantiates mixins when the target ViewModel constructor finishes. To construct the mixin, it requires a public constructor accepting the ViewModel instance as its single parameter:</p>
+<pre><code class="lang-csharp">public class MyMixin : BaseViewModelMixin&lt;MyViewModel&gt;
+{
+    // Required constructor
+    public MyMixin(MyViewModel vm) : base(vm) { }
+}
+</code></pre>
+<p>If the mixin is abstract, generic without arguments, or missing this constructor, instantiation throws an exception and crashes screen loading.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+The automated code fix generates the required public constructor or removes invalid <code>abstract</code> modifiers.</p>
+<hr>
+<h3 id="uix0007">UIX0007</h3>
+<p><strong>A member marked <code>[DataSourceProperty]</code> or <code>[DataSourceMethod]</code> is not public.</strong><br>
+<em>Severity: Warning</em></p>
+<p>Gauntlet only exposes public members to UI prefabs. Any member marked with <code>[DataSourceProperty]</code> or <code>[DataSourceMethod]</code> that is <code>private</code>, <code>internal</code>, or <code>protected</code> is silently ignored at runtime.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Use the code fix to change the member's visibility to <code>public</code>. (For properties, a <code>private set</code> accessor is supported as long as the property getter is <code>public</code>).</p>
+<hr>
+<h3 id="uix0008">UIX0008</h3>
+<p><strong>A <code>[BUTRViewModelOverride]</code> method matches no method on the ViewModel.</strong><br>
+<em>Severity: Warning (UIExtenderEx 3.0+)</em></p>
+<p>An override method must return <code>void</code>, match the target method's parameter list, and conclude with an <code>Action</code> delegate representing the original method. If the name or signature does not match any method on the target ViewModel, UIExtenderEx cannot hook the call.</p>
+<pre><code class="lang-csharp">[BUTRViewModelOverride(nameof(OptionsVM.ExecuteDone))]
+private void ExecuteDone(Action original) =&gt; original();
+</code></pre>
+<p><strong>Resolution:</strong> Ensure the method name and parameters precisely match the target ViewModel method.</p>
+<hr>
+<h3 id="uix0009">UIX0009</h3>
+<p><strong>A <code>[BUTRUnsafeAccessor]</code> stub member cannot be found.</strong><br>
+<em>Severity: Warning (UIExtenderEx 3.0+)</em></p>
+<p><code>[BUTRUnsafeAccessor]</code> generates high-performance IL accessors for private fields and methods. If the member signature cannot be resolved on the target type (e.g. after a game update renamed an internal field), the stub retains its default body and throws a <code>NotImplementedException</code> when called.</p>
+<pre><code class="lang-csharp">[BUTRUnsafeAccessor(BUTRAccessorKind.Field, Name = &quot;_categories&quot;)]
+[MethodImpl(MethodImplOptions.NoInlining)]
+private static ref List&lt;ViewModel&gt; Categories(OptionsVM instance) =&gt; throw new NotImplementedException();
+</code></pre>
+<p><strong>Resolution:</strong> Update the stub's signature or <code>Name</code> property to match the target type's current internal structure.</p>
+<hr>
+<h3 id="uix0010">UIX0010</h3>
+<p><strong>A <code>[BUTRUnsafeAccessor]</code> stub is not marked <code>NoInlining</code>.</strong><br>
+<em>Severity: Warning (UIExtenderEx 3.0+)</em></p>
+<p>Because UIExtenderEx dynamically rewrites the method body of accessor stubs during assembly registration, the JIT compiler must be prevented from inlining the initial throwing stub into caller methods.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the automated code fix to add <code>[MethodImpl(MethodImplOptions.NoInlining)]</code>.</p>
+<hr>
+<h3 id="uix0011">UIX0011</h3>
+<p><strong>Prefab XML is not well-formed.</strong><br>
+<em>Severity: Error</em></p>
+<p>The prefab XML file or embedded C# string literal contains XML syntax errors (such as unclosed tags or mismatched quotes). Malformed XML causes patch registration or screen construction to throw an unhandled <code>XmlException</code>.</p>
+<p><strong>Resolution:</strong> Correct the XML syntax.</p>
+<hr>
+<h3 id="uix0012">UIX0012</h3>
+<p><strong>The widget has no such attribute.</strong><br>
+<em>Severity: Warning</em></p>
+<p>Attributes in Gauntlet XML map directly to C# properties on widget classes. If an attribute name is misspelled or does not exist on the widget, Gauntlet silently drops the attribute, causing visual styling or layout settings to be ignored.</p>
+<pre><code class="lang-xml">&lt;!-- Warning UIX0012: ScrollablePanel has no 'HorizontalAlightment' attribute --&gt;
+&lt;ScrollablePanel HorizontalAlightment=&quot;Left&quot; /&gt;
+</code></pre>
+<p>When a GUI package is referenced, attributes applied to game widgets—both in <code>[PrefabExtensionSetAttributePatch]</code> classes and within your mod's own XML prefabs—are validated against widget property definitions across all supported game versions using <code>types.json</code> (along with their values under <a href="#uix0013">UIX0013</a>). If an attribute exists in some targeted versions but is missing in others, the analyzer reports <a href="#uix0024">UIX0024</a>. Custom widget classes defined in your mod or external assemblies are validated directly against your project's compiled symbols.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the code fix to correct the attribute spelling (e.g., change to <code>HorizontalAlignment</code>).</p>
+<hr>
+<h3 id="uix0013">UIX0013</h3>
+<p><strong>The attribute's value cannot be converted to the target property type.</strong><br>
+<em>Severity: Warning</em></p>
+<p>Gauntlet's loader converts literal string values to property types (parsing enums, numeric values, and booleans). If an enum value is misspelled or a numeric string is invalid, attribute conversion fails.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Gauntlet requires lowercase <code>&quot;true&quot;</code> or <code>&quot;false&quot;</code> for boolean attributes. A value such as <code>IsVisible=&quot;True&quot;</code> fails conversion and evaluates to <code>false</code>.</p>
+</div>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the code fix to correct enum casing or replace invalid boolean strings.</p>
+<hr>
+<h3 id="uix0014">UIX0014</h3>
+<p><strong>The prefab has no such parameter.</strong><br>
+<em>Severity: Warning</em></p>
+<p>When a tag passes a parameter (e.g., <code>Parameter.HeaderTitle=&quot;Custom&quot;</code>), the underlying prefab must declare or reference that parameter via <code>*HeaderTitle</code>. Unused parameters have no effect.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Use the code fix to update the parameter name to match the prefab's defined parameters.</p>
+<hr>
+<h3 id="uix0015">UIX0015</h3>
+<p><strong>The ViewModel has no such member.</strong><br>
+<em>Severity: Warning</em></p>
+<p>A data binding (<code>@PropertyName</code>), command (<code>Command.Click=&quot;MethodName&quot;</code>), or DataSource path step (<code>{ChildPath}</code>) references a member that does not exist on the active ViewModel or its attached mixins. In the XML loader, this causes silent binding failures.</p>
+<p>With a GUI package referenced, a game ViewModel's members are read from each supported version's <code>types.json</code>. A member only some of those versions lack is reported as <a href="#uix0024">UIX0024</a>, naming them.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the code fix to select from matching properties and methods available on the active ViewModel and mixins.</p>
+<hr>
+<h3 id="uix0016">UIX0016</h3>
+<p><strong>A patch binds a member that none of your mixins provide.</strong><br>
+<em>Severity: Warning</em></p>
+<p>When a prefab patch is not explicitly linked via <code>[PrefabLink]</code>, the analyzer infers the target ViewModel by searching your mixins. If none of your mixins declare the referenced property, the analyzer cannot determine whether the binding is a misspelling or belongs to a vanilla ViewModel.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+If the binding references a vanilla ViewModel member, annotate your assembly with <code>[assembly: PrefabLink(...)]</code> to link the patch to that ViewModel. Otherwise, correct the property name.</p>
+<hr>
+<h3 id="uix0017">UIX0017</h3>
+<p><strong>An insert patch content member cannot be read by UIExtenderEx.</strong><br>
+<em>Severity: Error</em></p>
+<p>In <code>PrefabExtensionInsertPatch</code> classes, the member providing the XML content must be a public, parameterless instance method or property matching the attribute used:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Attribute</th>
+<th style="text-align: left;">Expected Return Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>[PrefabExtensionText]</code>, <code>[PrefabExtensionFileName]</code></td>
+<td style="text-align: left;"><code>string</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>[PrefabExtensionXmlNode]</code></td>
+<td style="text-align: left;"><code>XmlNode</code> (or derived, like <code>XmlDocument</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>[PrefabExtensionXmlNodes]</code></td>
+<td style="text-align: left;"><code>IEnumerable&lt;XmlNode&gt;</code> (e.g., <code>List&lt;XmlNode&gt;</code>)</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::Widget[@Id='Panel']&quot;)]
+internal sealed class CustomPanelPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Child;
+
+    // Error UIX0017: string return type requires [PrefabExtensionText]
+    [PrefabExtensionXmlNode]
+    public string GetContent() =&gt; &quot;&lt;Widget /&gt;&quot;;
+}
+</code></pre>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the code fix to update the attribute or make the member a public instance method/property.</p>
+<hr>
+<h3 id="uix0018">UIX0018</h3>
+<p><strong>A <code>[PrefabLink]</code> configuration is invalid.</strong><br>
+<em>Severity: Warning</em></p>
+<p>A <code>[PrefabLink]</code> attribute must reference valid types: the patch class, the target ViewModel, and an optional mixin that actually extends that ViewModel.</p>
+<pre><code class="lang-csharp">// Warning UIX0018: InventoryVMMixin extends SPInventoryVM, not OptionsVM
+[assembly: PrefabLink(typeof(OptionsPatch), typeof(OptionsVM), typeof(InventoryVMMixin))]
+</code></pre>
+<p><strong>Resolution:</strong> Ensure that the mixin type extends the specified ViewModel (or a base type if using <code>handleDerived</code>).</p>
+<hr>
+<h3 id="uix0019">UIX0019</h3>
+<p><strong>Linked XML does not bind any members of the linked mixin.</strong><br>
+<em>Severity: Warning</em></p>
+<p>A <code>[PrefabLink]</code> includes a mixin parameter, but the patch's XML only references vanilla ViewModel members.</p>
+<p><strong>Resolution &amp; Code Fix:</strong><br>
+Apply the code fix to simplify the link to <code>[assembly: PrefabLink(typeof(Patch), typeof(TargetVM))]</code>, removing the redundant mixin reference.</p>
+<hr>
+<h3 id="uix0020">UIX0020</h3>
+<p><strong>A patch's XPath matches zero nodes in the prefab.</strong><br>
+<em>Severity: Warning</em></p>
+<p>The XPath selector failed to find any matching node in the targeted prefab. At runtime, the patch is skipped, an error is logged, and a red error message is displayed in-game. This frequently occurs after base game updates rename widget IDs or restructure hierarchies.</p>
+<pre><code class="lang-text">warning UIX0020: 'descendant::ListPanel[@Id='OldPanelId']' matches no node of 'Options'; the patch is not applied
+</code></pre>
+<p><strong>Resolution:</strong> Inspect the target prefab in the game files (or GUI packages) and update the XPath selector to match the current XML hierarchy.</p>
+<hr>
+<h3 id="uix0021">UIX0021</h3>
+<p><strong>A patch's XPath matches multiple nodes in the prefab.</strong><br>
+<em>Severity: Warning</em></p>
+<p>UIExtenderEx applies patches only to the <strong>first</strong> node selected by an XPath expression. If multiple nodes match, a future layout change or game update could alter node order, causing your patch to attach to the wrong element.</p>
+<p><strong>Resolution:</strong> Refine the XPath query (for example, by filtering on <code>@Id</code> or unique attribute combinations) so that it uniquely selects exactly one node.</p>
+<hr>
+<h3 id="uix0022">UIX0022</h3>
+<p><strong>A <code>[PrefabLink]</code> specifies a different ViewModel than the game binds at the node.</strong><br>
+<em>Severity: Warning</em></p>
+<p>When validating against base game GUI reference packages, the analyzer detects that the node selected by your XPath actually binds to a different ViewModel than declared in your <code>[PrefabLink]</code>, or a ViewModel that is neither a base nor a subclass of it. Each supported version is checked; a disagreement in only some of them is reported as <a href="#uix0024">UIX0024</a>.</p>
+<p><strong>Resolution:</strong> Update your <code>PrefabLink</code> to match the actual ViewModel used at that node location in the game's prefab.</p>
+<hr>
+<h3 id="uix0023">UIX0023</h3>
+<p><strong>A patch's XPath expression is syntactically invalid.</strong><br>
+<em>Severity: Error</em></p>
+<p>The XPath string contains syntax errors, is <code>null</code>, or evaluates to an invalid XPath return type (such as a numeric scalar like <code>count(//Widget)</code>). This will throw an exception when the patch is applied.</p>
+<p><strong>Resolution:</strong> Fix the XPath query syntax.</p>
+<hr>
+<h3 id="uix0024">UIX0024</h3>
+<p><strong>A patch's XPath or binding fails in a subset of supported game versions.</strong><br>
+<em>Severity: Warning</em></p>
+<p>When validating against <code>Bannerlord.ReferenceAssemblies.GUI.v3.All</code>, this rule flags patches that succeed in some versions but fail in others due to vanilla changes across game updates. The diagnostic embeds the specific underlying rule that failed in the affected versions—such as an XPath that matches nothing or multiple elements (<a href="#uix0020">UIX0020</a>, <a href="#uix0021">UIX0021</a>), a missing ViewModel property or method (<a href="#uix0015">UIX0015</a>), a conflicting <code>[PrefabLink]</code> (<a href="#uix0022">UIX0022</a>), an unsupported widget attribute or value (<a href="#uix0012">UIX0012</a>, <a href="#uix0013">UIX0013</a>), or an incompatible binding type (<a href="#uix0025">UIX0025</a>). For issues specific to DLC configurations within a version, the message explicitly identifies the required DLC.</p>
+<pre><code class="lang-text">warning UIX0024: [v1.4.8] In v1.0.0 to v1.3.15 only: 'descendant::*[@Id='ExtraInfoWidget']' matches no node of 'Options'; the patch is not applied
+</code></pre>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li>Update the XPath to target an element present across all supported versions.</li>
+<li>Use version symbols (e.g. <code>#if !v1315</code>) to conditionally include different patches per game version.</li>
+</ul>
+<p><strong>Code Fix:</strong><br>
+When reporting <a href="#uix0012">UIX0012</a>, <a href="#uix0013">UIX0013</a>, or <a href="#uix0015">UIX0015</a>, automated code fixes offer suggestions that are guaranteed to be valid across <strong>all</strong> targeted game versions. If an attribute or member was renamed across game updates and no single identifier exists in every targeted version, no code fix is offered to prevent breaking other versions.</p>
+<hr>
+<h3 id="uix0025">UIX0025</h3>
+<p><strong>A binding attempts to pass data between incompatible types.</strong><br>
+<em>Severity: Error</em></p>
+<p>In Gauntlet's dynamic XML loader, transferring data between incompatible types causes an unhandled <code>ArgumentException</code> inside <code>MethodInfo.Invoke</code>:</p>
+<ol>
+<li><strong>ViewModel to Widget:</strong> Setting a widget property with an incompatible ViewModel type (e.g., binding a <code>bool</code> property to a <code>float</code> property like <code>SuggestedWidth</code>). Gauntlet's loader only performs automatic conversion for <code>string</code> values, converting them into the specific target types recorded in the game version's GUI package (<code>stringConversions</code> in <code>types.json</code>); binding a <code>string</code> to an unsupported target (such as an enum like <code>HorizontalAlignment</code>) throws an exception. If no GUI package is referenced or the package records no conversions, the analyzer uses a fallback set of types supported across all Bannerlord versions: <code>Sprite</code>, <code>Brush</code>, <code>int</code> (<code>System.Int32</code>), and <code>Color</code>.</li>
+<li><strong>Widget to ViewModel:</strong> Many widgets announce values of different types than their property type. For example, <code>SuggestedWidth</code> announces a <code>float</code> value; binding an <code>int</code> property to it will throw on every change.</li>
+</ol>
+<pre><code class="lang-xml">&lt;!-- Error UIX0025: Width is an int, but SuggestedWidth announces a float --&gt;
+&lt;Widget SuggestedWidth=&quot;@Width&quot; /&gt;
+</code></pre>
+<p><strong>Resolution:</strong> Align property types to match the announced value. For properties that announce strings (such as alignments in modern game versions), use an <code>object</code> property that parses the string into the enum.</p>
+<hr>
+<h3 id="uix0026">UIX0026</h3>
+<p><strong>A multi-step DataSource path will not refresh when replaced in the XML loader.</strong><br>
+<em>Severity: Error</em></p>
+<p>When a parent ViewModel replaces a child ViewModel instance, Gauntlet's XML loader only refreshes widgets that bound to the child in a single step (<code>DataSource=&quot;{Child}&quot;</code>). Widgets bound via multi-step paths (such as <code>{Parent\Child}</code> or <code>{..\Sibling}</code>) retain stale references to the old instance.</p>
+<pre><code class="lang-xml">&lt;Widget DataSource=&quot;{Parent}&quot;&gt;
+  &lt;Children&gt;
+    &lt;!-- Error UIX0026: Keeps old instance when Sibling is replaced --&gt;
+    &lt;Widget DataSource=&quot;{..\Sibling}&quot; /&gt; 
+  &lt;/Children&gt;
+&lt;/Widget&gt;
+</code></pre>
+<p><strong>Resolution:</strong> Restructure widget scopes so child ViewModels are bound directly from their owning ViewModel scope.</p>
+<hr>
+<h3 id="uix0027">UIX0027</h3>
+<p><strong>A parameter inside a <code>&lt;LogicalChildrenLocation /&gt;</code> is not forwarded properly.</strong><br>
+<em>Severity: Error</em></p>
+<p>When children are passed into a prefab containing a <code>&lt;LogicalChildrenLocation /&gt;</code>, Gauntlet's XML loader evaluates parameter attributes (<code>*ParamName</code>) using the receiving prefab's parameter context rather than the declaring prefab's context.</p>
+<pre><code class="lang-xml">&lt;WindowFrame&gt; &lt;!-- Contains &lt;LogicalChildrenLocation /&gt; --&gt;
+  &lt;Children&gt;
+    &lt;!-- Error UIX0027: *Title is evaluated against WindowFrame, not the outer prefab --&gt;
+    &lt;TextWidget Text=&quot;*Title&quot; /&gt; 
+  &lt;/Children&gt;
+&lt;/WindowFrame&gt;
+</code></pre>
+<p><strong>Resolution:</strong> Forward the parameter explicitly on the container widget: <code>&lt;WindowFrame Parameter.Title=&quot;*Title&quot;&gt;</code>.</p>
+<hr>
+<h3 id="uix0028">UIX0028</h3>
+<p><strong>An indexed DataSource path (<code>{List\0}</code>) is not tracked dynamically in the XML loader.</strong><br>
+<em>Severity: Error</em></p>
+<p>Gauntlet's XML loader does not update indexed list paths when collections are modified in place. If an item is inserted, removed, or swapped, the widget bound via <code>{List\0}</code> continues displaying the old item.</p>
+<p><strong>Resolution:</strong> Expose a dedicated ViewModel property for the specific item (e.g. <code>FirstItem</code>), or replace the collection instance entirely instead of mutating it in place.</p>
+<hr>
+<h3 id="uix0029">UIX0029</h3>
+<p><strong>An XML tag matches neither a known Widget class nor a registered prefab.</strong><br>
+<em>Severity: Warning</em></p>
+<p>Gauntlet instantiates a generic base <code>Widget</code> when it encounters an unknown tag, logging an engine assertion and failing to load custom widget logic.</p>
+<p><strong>Resolution:</strong> Verify the tag spelling. If using a custom widget class from an external assembly or created in code, register it before the movie loads via <code>WidgetFactoryManager.Register(typeof(MyCustomWidget))</code>.</p>
+<hr>
+<h3 id="uix0030">UIX0030</h3>
+<p><strong>Targeted game version is missing from GUI reference packages.</strong><br>
+<em>Severity: Info</em></p>
+<p>The GUI bundle includes definitions for the latest release builds available when the bundle package was published. If your mod targets a game version that is not contained in the bundle (such as a newer game update, a beta branch, or an Early Access release), the analyzer cannot validate your patches against that version, leaving potential XPath, binding, or attribute errors undetected in that specific version.</p>
+<pre><code class="lang-text">info UIX0030: [v1.5.3] The game's GUI data has no v1.5.3, so the patches are not checked against it; the newest the bundle holds is v1.4.8. ...
+</code></pre>
+<p><strong>Resolution:</strong></p>
+<ul>
+<li><strong>Newer Game Versions:</strong> Reference a newer bundle package using a floating version: <code>&lt;PackageReference Include=&quot;Bannerlord.ReferenceAssemblies.GUI.v3.All&quot; Version=&quot;*&quot; PrivateAssets=&quot;all&quot; /&gt;</code>.</li>
+<li><strong>Beta or Early Access Builds:</strong> Reference that build's dedicated per-build package (e.g., <code>Bannerlord.ReferenceAssemblies.GUI.v3</code> with <code>$(GameVersion).*-*</code> or <code>Bannerlord.ReferenceAssemblies.GUI.v3.EarlyAccess</code>; see <a href="#checking-against-the-games-prefabs">Checking Against the Game's Prefabs</a>).</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/general/Analyzers.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface IPrefabRuntime | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface IPrefabRuntime | UIExtenderEx Documentation ">
+      
+      <meta name="description" content="Defines a movie loading strategy queried by UIExtenderEx prior to every UI movie load in GauntletMovie.Load.  Intended for runtime implementations rather than mod consumers. While mod extensions (prefab patches and ViewModel mixins) determine visual and logical structure across all runtimes, the active runtime controls execution strategy and performance without altering rendered content.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/new/dev/apiSpec/new?filename=Bannerlord_UIExtenderEx_Runtimes_IPrefabRuntime.md&amp;value=---%0Auid%3A%20Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime">
+
+
+
+  <h1 id="Bannerlord_UIExtenderEx_Runtimes_IPrefabRuntime" data-uid="Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime" class="text-break">
+Interface IPrefabRuntime  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/Runtimes/IPrefabRuntime.cs/#L16"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Bannerlord.html">Bannerlord</a>.<a class="xref" href="Bannerlord.UIExtenderEx.html">UIExtenderEx</a>.<a class="xref" href="Bannerlord.UIExtenderEx.Runtimes.html">Runtimes</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Bannerlord.UIExtenderEx.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Defines a movie loading strategy queried by UIExtenderEx prior to every UI movie load in <code>GauntletMovie.Load</code>.</p>
+<p>
+Intended for runtime implementations rather than mod consumers. While mod extensions (prefab patches and ViewModel mixins)
+determine visual and logical structure across all runtimes, the active runtime controls execution strategy and performance
+without altering rendered content.
+</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IPrefabRuntime</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Bannerlord_UIExtenderEx_Runtimes_IPrefabRuntime_IsOwnVariant_" data-uid="Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime.IsOwnVariant*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_Runtimes_IPrefabRuntime_IsOwnVariant_System_Reflection_Assembly_" data-uid="Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime.IsOwnVariant(System.Reflection.Assembly)">
+  IsOwnVariant(Assembly)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/Runtimes/IPrefabRuntime.cs/#L36"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Determines whether a compiled prefab assembly registered in <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.GauntletUI.PrefabSystem.GeneratedPrefabContext.html">GeneratedPrefabContext</a> originated from this runtime implementation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsOwnVariant(Assembly variantAssembly)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>variantAssembly</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.reflection.assembly">Assembly</a></dt>
+    <dd><p>The compiled variant assembly to check.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if the assembly was generated and registered by this runtime; otherwise, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_Runtimes_IPrefabRuntime_TryServe_" data-uid="Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime.TryServe*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_Runtimes_IPrefabRuntime_TryServe_TaleWorlds_GauntletUI_PrefabSystem_WidgetFactory_System_String_TaleWorlds_Library_IViewModel_" data-uid="Bannerlord.UIExtenderEx.Runtimes.IPrefabRuntime.TryServe(TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory,System.String,TaleWorlds.Library.IViewModel)">
+  TryServe(WidgetFactory, string, IViewModel?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/Runtimes/IPrefabRuntime.cs/#L29"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Attempts to serve a movie via a pre-compiled or dynamically compiled widget variant registered for the specified
+<code>(movie, dataSource)</code> pair in <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory.html#TaleWorlds_GauntletUI_PrefabSystem_WidgetFactory_GeneratedPrefabContext">GeneratedPrefabContext</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryServe(WidgetFactory widgetFactory, string movieName, IViewModel? dataSource)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>widgetFactory</code> <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.GauntletUI.PrefabSystem.WidgetFactory.html">WidgetFactory</a></dt>
+    <dd><p>The widget factory requesting the movie.</p>
+</dd>
+    <dt><code>movieName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The name of the movie to load.</p>
+</dd>
+    <dt><code>dataSource</code> <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.Library.IViewModel.html">IViewModel</a></dt>
+    <dd><p>The active data source or ViewModel instance.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if this runtime vouches for and activates an eligible registered variant; otherwise,
+<a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> to delegate to the next registered runtime or fall back to the XML loader.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/Runtimes/IPrefabRuntime.cs/#L16" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

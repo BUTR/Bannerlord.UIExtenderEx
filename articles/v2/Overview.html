@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>API v2 Overview | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="API v2 Overview | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/Overview.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="api-v2-overview">API v2 Overview</h1>
+
+<p>The <strong>v2 Prefabs API</strong> (<code>Bannerlord.UIExtenderEx.Prefabs2</code>) is the standard, modern API for modifying Gauntlet UI prefabs in <em>Mount &amp; Blade II: Bannerlord</em>. It unifies and streamlines the legacy v1 prefab classes into two powerful, flexible patch types:</p>
+<ul>
+<li><strong><a href="PrefabExtensionInsertPatch.html"><code>PrefabExtensionInsertPatch</code></a>:</strong> Performs structural XML transformations—inserting children, prepending or appending siblings, replacing nodes (optionally preserving child widgets), or removing nodes.</li>
+<li><strong><a href="PrefabExtensionSetAttributePatch.html"><code>PrefabExtensionSetAttributePatch</code></a>:</strong> Adds or overwrites one or more attributes on existing XML nodes.</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>To register and enable UIExtenderEx in your mod submodule, see <a href="../general/Overview.html#getting-started-registering-your-mod">Getting Started: Registering Your Mod</a>. If you are maintaining legacy patches, refer to the <a href="../v1/Overview.html">API v1 (Legacy) Documentation</a>.</p>
+</div>
+<hr>
+<h2 id="gauntlet-mvvm-architecture">Gauntlet MVVM Architecture</h2>
+<p>In TaleWorlds' Gauntlet UI framework, UI screens follow the <strong>Model-View-ViewModel (MVVM)</strong> pattern:</p>
+<ul>
+<li><strong>View (Prefabs):</strong> XML files that declare the widget hierarchy, visual styling, layout constraints, and data bindings (<code>@PropertyName</code> and <code>@MethodName</code>). Prefab patches modify this View layer.</li>
+<li><strong>ViewModel:</strong> C# classes providing the reactive properties and commands bound by the View. In UIExtenderEx, you extend existing game ViewModels using <a href="ViewModelMixin.html">ViewModel Mixins</a>.</li>
+</ul>
+<p>For a complete architectural breakdown, see the <a href="../general/Overview.html">General Overview</a>.</p>
+<hr>
+<h2 id="anatomy-of-a-prefab-patch">Anatomy of a Prefab Patch</h2>
+<p>Every v2 prefab patch is a C# class derived from either <a href="PrefabExtensionInsertPatch.html"><code>PrefabExtensionInsertPatch</code></a> or <a href="PrefabExtensionSetAttributePatch.html"><code>PrefabExtensionSetAttributePatch</code></a> and decorated with the <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html"><code>[PrefabExtension]</code></a> attribute:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs2;
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children&quot;)]
+internal sealed class MyOptionsPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Child;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;Widget Id=\&quot;MyCustomContainer\&quot; /&gt;&quot;;
+}
+</code></pre>
+<h3 id="the-prefabextension-attribute">The <code>[PrefabExtension]</code> Attribute</h3>
+<p>The attribute configures which movie to patch and where inside the XML to apply your changes:</p>
+<ul>
+<li><strong>Movie Name (Parameter 1):</strong> The name of the target Gauntlet Movie XML file without the <code>.xml</code> extension (for example, <code>&quot;Options&quot;</code>, <code>&quot;Inventory&quot;</code>, or <code>&quot;Clan&quot;</code>).</li>
+<li><strong>XPath (Parameter 2):</strong> An XPath 1.0 query targeting the specific XML element to modify.</li>
+<li><strong>Multiple Movies:</strong> You can attach multiple <code>[PrefabExtension]</code> attributes to a single patch class if the exact same modification applies across multiple screens.</li>
+</ul>
+<hr>
+<h2 id="how-patches-are-applied">How Patches Are Applied</h2>
+<p>Understanding the execution lifecycle helps avoid common pitfalls:</p>
+<ol>
+<li><strong>Single Match Rule:</strong> The XPath expression is evaluated against the entire target movie XML document. UIExtenderEx patches only the <strong>first</strong> node that matches.
+<ul>
+<li>If an XPath matches zero nodes, the patch is skipped, an error is logged, and a red in-game message is shown.</li>
+<li>The <a href="../general/Analyzers.html">Analyzers</a> check your XPaths at compile time, reporting warnings if an XPath matches nothing (<code>UIX0020</code>) or multiple nodes (<code>UIX0021</code>).</li>
+</ul>
+</li>
+<li><strong>XPath Is Mandatory in v2:</strong> Although the attribute constructor allows omitting the XPath parameter for legacy v1 compatibility, all v2 patches require a valid XPath. A v2 patch without an XPath will fail when the movie is patched.</li>
+<li><strong>Parameterless Constructor:</strong> Patch classes must have a <code>public</code> parameterless constructor. UIExtenderEx instantiates each patch once when your mod calls <code>Extender.Register(...)</code>.</li>
+<li><strong>Registration and Execution Order:</strong> Patches apply in the order they were registered. If multiple mods target the same movie, their patches execute in the order each mod invoked <code>Extender.Register(...)</code>. This does not always match module load order: for example, a mod that registers late during <code>OnBeforeInitialModuleScreenSetAsRoot</code> (such as MCM) will apply its patches after a mod that registered earlier during <code>OnSubModuleLoad</code>, even if the first mod loaded earlier in the module list. See <a href="../general/InteractingWithOtherMods.html#submodule-initialization-order">SubModule Initialization Order</a>.</li>
+<li><strong>Dynamic Control:</strong> Patches take effect when you call <code>Extender.Enable()</code>. You can also dynamically enable or disable specific patches at runtime using <code>Extender.Enable(typeof(MyPatch))</code> and <code>Extender.Disable(typeof(MyPatch))</code>. When toggled, affected movies are invalidated and rebuilt the next time they are opened. See <a href="../general/InteractingWithOtherMods.html#controlling-patches-and-mixins">Interacting With Other Mods</a>.</li>
+</ol>
+<hr>
+<h2 id="debugging-and-inspecting-patched-xml">Debugging and Inspecting Patched XML</h2>
+<p>When building complex prefab extensions, it is helpful to inspect the final XML generated after all patches have been applied.</p>
+<p>You can enable XML dumping by setting <code>DumpXML</code> to <code>true</code> in your UIExtenderEx configuration. When enabled, UIExtenderEx writes the patched XML of every modified movie to:</p>
+<pre><code class="lang-text">Modules/Bannerlord.UIExtenderEx/Dumps/&lt;MovieName&gt;_&lt;ModuleName&gt;.xml
+</code></pre>
+<p>For more details on runtime diagnostics and settings, see <a href="../general/CompiledPrefabs.html#settings">Settings &amp; Diagnostics</a>.</p>
+<hr>
+<h2 id="best-practices-for-writing-xpath-selectors">Best Practices for Writing XPath Selectors</h2>
+<p>Writing robust XPath expressions ensures your patches remain compatible across game updates and alongside other mods:</p>
+<ul>
+<li><strong>Avoid brittle absolute paths:</strong> Prefer <code>descendant::WidgetType[@Id='SpecificId']</code> over deep absolute paths like <code>/Prefab/Window/OptionsScreenWidget/Children/...</code>. If TaleWorlds rearranges intermediate container widgets, an absolute path will break.</li>
+<li><strong>Filter by unique attributes:</strong> Target nodes using identifying attributes such as <code>[@Id='TargetId']</code> or <code>[@DataSource='{TargetBinding}']</code>.</li>
+<li><strong>Select the container for child insertions:</strong> When using <code>InsertType.Child</code>, ensure your XPath targets the container node (typically <code>&lt;Children&gt;</code>), not the widget itself.</li>
+</ul>
+<p><strong>Helpful XPath Resources:</strong></p>
+<ul>
+<li><a href="https://www.w3schools.com/xml/xpath_intro.asp">W3Schools XPath Tutorial</a></li>
+<li><a href="https://devhints.io/xpath">Devhints XPath Cheatsheet</a></li>
+</ul>
+<hr>
+<h2 id="where-to-go-next">Where to Go Next</h2>
+<ul>
+<li><strong><a href="PrefabExtensionInsertPatch.html">PrefabExtensionInsertPatch Guide</a>:</strong> Master insertion types (<code>Child</code>, <code>Append</code>, <code>Prepend</code>, <code>Replace</code>, <code>ReplaceKeepChildren</code>, <code>Remove</code>) and content providers (<code>[PrefabExtensionText]</code>, <code>[PrefabExtensionFileName]</code>, <code>[PrefabExtensionXmlNode]</code>).</li>
+<li><strong><a href="PrefabExtensionSetAttributePatch.html">PrefabExtensionSetAttributePatch Guide</a>:</strong> Learn how to add or update widget attributes dynamically.</li>
+<li><strong><a href="ViewModelMixin.html">ViewModel Mixins Guide</a>:</strong> Connect your prefab widgets to reactive C# properties, commands, and refresh logic.</li>
+<li><strong><a href="PrefabLink.html">Prefab Links Guide</a>:</strong> Statically link prefab patches to ViewModels and Mixins for compile-time validation by Roslyn analyzers.</li>
+<li><strong><a href="Examples.html">Worked Examples</a>:</strong> Explore real-world open-source mods utilizing UIExtenderEx.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/Overview.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

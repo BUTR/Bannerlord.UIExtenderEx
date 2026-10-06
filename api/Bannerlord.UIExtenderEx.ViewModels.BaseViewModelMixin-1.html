@@ -1,0 +1,568 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class BaseViewModelMixin&lt;TViewModel&gt; | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class BaseViewModelMixin&lt;TViewModel&gt; | UIExtenderEx Documentation ">
+      
+      <meta name="description" content="Provides the base implementation for  extending a target .  Generic type parameter TViewModel designates the target host ViewModel type. Access the underlying host instance via the protected  property, which maintains a weak reference to avoid cyclic references and permit garbage collection.">
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/new/dev/apiSpec/new?filename=Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1.md&amp;value=---%0Auid%3A%20Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin%601%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1">
+
+
+
+  <h1 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1" class="text-break">
+Class BaseViewModelMixin&lt;TViewModel&gt;  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Bannerlord.html">Bannerlord</a>.<a class="xref" href="Bannerlord.UIExtenderEx.html">UIExtenderEx</a>.<a class="xref" href="Bannerlord.UIExtenderEx.ViewModels.html">ViewModels</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Bannerlord.UIExtenderEx.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Provides the base implementation for <a class="xref" href="Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html">IViewModelMixin</a> extending a target <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.Library.ViewModel.html">ViewModel</a>.</p>
+<p>
+Generic type parameter <code class="typeparamref">TViewModel</code> designates the target host ViewModel type.
+Access the underlying host instance via the protected <a class="xref" href="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html#Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_ViewModel">ViewModel</a> property, which maintains a weak reference
+to avoid cyclic references and permit garbage collection.
+</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public abstract class BaseViewModelMixin&lt;TViewModel&gt; : IViewModelMixin where TViewModel : ViewModel</code></pre>
+  </div>
+
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TViewModel</code></dt>
+    <dd><p>The <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.Library.ViewModel.html">ViewModel</a> type this mixin extends.</p>
+</dd>
+  </dl>
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">BaseViewModelMixin&lt;TViewModel&gt;</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="Bannerlord.UIExtenderEx.ViewModels.IViewModelMixin.html">IViewModelMixin</a></div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1__ctor_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.#ctor*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1__ctor__0_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.#ctor(`0)">
+  BaseViewModelMixin(TViewModel)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L75"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected BaseViewModelMixin(TViewModel vm)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>vm</code> <span class="xref">TViewModel</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_ViewModel_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.ViewModel*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_ViewModel" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.ViewModel">
+  ViewModel
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L73"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the attached host <code class="typeparamref">TViewModel</code> instance, or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> if the instance
+has been garbage-collected.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected TViewModel? ViewModel { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">TViewModel</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_GetPrivate_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.GetPrivate*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_GetPrivate__1_System_String_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.GetPrivate``1(System.String)">
+  GetPrivate&lt;TValue&gt;(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L197"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Retrieves a private or internal field or property value from the attached host ViewModel instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected TValue? GetPrivate&lt;TValue&gt;(string name)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The name of the private field or property.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">TValue</span></dt>
+    <dd><p>The member value, or default if the member cannot be resolved or the host instance is unavailable.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TValue</code></dt>
+    <dd><p>The expected value type.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnFinalize_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnFinalize*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnFinalize" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnFinalize">
+  OnFinalize()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L125"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Invoked when the host ViewModel executes <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.Library.ViewModel.html#TaleWorlds_Library_ViewModel_OnFinalize">OnFinalize()</a>, providing an opportunity
+for cleanup and resource disposal.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnFinalize()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChanged_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChanged*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChanged_System_String_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChanged(System.String)">
+  OnPropertyChanged(string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L80"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void OnPropertyChanged(string? propertyName = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>propertyName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChangedWithValue_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChangedWithValue*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnPropertyChangedWithValue_System_Object_System_String_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnPropertyChangedWithValue(System.Object,System.String)">
+  OnPropertyChangedWithValue(object, string?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L85"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void OnPropertyChangedWithValue(object value, string? propertyName = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+    <dt><code>propertyName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnRefresh_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnRefresh*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnRefresh" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnRefresh">
+  OnRefresh()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L122"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Invoked when the host ViewModel executes its designated refresh method (configured via <a class="xref" href="Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html#Bannerlord_UIExtenderEx_Attributes_ViewModelMixinAttribute_RefreshMethodName">RefreshMethodName</a>).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual void OnRefresh()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnViewModelPropertyChanged_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnViewModelPropertyChanged*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_OnViewModelPropertyChanged_System_String_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.OnViewModelPropertyChanged(System.String)">
+  OnViewModelPropertyChanged(string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L136"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Invoked whenever the attached host ViewModel raises any property change notification (including standard and typed overloads).</p>
+<p>
+TaleWorlds ViewModels dispatch most property updates through typed <code>OnPropertyChangedWithValue</code> overloads that
+bypass standard PropertyChanged handlers. Overriding this method listens to all nine notification variants.
+Subscriptions are registered after host construction and detached when the host ViewModel is finalized.
+</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected virtual void OnViewModelPropertyChanged(string propertyName)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>propertyName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The name of the property that changed.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetField_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetField*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetField__1___0____0_System_String_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetField``1(``0@,``0,System.String)">
+  SetField&lt;T&gt;(ref T, T, string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L215"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Assigns a new value to a backing field and raises property change notifications if the value changed.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected bool SetField&lt;T&gt;(ref T field, T value, string propertyName)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>field</code> <span class="xref">T</span></dt>
+    <dd><p>A reference to the backing field.</p>
+</dd>
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd><p>The new value to assign.</p>
+</dd>
+    <dt><code>propertyName</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The name of the property for change notification.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p><a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if the value was modified; otherwise, <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a>.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>The field value type.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetPrivate_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetPrivate*"></a>
+
+  <h3 id="Bannerlord_UIExtenderEx_ViewModels_BaseViewModelMixin_1_SetPrivate__1_System_String___0_" data-uid="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin`1.SetPrivate``1(System.String,``0)">
+  SetPrivate&lt;TValue&gt;(string, TValue?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L205"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets a private or internal field or property value on the attached host ViewModel instance.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected void SetPrivate&lt;TValue&gt;(string name, TValue? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>name</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd><p>The name of the private field or property.</p>
+</dd>
+    <dt><code>value</code> <span class="xref">TValue</span></dt>
+    <dd><p>The value to assign.</p>
+</dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TValue</code></dt>
+    <dd><p>The value type.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+<hr><div class="last-modified"><p>This page was last modified at 10/06/2026 09:49:13 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    6cc114e5698a26b1c33a1a0b5424e80e7c2a0cf8
+</code></pre><pre><code>Fix
+</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/src/Bannerlord.UIExtenderEx/ViewModels/BaseViewModelMixin.cs/#L26" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

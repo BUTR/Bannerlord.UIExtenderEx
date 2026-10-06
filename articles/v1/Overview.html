@@ -1,0 +1,458 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>API v1 (Legacy Prefabs) | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="API v1 (Legacy Prefabs) | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v1/Overview.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="api-v1-legacy-prefabs">API v1 (Legacy Prefabs)</h1>
+
+<p>The <strong>v1 Prefabs API</strong> (<code>Bannerlord.UIExtenderEx.Prefabs</code>) is the original prefab modification system in UIExtenderEx. While it remains fully supported for backward compatibility, it is considered <strong>legacy</strong>. New mods and updates should use the modern <a href="../v2/Overview.html">v2 Prefab API</a>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>For instructions on initializing and registering UIExtenderEx in your mod submodule, see <a href="../general/Overview.html#getting-started-registering-your-mod">Getting Started: Registering Your Mod</a>. Mod registration is identical regardless of whether you use v1 or v2 prefab patches.</p>
+</div>
+<hr>
+<h2 id="core-concepts">Core Concepts</h2>
+<p>In Gauntlet's Model-View-ViewModel (MVVM) architecture, <strong>prefabs</strong> represent the <strong>View</strong> (declaring the visual hierarchy, layout, styling, and data bindings). Data and command callbacks originate from the <strong>ViewModel</strong>, which you can extend using <a href="../v2/ViewModelMixin.html">ViewModel Mixins</a>.</p>
+<p>A v1 prefab extension modifies a movie's underlying XML document before Gauntlet constructs the visual tree.</p>
+<h3 id="the-prefabextension-attribute">The <code>[PrefabExtension]</code> Attribute</h3>
+<p>Every v1 patch class must inherit from an <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.IPrefabPatch.html"><code>IPrefabPatch</code></a> base class and be decorated with the <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html"><code>[PrefabExtension]</code></a> attribute:</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children&quot;)]
+internal class MyOptionsPatch : PrefabExtensionInsertPatch
+{
+    // ...
+}
+</code></pre>
+<ul>
+<li><strong>Movie Name (Parameter 1):</strong> The name of the target Gauntlet Movie XML file (for example, <code>&quot;Options&quot;</code> or <code>&quot;Inventory&quot;</code>).</li>
+<li><strong>XPath (Parameter 2):</strong> An XPath 1.0 query selecting the target node inside the movie's XML document.</li>
+<li><strong>Multiple Attributes:</strong> You can attach multiple <code>[PrefabExtension]</code> attributes to a single patch class if the same patch logic applies to multiple movies.</li>
+</ul>
+<h3 id="patch-execution-rules">Patch Execution Rules</h3>
+<ul>
+<li><strong>Single Match Rule:</strong> The XPath expression is evaluated against the movie XML, and only the <strong>first</strong> matching node is patched. If the XPath matches nothing, the patch is skipped, an error is logged, and a red warning message is displayed in-game.</li>
+<li><strong>Parameterless Constructor:</strong> Patch classes must have a <code>public</code> parameterless constructor. UIExtenderEx instantiates each patch once during registration (<code>Extender.Register(...)</code>).</li>
+<li><strong>Patch <code>Id</code>:</strong> Every v1 patch requires an <code>Id</code> property. UIExtenderEx does not enforce uniqueness for this value, but providing a descriptive name is helpful for debugging and logging.</li>
+<li><strong>Returning XML (<code>GetPrefabExtension()</code>):</strong> Structural patches implement <code>GetPrefabExtension()</code>, which returns an <code>XmlDocument</code>. UIExtenderEx extracts the document's root element (<code>DocumentElement</code>) and injects it into the target movie. Any XML comments inside the returned document are stripped.</li>
+</ul>
+<hr>
+<h2 id="patch-types">Patch Types</h2>
+<h3 id="1-inserting-child-elements-prefabextensioninsertpatch">1. Inserting Child Elements (<code>PrefabExtensionInsertPatch</code>)</h3>
+<div class="WARNING">
+<h5>Warning</h5>
+<p><code>PrefabExtensionInsertPatch</code> and its helper subclasses in <code>Bannerlord.UIExtenderEx.Prefabs</code> are marked obsolete. Use <a href="../v2/PrefabExtensionInsertPatch.html">PrefabsV2 <code>PrefabExtensionInsertPatch</code></a> instead.</p>
+</div>
+<p><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertPatch.html"><code>PrefabExtensionInsertPatch</code></a> inserts the root element returned by <code>GetPrefabExtension()</code> as a child of the XML node selected by your XPath query.</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs;
+using System.Xml;
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children&quot;)]
+internal class TestInsertPatch : PrefabExtensionInsertPatch
+{
+    public override string Id =&gt; &quot;TestInsertPatch&quot;;
+
+    // Inserts the new element after child index 3 (making it the 5th child)
+    public override int Position =&gt; 3;
+
+    private XmlDocument XmlDocument { get; } = new();
+
+    public TestInsertPatch()
+    {
+        XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;CustomTab\&quot; /&gt;&quot;);
+    }
+
+    public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+}
+</code></pre>
+<h4 id="understanding-the-position-property">Understanding the <code>Position</code> Property</h4>
+<p>In v1, <code>Position</code> places the new element <strong>after</strong> the child node at that 0-based index:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><code>Position</code> Value</th>
+<th style="text-align: left;">Placement Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>0</code> (<code>PositionFirst</code>)</td>
+<td style="text-align: left;">Inserts <strong>after</strong> child 0, placing the new element at index 1 (the <strong>second</strong> child).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>3</code></td>
+<td style="text-align: left;">Inserts <strong>after</strong> child 3, placing the new element at index 4 (the <strong>fifth</strong> child).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PositionLast</code> (<code>int.MaxValue</code>)</td>
+<td style="text-align: left;">Appends the element after the last child.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Negative values</td>
+<td style="text-align: left;">Clamped to <code>0</code> (inserts after child 0).</td>
+</tr>
+</tbody>
+</table>
+<div class="IMPORTANT">
+<h5>Important</h5>
+<p><strong>v1 Insertion Limitation:</strong> Because <code>Position = 0</code> places the new element <em>after</em> child 0, v1 cannot insert a node before existing child 0 (at index 0) when the target container already has children. If the container is completely empty, the new node becomes the only child regardless of <code>Position</code>.</p>
+<p>To insert an element at the very beginning (index 0) of an existing list of children, you must use the <a href="../v2/PrefabExtensionInsertPatch.html">v2 <code>PrefabExtensionInsertPatch</code></a> with <code>InsertType.Child</code> and <code>Index = 0</code>.</p>
+</div>
+<h4 id="built-in-file-and-resource-helpers">Built-in File and Resource Helpers</h4>
+<p>Instead of manually loading XML in the constructor, v1 provides two specialized subclasses:</p>
+<ul>
+<li><p><strong><code>ModulePrefabExtensionInsertPatch</code>:</strong> Loads an XML file from your module directory (<code>Modules/&lt;ModuleName&gt;/GUI/PrefabExtensions/&lt;Name&gt;.xml</code>):</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::ListPanel/Children&quot;)]
+internal class FileBasedPatch : ModulePrefabExtensionInsertPatch
+{
+    public FileBasedPatch() : base(&quot;MyInsertedToggle&quot;, &quot;MyModuleName&quot;) { }
+
+    public override string Id =&gt; &quot;MyInsertedToggle&quot;;
+    public override int Position =&gt; PositionLast;
+}
+</code></pre>
+</li>
+<li><p><strong><code>EmbedPrefabExtensionInsertPatch</code>:</strong> Loads an XML document embedded as an assembly manifest resource:</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::ListPanel/Children&quot;)]
+internal class EmbeddedResourcePatch : EmbedPrefabExtensionInsertPatch
+{
+    public EmbeddedResourcePatch() : base(typeof(EmbeddedResourcePatch).Assembly, &quot;MyMod.Resources.MyToggle.xml&quot;) { }
+
+    public override string Id =&gt; &quot;MyEmbeddedToggle&quot;;
+    public override int Position =&gt; PositionLast;
+}
+</code></pre>
+</li>
+</ul>
+<hr>
+<h3 id="2-replacing-an-element-prefabextensionreplacepatch">2. Replacing an Element (<code>PrefabExtensionReplacePatch</code>)</h3>
+<p><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionReplacePatch.html"><code>PrefabExtensionReplacePatch</code></a> replaces the target node selected by the XPath query (including all of its existing children) with the root element returned by <code>GetPrefabExtension()</code>.</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs;
+using System.Xml;
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='Replace']&quot;)]
+internal class TestReplacePatch : PrefabExtensionReplacePatch
+{
+    public override string Id =&gt; &quot;TestReplacePatch&quot;;
+    private XmlDocument XmlDocument { get; } = new();
+
+    public TestReplacePatch()
+    {
+        XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;ReplacementTab\&quot; Text=\&quot;@ModifiedText\&quot; /&gt;&quot;);
+    }
+
+    public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+}
+</code></pre>
+<hr>
+<h3 id="3-inserting-sibling-elements-prefabextensioninsertassiblingpatch">3. Inserting Sibling Elements (<code>PrefabExtensionInsertAsSiblingPatch</code>)</h3>
+<p><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionInsertAsSiblingPatch.html"><code>PrefabExtensionInsertAsSiblingPatch</code></a> inserts the root element returned by <code>GetPrefabExtension()</code> directly before or after the node selected by your XPath query.</p>
+<p>Placement is controlled by the <code>Type</code> property:</p>
+<ul>
+<li><code>InsertType.Append</code> (default): Inserts immediately <strong>after</strong> the target node.</li>
+<li><code>InsertType.Prepend</code>: Inserts immediately <strong>before</strong> the target node.</li>
+</ul>
+<h4 id="example-inserting-after-a-target-node-append">Example: Inserting After a Target Node (<code>Append</code>)</h4>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsTabToggle[@Id='Video']&quot;)]
+internal class AppendSiblingPatch : PrefabExtensionInsertAsSiblingPatch
+{
+    public override string Id =&gt; &quot;AppendSiblingPatch&quot;;
+    public override InsertType Type =&gt; InsertType.Append;
+
+    private XmlDocument XmlDocument { get; } = new();
+
+    public AppendSiblingPatch()
+    {
+        XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;CustomAfterVideoTab\&quot; /&gt;&quot;);
+    }
+
+    public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+}
+</code></pre>
+<h4 id="example-inserting-before-a-target-node-prepend">Example: Inserting Before a Target Node (<code>Prepend</code>)</h4>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsTabToggle[@Id='Video']&quot;)]
+internal class PrependSiblingPatch : PrefabExtensionInsertAsSiblingPatch
+{
+    public override string Id =&gt; &quot;PrependSiblingPatch&quot;;
+    public override InsertType Type =&gt; InsertType.Prepend;
+
+    private XmlDocument XmlDocument { get; } = new();
+
+    public PrependSiblingPatch()
+    {
+        XmlDocument.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;CustomBeforeVideoTab\&quot; /&gt;&quot;);
+    }
+
+    public override XmlDocument GetPrefabExtension() =&gt; XmlDocument;
+}
+</code></pre>
+<hr>
+<h3 id="4-setting-node-attributes-prefabextensionsetattributepatch">4. Setting Node Attributes (<code>PrefabExtensionSetAttributePatch</code>)</h3>
+<p><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.PrefabExtensionSetAttributePatch.html"><code>PrefabExtensionSetAttributePatch</code></a> adds a single attribute to the XML node selected by the XPath query, or overwrites its value if the attribute is already present.</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs;
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/Standard.TopPanel/Children/ListPanel/Children/OptionsTabToggle[@Id='Performance']&quot;)]
+internal class SetAttributePatch : PrefabExtensionSetAttributePatch
+{
+    public override string Id =&gt; &quot;SetAttributePatch&quot;;
+    public override string Attribute =&gt; &quot;IsVisible&quot;;
+    public override string Value =&gt; &quot;false&quot;;
+}
+</code></pre>
+<div class="NOTE">
+<h5>Note</h5>
+<p>A v1 <code>PrefabExtensionSetAttributePatch</code> can only set one attribute. To set multiple attributes on a node, you must define multiple patch classes or use the <a href="../v2/PrefabExtensionSetAttributePatch.html">v2 <code>PrefabExtensionSetAttributePatch</code></a>, which supports multiple attributes within a single patch.</p>
+</div>
+<hr>
+<h3 id="5-direct-xml-manipulation-custompatcht">5. Direct XML Manipulation (<code>CustomPatch&lt;T&gt;</code>)</h3>
+<p><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs.CustomPatch-1.html"><code>CustomPatch&lt;T&gt;</code></a> allows you to directly manipulate the XML object model via C# code. This is useful when the declarative patch types cannot express your required changes.</p>
+<p>There are two generic specializations:</p>
+<ol>
+<li><strong><code>CustomPatch&lt;XmlNode&gt;</code>:</strong> Targets the specific node matched by the XPath query and passes it to <code>Apply(XmlNode node)</code>.</li>
+<li><strong><code>CustomPatch&lt;XmlDocument&gt;</code>:</strong> Targets the <strong>entire movie document</strong> and passes it to <code>Apply(XmlDocument document)</code>. The XPath parameter in <code>[PrefabExtension]</code> is ignored. This is the only patch type capable of modifying multiple nodes across the document at once.</li>
+</ol>
+<h4 id="example-bulk-modification-with-custompatchxmldocument">Example: Bulk Modification with <code>CustomPatch&lt;XmlDocument&gt;</code></h4>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs;
+using System.Xml;
+
+[PrefabExtension(&quot;Options&quot;)]
+internal class HideAllTabsCustomPatch : CustomPatch&lt;XmlDocument&gt;
+{
+    public override string Id =&gt; &quot;HideAllTabsCustomPatch&quot;;
+
+    public override void Apply(XmlDocument document)
+    {
+        // Select every tab toggle across the document and hide it
+        if (document.SelectNodes(&quot;descendant::OptionsTabToggle&quot;) is { } tabs)
+        {
+            foreach (XmlElement tab in tabs)
+            {
+                tab.SetAttribute(&quot;IsVisible&quot;, &quot;false&quot;);
+            }
+        }
+    }
+}
+</code></pre>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Because <code>CustomPatch</code> executes arbitrary C# code at runtime, the <a href="../general/Analyzers.html">Roslyn Analyzers</a> cannot inspect what it changes. However, on any movie where a <code>CustomPatch</code> is registered, the analyzers will suppress warnings about missing nodes for your other patches, assuming the custom patch might have introduced them.</p>
+</div>
+<hr>
+<h2 id="compile-time-validation-analyzers">Compile-Time Validation (Analyzers)</h2>
+<p>The <a href="../general/Analyzers.html">Bannerlord.UIExtenderEx.Analyzers</a> package validates v1 patches at compile time alongside v2 patches:</p>
+<ul>
+<li><strong>XPath Queries:</strong> Verifies whether XPath expressions match existing elements in base game prefabs.</li>
+<li><strong>Attributes:</strong> Checks whether attributes set by <code>PrefabExtensionSetAttributePatch</code> are valid for the target widget.</li>
+<li><strong>Inserted XML:</strong> Parses and checks XML passed as string literals to <code>XmlDocument.LoadXml(...)</code>, as well as files referenced by <code>ModulePrefabExtensionInsertPatch</code> and <code>EmbedPrefabExtensionInsertPatch</code>.</li>
+<li><strong>Prefab Linking:</strong> Validates a patch's XML against the ViewModel and mixins linked via <a href="../v2/PrefabLink.html"><code>[assembly: PrefabLink]</code></a>.</li>
+</ul>
+<hr>
+<h2 id="migrating-from-v1-to-v2">Migrating from v1 to v2</h2>
+<p>The v2 API simplifies and consolidates the patch types while providing more granular control over XML placement.</p>
+<h3 id="feature-comparison">Feature Comparison</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">v1 Approach</th>
+<th style="text-align: left;">v2 Modern Equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Insert as Child</strong></td>
+<td style="text-align: left;"><code>PrefabExtensionInsertPatch</code> (places node <em>after</em> child index)</td>
+<td style="text-align: left;"><a href="../v2/PrefabExtensionInsertPatch.html"><code>PrefabExtensionInsertPatch</code></a> with <code>InsertType.Child</code> and 0-based <code>Index</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Insert at Beginning (Index 0)</strong></td>
+<td style="text-align: left;">❌ Not supported if children exist</td>
+<td style="text-align: left;">✅ Supported (<code>InsertType.Child</code> with <code>Index = 0</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Insert as Sibling</strong></td>
+<td style="text-align: left;"><code>PrefabExtensionInsertAsSiblingPatch</code> (<code>Append</code> / <code>Prepend</code>)</td>
+<td style="text-align: left;"><code>PrefabExtensionInsertPatch</code> with <code>InsertType.Append</code> or <code>InsertType.Prepend</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Replace Node</strong></td>
+<td style="text-align: left;"><code>PrefabExtensionReplacePatch</code></td>
+<td style="text-align: left;"><code>PrefabExtensionInsertPatch</code> with <code>InsertType.Replace</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Replace While Keeping Children</strong></td>
+<td style="text-align: left;">❌ Not supported</td>
+<td style="text-align: left;">✅ <code>PrefabExtensionInsertPatch</code> with <code>InsertType.ReplaceKeepChildren</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Remove Node</strong></td>
+<td style="text-align: left;">❌ Not supported</td>
+<td style="text-align: left;">✅ <code>PrefabExtensionInsertPatch</code> with <code>InsertType.Remove</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Set Multiple Attributes</strong></td>
+<td style="text-align: left;">Requires multiple patch classes</td>
+<td style="text-align: left;">✅ Single <a href="../v2/PrefabExtensionSetAttributePatch.html"><code>PrefabExtensionSetAttributePatch</code></a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Load External File</strong></td>
+<td style="text-align: left;"><code>ModulePrefabExtensionInsertPatch</code></td>
+<td style="text-align: left;"><code>[PrefabExtensionFileName]</code> attribute on a patch member</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Load Resource Stream</strong></td>
+<td style="text-align: left;"><code>EmbedPrefabExtensionInsertPatch</code></td>
+<td style="text-align: left;"><code>[PrefabExtensionText]</code> attribute reading manifest stream</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Direct XML Code Manipulation</strong></td>
+<td style="text-align: left;"><code>CustomPatch&lt;T&gt;</code></td>
+<td style="text-align: left;">Keep using <code>CustomPatch&lt;T&gt;</code> (fully supported)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="migration-example-insert-patch">Migration Example: Insert Patch</h3>
+<h4 id="in-v1-legacy">In v1 (Legacy):</h4>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::ListPanel/Children&quot;)]
+internal class OldInsertPatch : PrefabExtensionInsertPatch
+{
+    public override string Id =&gt; &quot;OldInsertPatch&quot;;
+    public override int Position =&gt; 2; // Inserts after child 2 -&gt; index 3
+    private XmlDocument Doc { get; } = new();
+
+    public OldInsertPatch() =&gt; Doc.LoadXml(&quot;&lt;OptionsTabToggle Id=\&quot;Custom\&quot; /&gt;&quot;);
+    public override XmlDocument GetPrefabExtension() =&gt; Doc;
+}
+</code></pre>
+<h4 id="in-v2-modern">In v2 (Modern):</h4>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::ListPanel/Children&quot;)]
+internal class NewInsertPatch : PrefabExtensionInsertPatch
+{
+    // Explicit placement type and exact 0-based target index
+    public override InsertType Type =&gt; InsertType.Child;
+    public override int Index =&gt; 3;
+
+    // Direct string or XML property; no manual XmlDocument boilerplate required
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;OptionsTabToggle Id=\&quot;Custom\&quot; /&gt;&quot;;
+}
+</code></pre>
+<p>For more details on the modern API, see the <a href="../v2/Overview.html">v2 API Overview</a> and <a href="../v2/PrefabExtensionInsertPatch.html">v2 Prefab Extension Insert Patch Guide</a>.</p>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v1/Overview.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

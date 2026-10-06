@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interacting with Other Mods | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interacting with Other Mods | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/general/InteractingWithOtherMods.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="interacting-with-other-mods">Interacting with Other Mods</h1>
+
+<p>In a modded Bannerlord setup, multiple mods often extend the same Gauntlet UI screens. Occasionally, you may need to coordinate with or modify another mod's UI extensions—for instance, to resolve visual conflicts, build a compatibility bridge, or replace another mod's widget with your own customized implementation.</p>
+<p>UIExtenderEx provides built-in discovery and control APIs that allow you to locate another mod's <code>UIExtender</code> instance and programmatically toggle or deregister its patches and mixins.</p>
+<hr>
+<h2 id="locating-another-mods-extender">Locating Another Mod's Extender</h2>
+<p>You can retrieve another mod's extender instance using <code>UIExtender.GetUIExtenderFor(string moduleName)</code>.</p>
+<ul>
+<li><strong>Module Name:</strong> The string passed to this method must match the identifier the target mod used when calling <code>UIExtender.Create(&quot;TargetId&quot;)</code>.</li>
+<li><strong>Registration Requirement:</strong> <code>GetUIExtenderFor</code> returns the <code>UIExtender</code> instance only after the target mod has called its <code>Register()</code> method. If the target mod has not been loaded or has not yet registered its assembly, the method returns <code>null</code>.</li>
+</ul>
+<p>Always use null checks (or C# pattern matching) before interacting with the retrieved instance:</p>
+<pre><code class="lang-csharp">if (UIExtender.GetUIExtenderFor(&quot;TargetModId&quot;) is { } targetExtender)
+{
+    // Interact with targetExtender
+}
+</code></pre>
+<hr>
+<h2 id="controlling-patches-and-mixins">Controlling Patches and Mixins</h2>
+<p>Once you have a reference to another mod's <code>UIExtender</code>, you can modify its behavior at two levels: the entire extender, or individual patch and mixin types.</p>
+<h3 id="1-controlling-individual-patches-or-mixins">1. Controlling Individual Patches or Mixins</h3>
+<p>Often, you only want to disable a single conflicting button or mixin property without turning off the rest of the other mod's features. You can enable or disable specific types using their <code>System.Type</code>:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx;
+using HarmonyLib;
+
+// Locate the target mod's extender (e.g., Mod Configuration Menu)
+if (UIExtender.GetUIExtenderFor(&quot;MCM.UI&quot;) is { } mcmExtender)
+{
+    // Resolve the patch or mixin type (using AccessTools for soft dependencies)
+    var conflictingPrefabPatch = AccessTools.TypeByName(&quot;MCM.UI.UIExtenderEx.OptionsPrefabExtension1&quot;);
+    if (conflictingPrefabPatch is not null)
+    {
+        // Disable only this specific prefab patch
+        mcmExtender.Disable(conflictingPrefabPatch);
+    }
+
+    var conflictingMixin = AccessTools.TypeByName(&quot;MCM.UI.UIExtenderEx.OptionsVMMixin&quot;);
+    if (conflictingMixin is not null)
+    {
+        // Disable only this specific ViewModel mixin
+        mcmExtender.Disable(conflictingMixin);
+    }
+}
+</code></pre>
+<p>If you later need to restore the extension, you can re-enable it:</p>
+<pre><code class="lang-csharp">mcmExtender.Enable(conflictingPrefabPatch);
+</code></pre>
+<div class="TIP">
+<h5>Tip</h5>
+<p>If your mod has a direct assembly reference (hard dependency) to the target mod, you can pass <code>typeof(ConflictingPatchType)</code> directly instead of resolving it by name with <code>AccessTools.TypeByName</code>.</p>
+</div>
+<h3 id="2-controlling-the-entire-extender">2. Controlling the Entire Extender</h3>
+<p>If you need to disable or enable all patches and mixins belonging to a mod at once:</p>
+<pre><code class="lang-csharp">// Temporarily disable all patches and mixins registered by the mod
+mcmExtender.Disable();
+
+// Re-enable all patches and mixins registered by the mod
+mcmExtender.Enable();
+</code></pre>
+<h3 id="3-permanently-deregistering-an-extender">3. Permanently Deregistering an Extender</h3>
+<p>If you want to completely unload another mod's extensions with no possibility of re-enabling them during the session:</p>
+<pre><code class="lang-csharp">// Unregisters the runtime and removes the extender completely
+mcmExtender.Deregister();
+</code></pre>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>Calling <code>Deregister()</code> completely removes the extender from the runtime lookup table and cleans up its internal resources. You cannot re-enable a deregistered extender with <code>Enable()</code>. Use <code>Disable()</code> instead if the extension might need to be re-activated later.</p>
+</div>
+<hr>
+<h2 id="lifecycle-and-execution-timing">Lifecycle and Execution Timing</h2>
+<p>When altering another mod's extensions, timing and load order are critical.</p>
+<h3 id="submodule-initialization-order">SubModule Initialization Order</h3>
+<ol>
+<li><strong>Dependency Configuration:</strong> Ensure your mod loads <em>after</em> the target mod. Declare the target mod in your <code>SubModule.xml</code> under <code>&lt;DependedModules&gt;</code> or configure the target mod under <code>&lt;ModulesToLoadAfterThis&gt;</code>.</li>
+<li><strong>Execution Hook:</strong>
+<ul>
+<li>Most mods initialize and register their extender inside <code>MBSubModuleBase.OnSubModuleLoad()</code>. In this standard case, you can place your override logic in your own <code>OnSubModuleLoad()</code>.</li>
+<li>Some mods (such as MCM) defer registration to <code>OnBeforeInitialModuleScreenSetAsRoot()</code>. If the target mod registers there, execute your compatibility overrides in your own <code>OnBeforeInitialModuleScreenSetAsRoot()</code> method after the base call.</li>
+</ul>
+</li>
+</ol>
+<h3 id="runtime-impact-and-screen-refresh">Runtime Impact and Screen Refresh</h3>
+<ul>
+<li><strong>Open Screens:</strong> Gauntlet builds its widget hierarchy when a screen or movie is loaded. If a screen is already open, altering its patches will not modify the live widgets currently displayed. The changes take effect the next time that screen or movie opens.</li>
+<li><strong>Compiled Prefabs and Cache Invalidation:</strong> When you call <code>Disable()</code>, <code>Enable()</code>, or <code>Deregister()</code>, UIExtenderEx invalidates the cached prefab templates and updates the active fingerprint for affected compiled movies. The next time the movie opens, Gauntlet will load the updated XML or recompile a new variant reflecting the active patches. See <a href="CompiledPrefabs.html#enabling-disabling-and-deregistering">Enabling, disabling and deregistering</a> for technical details on cache invalidation.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/general/InteractingWithOtherMods.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

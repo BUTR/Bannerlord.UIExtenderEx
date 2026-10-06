@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Core Architecture: Prefab Patching | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Core Architecture: Prefab Patching | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/runtime/PrefabPatching.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="core-architecture-prefab-patching">Core Architecture: Prefab Patching</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+For authoring prefab patches as a mod developer, see the <a href="../v2/Overview.html">APIv2 Documentation</a>.</p>
+</div>
+<p>UIExtenderEx's prefab patching engine intercepts and modifies Gauntlet UI prefab XML documents before they are parsed into widget trees. Because every prefab runtime—whether the native XML loader, the game's pristine pre-compiled prefabs, or UIExtenderEx's Roslyn-compiled prefabs—derives its structure and fingerprint from this patched XML, modifications remain identical regardless of which runtime serves the movie.</p>
+<hr>
+<p><a id="registration"></a></p>
+<h2 id="registration">Registration</h2>
+<p>During module registration, <code>UIExtenderRuntime.Register</code> inspects types decorated with <code>[PrefabExtension]</code> attributes. It instantiates each patch class via its public parameterless constructor and passes it to the corresponding <code>PrefabComponent.RegisterPatch</code> overload.</p>
+<p>Each overload encapsulates the patch execution into an <code>Action&lt;XmlDocument&gt;</code> and records it as a <code>PrefabPatch(Type, Patcher)</code> entry inside <code>MoviePatches[movieName]</code>, initially in a <strong>disabled</strong> state.</p>
+<h3 id="supported-patch-types">Supported Patch Types</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Patch Class</th>
+<th style="text-align: left;">Target Selection</th>
+<th style="text-align: left;">Operation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Prefabs2.PrefabExtensionInsertPatch</code></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Injects nodes according to <code>InsertType</code> (<code>Child</code>, <code>Prepend</code>, <code>Append</code>, <code>ReplaceKeepChildren</code>, <code>Replace</code>), or deletes the target node (<code>Remove</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs2.PrefabExtensionSetAttributePatch</code></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Sets or replaces XML attributes on the target element. It cannot remove one.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs.PrefabExtensionInsertPatch</code> <em>(v1 Obsolete)</em></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Inserts content at a specified child index (<code>Position</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs.PrefabExtensionReplacePatch</code> <em>(v1)</em></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Replaces the selected node and its children with new content.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs.PrefabExtensionInsertAsSiblingPatch</code> <em>(v1)</em></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Inserts content as an adjacent sibling (<code>Append</code> or <code>Prepend</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs.PrefabExtensionSetAttributePatch</code> <em>(v1)</em></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Sets a single XML attribute on the target node.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs.CustomPatch&lt;XmlNode&gt;</code></td>
+<td style="text-align: left;">Node selected by XPath</td>
+<td style="text-align: left;">Invokes custom callback <code>Apply(XmlNode)</code> on the selected element.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prefabs.CustomPatch&lt;XmlDocument&gt;</code></td>
+<td style="text-align: left;">Whole XML document</td>
+<td style="text-align: left;">Invokes custom callback <code>Apply(XmlDocument)</code>; XPath selector is ignored.</td>
+</tr>
+</tbody>
+</table>
+<p>To maintain unified internal behavior, legacy v1 patches are automatically translated into v2 node placements (<code>PlaceNodes</code>). Both APIs share the same underlying execution pipeline.</p>
+<h3 id="xpath-evaluation-and-xml-sanitization">XPath Evaluation and XML Sanitization</h3>
+<ul>
+<li><strong>Target Node Resolution:</strong>
+XPath expressions are evaluated against the document using <code>SelectSingleNode</code>. Only the first matching node is modified. If no matching node is found, UIExtenderEx logs a trace diagnostic, displays an in-game notification (&quot;Failed to apply extension to <code>&lt;movie&gt;</code>: node at <code>&lt;xpath&gt;</code> not found&quot;), and skips the patch without crashing the game.</li>
+<li><strong>Automatic XML Comment Removal:</strong>
+Gauntlet UI's native XML parser crashes if injected XML fragments contain XML comment nodes (<code>&lt;!-- ... --&gt;</code>). UIExtenderEx's insertion pipeline recursively strips all comment nodes before appending content to the active document.</li>
+<li><strong>Structural Integrity Validation:</strong>
+Operations that break XML document validity—such as attempting to remove the document root element or inserting multiple root elements into a document—are caught and routed through <code>MessageUtils.Fail</code>.</li>
+<li><strong>Target Movie Keys:</strong>
+The <code>movie</code> parameter refers to the <strong>prefab name</strong> (the XML filename without its <code>.xml</code> extension). Consequently, a patch targeting a prefab applies wherever that prefab is parsed—whether as a top-level movie or as an inlined nested prefab embedded inside another movie.</li>
+</ul>
+<hr>
+<h2 id="patch-execution-pipeline">Patch Execution Pipeline</h2>
+<p>The prefab patching pipeline intercepts Gauntlet UI movie loading and injects XML transformations seamlessly:</p>
+<pre><code class="lang-mermaid">sequenceDiagram
+    autonumber
+    participant Game as GauntletMovie.Load
+    participant Switch as GauntletMoviePatch
+    participant Runtimes as IPrefabRuntime(s)
+    participant WF as WidgetFactory
+    participant LF as WidgetPrefab.LoadFrom
+    participant PM as WidgetPrefabPatch.ProcessMovie
+    participant PC as PrefabComponent (per module)
+    participant Src as PrefabSource
+
+    Game-&gt;&gt;Switch: LoadPrefix(movieName, dataSource, ref doNotUseGeneratedPrefabs)
+    loop For each registered runtime (until claimed)
+        Switch-&gt;&gt;Runtimes: TryServe(...)
+    end
+
+    alt Claimed by a Prefab Runtime
+        Switch--&gt;&gt;Game: Pre-compiled C# variant instantiated (XML parsing bypassed)
+    else Not Claimed (XML Fallback)
+        Switch--&gt;&gt;Game: doNotUseGeneratedPrefabs = true
+        Game-&gt;&gt;WF: GetCustomType(name)
+        alt Registered Runtime Prefab (WidgetFactoryManager)
+            WF--&gt;&gt;Game: Return mod's custom prefab
+        else Cached Copy Live
+            WF--&gt;&gt;Game: Return shared parsed WidgetPrefab
+        else Uncached (First Load)
+            WF-&gt;&gt;LF: LoadFrom(path)
+            LF-&gt;&gt;LF: Read XML from disk into XmlDocument, instantiate new WidgetPrefab()
+            LF-&gt;&gt;PM: ProcessMovie(prefab, path, document)
+            loop For each UIExtenderRuntime (in registration order)
+                PM-&gt;&gt;PC: ProcessMovieIfNeeded(name, document)
+                Note over PC: Apply enabled patches in order&lt;br/&gt;Write DumpXML if configured
+            end
+            PM-&gt;&gt;Src: RaiseParsed(prefab, name, document)
+            LF-&gt;&gt;LF: Parse patched XmlDocument into Gauntlet widgets
+            LF--&gt;&gt;WF: Return finished WidgetPrefab
+        end
+    end
+</code></pre>
+<h3 id="detailed-pipeline-stages">Detailed Pipeline Stages</h3>
+<ol>
+<li><strong>Movie Load Interception (<code>GauntletMoviePatch</code>):</strong>
+<code>GauntletMoviePatch.LoadPrefix</code> evaluates whether a pre-compiled variant may be served. The <code>GamePrefabRuntime</code> claims a movie only if no mod patches, overrides, or custom registrations touch any prefab in its dependency tree. The <code>CompiledPrefabRuntime</code> claims a movie only if a cached assembly matching the current patched XML fingerprint exists. If neither claims it, <code>doNotUseGeneratedPrefabs</code> is set to <code>true</code>, forcing the engine through the XML loader.</li>
+<li><strong><code>LoadFrom</code> Transpiler Hook (<code>WidgetPrefabPatch</code>):</strong>
+When <code>WidgetPrefab.LoadFrom</code> executes, a Harmony transpiler locates the <code>newobj WidgetPrefab</code> instruction following file reading and inserts a call to <code>ProcessMovie(prefab, path, document)</code>. The XML document and path parameters are discovered dynamically by type.</li>
+<li><strong>Patch Execution (<code>ProcessMovieIfNeeded</code>):</strong>
+<code>ProcessMovie</code> iterates across all live runtimes (<code>UIExtender.GetAllRuntimes()</code>) in registration order. If a module contains enabled patches for the prefab, they are executed sequentially. Because runtimes are processed in registration order, later mods observe and build upon modifications made by earlier mods.</li>
+<li><strong>Diagnostic XML Dumps:</strong>
+If the <code>DumpXML</code> configuration flag is enabled, the fully patched <code>XmlDocument</code> is written to <code>&lt;UIExtenderEx Module&gt;/Dumps/&lt;movie&gt;_&lt;moduleName&gt;.xml</code> for troubleshooting and inspection.</li>
+<li><strong>Publication (<code>PrefabSource.Parsed</code>):</strong>
+Once all patches are applied, <code>PrefabSource.RaiseParsed</code> is emitted for every parsed prefab (whether patched or untouched). <code>CompiledPrefabRuntime</code> listens to this event to record and hash each prefab's XML in <code>PrefabXmlRegistry</code>, while <code>PrefabXmlDump</code> writes the XML to disk if the <code>UIEXTENDEREX_DUMP_PREFABS</code> environment variable is set. Neither subscriber triggers compilation; code generation begins only when a movie load cannot find a matching cached build (see <a href="../compiled-prefabs/Pipeline.html#4-execution-flow-of-tryusecompiledprefab">Pipeline</a>).</li>
+<li><strong>Engine Parsing:</strong>
+The game engine parses the now-modified <code>XmlDocument</code> into its internal widget tree.</li>
+</ol>
+<h3 id="shared-templates-and-cache-eviction">Shared Templates and Cache Eviction</h3>
+<p><code>WidgetFactory</code> caches parsed <code>WidgetPrefab</code> templates in <code>_liveCustomTypes</code> and <code>_liveInstanceTracker</code>, sharing them across all active movies that reference them. Critical UI elements (such as tooltips and standard headers) are retained in memory indefinitely.</p>
+<p>To ensure newly enabled or disabled patches take effect, <code>UIExtender.Enable()</code>, <code>Disable()</code>, and <code>Deregister()</code> invoke <code>WidgetFactoryManager.ReloadOnNextUse(movieNames)</code>. This method:</p>
+<ul>
+<li>Evicts the specified prefab names from the factory's live template caches and UIExtenderEx's tracking tables.</li>
+<li>Fires <code>PrefabSource.ReloadRequested</code> so the compiled runtime can invalidate stale builds.</li>
+<li>Forces the next UI movie referencing the prefab to re-execute <code>LoadFrom</code> and re-apply active patches.</li>
+<li>Leaves already-rendered screens undisturbed.</li>
+</ul>
+<hr>
+<h2 id="runtime-registrations-prefabs-widgets-and-brushes">Runtime Registrations: Prefabs, Widgets, and Brushes</h2>
+<p>Mods can introduce UI resources dynamically in memory without placing XML files on disk via <code>WidgetFactoryManager</code> and <code>BrushFactoryManager</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">API</th>
+<th style="text-align: left;">Mechanism &amp; Architecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>WidgetFactoryManager.Register(name, Func&lt;WidgetPrefab?&gt;)</code><br><code>CreateAndRegister(name, XmlDocument)</code></td>
+<td style="text-align: left;"><strong>Dynamic Prefabs:</strong> Hooks <code>WidgetFactory.IsCustomType</code> and <code>GetCustomType</code> via Harmony prefixes to serve custom prefabs, overriding any game prefab of the same name. Manages reference counting and lifecycle cleanup through an <code>OnUnload</code> hook. Registration clears existing factory copies and raises <code>PrefabSource.Registered</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WidgetFactoryManager.Create(name, XmlDocument)</code></td>
+<td style="text-align: left;"><strong>In-Memory Prefab Creation:</strong> Constructs a <code>WidgetPrefab</code> directly from an <code>XmlDocument</code> via <code>LoadFromDocument</code>. This uses a Harmony reverse patch that replaces file I/O with in-memory document assignment. Because reverse patches bypass the transpiler hook, <code>LoadFromDocument</code> clones the document, applies enabled patches directly, and raises <code>PrefabSource.Parsed</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WidgetFactoryManager.Register(Type widgetType)</code></td>
+<td style="text-align: left;"><strong>Custom C# Widget Classes:</strong> Injects custom widget classes into Gauntlet UI. Hooks <code>WidgetFactory.CreateBuiltinWidget</code> to construct the widget via its <code>(UIContext)</code> constructor, adds the type to <code>WidgetInfoTable</code>, and includes it in <code>GetWidgetTypes</code>. Raises <code>PrefabSource.EnvironmentChanged</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>BrushFactoryManager.Register</code><br><code>CreateAndRegister</code></td>
+<td style="text-align: left;"><strong>Custom Brushes:</strong> Injects mod brushes directly into each <code>BrushFactory._brushes</code> internal dictionary upon factory instantiation and after <code>LoadBrushes</code> reloads. Native game brushes with conflicting names take precedence.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resolving-jit-inlining-conflicts">Resolving JIT Inlining Conflicts</h3>
+<p>In the .NET runtime, small methods such as <code>BrushFactory.GetBrush</code>, <code>WidgetFactory.IsCustomType</code>, and <code>WidgetFactory.OnUnload</code> are frequently inlined by the JIT compiler into calling methods compiled prior to mod initialization (e.g. <code>WidgetTemplate.CreateWidgets</code>, <code>WidgetTemplate.OnRelease</code>, and <code>GauntletMovie.Release</code>). If inlined, standard Harmony prefixes on those methods would never be reached.</p>
+<p>UIExtenderEx overcomes this through two distinct strategies:</p>
+<ul>
+<li><strong>Direct Table Injection for Brushes:</strong> Rather than patching lookup methods, brushes are inserted directly into <code>BrushFactory._brushes</code>. Inlined reads retrieve the mod's brushes seamlessly from the dictionary.</li>
+<li><strong>De-inlining via Transpilers for Widgets:</strong> <code>WidgetFactoryManager</code> applies an empty Harmony transpiler to caller methods (<code>WidgetTemplate.CreateWidgets</code>, <code>WidgetTemplate.OnRelease</code>, <code>GauntletMovie.Release</code>). Under Harmony, applying a patch causes the target method to be re-compiled by the JIT with <code>MethodImplOptions.NoInlining</code> enforced, guaranteeing that the prefix hooks on <code>IsCustomType</code> and <code>OnUnload</code> are executed. Automated unit tests (<code>PatchInliningTests</code>) verify that all caller methods remain tracked.</li>
+</ul>
+<hr>
+<h2 id="engine-xml-loader-fixes">Engine XML Loader Fixes</h2>
+<p>UIExtenderEx applies targeted engine patches to resolve native TaleWorlds Gauntlet UI bugs and limitations:</p>
+<ul>
+<li><strong>Invariant Culture Parsing (<code>ParsePatch</code>):</strong>
+TaleWorlds' native <code>ConstantDefinition.GetValue</code> parses numeric constants using the current thread culture. On systems configured with comma decimal separators (e.g. European locales), decimal values such as <code>1.5</code> failed to parse or produced corrupt layout coordinates. <code>ParsePatch</code> transpiles the parsing call to force <code>CultureInfo.InvariantCulture</code>.</li>
+<li><strong>Dotted Attribute Paths (<code>WidgetExtensionsPatch</code> in <code>XmlPrefabs</code>):</strong>
+Bannerlord's XML parser natively supported attribute property paths up to two segments deep. <code>WidgetExtensionsPatch</code> extends this to arbitrary depths, allowing nested widget attribute paths like <code>Brush.Font.CustomScale</code> to resolve. (Note that these refer strictly to widget properties, not ViewModel paths.) The runtime publishes this capability via <code>PrefabRuntimes.DottedAttributePathsResolve</code>.</li>
+<li><strong>Template Child Allocation Leak (<code>WidgetTemplatePatch</code> in <code>XmlPrefabs</code>):</strong>
+In native Gauntlet UI, instantiating a custom widget template repeatedly appended child elements to <code>_customTypeChildren</code> without deduplication. On widget release, the engine traversed this list, resulting in quadratic overhead and memory leaks. <code>WidgetTemplatePatch</code> prevents duplicate registrations.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/runtime/PrefabPatching.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Core Architecture: ViewModel Patching | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Core Architecture: ViewModel Patching | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/runtime/ViewModelPatching.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="core-architecture-viewmodel-patching">Core Architecture: ViewModel Patching</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+For guides on writing mixins as a mod author, see <a href="../v2/ViewModelMixin.html">ViewModel Mixin</a> and <a href="../v3/Mixins.html">Mixin Hooks</a>.</p>
+</div>
+<p>A ViewModel mixin is an object attached dynamically to each instance of a target Gauntlet UI <code>ViewModel</code>. Its properties (<code>[DataSourceProperty]</code>) and methods (<code>[DataSourceMethod]</code>) are registered into that instance's runtime binding table, allowing Gauntlet UI prefab movies to bind to mixin properties and commands as if they were natively declared on the ViewModel.</p>
+<p>Mixins are instantiated at the conclusion of the ViewModel's constructor, refreshed following its refresh method, and finalized when the ViewModel is destroyed.</p>
+<hr>
+<h2 id="registration">Registration</h2>
+<p>When an extension assembly is registered, <code>ViewModelComponent.RegisterViewModelMixin(mixinType, refreshMethodName, handleDerived)</code> processes each declared mixin through the following stages:</p>
+<ol>
+<li><strong>Target ViewModel Resolution:</strong>
+Resolves the target ViewModel type from the type argument of <code>BaseViewModelMixin&lt;TViewModel&gt;</code> in the mixin's inheritance hierarchy. For mixins implementing <code>IViewModelMixin</code> directly, it falls back to a heuristic: it traverses the base-class hierarchy and takes the first generic type argument of the first generic class that implements <code>IViewModelMixin</code>.</li>
+<li><strong>Abstract Target Validation:</strong>
+Because mixins attach strictly to concrete instances at runtime and abstract classes cannot be instantiated, registering a mixin targeting an abstract type without <code>handleDerived = true</code> is rejected. A diagnostic warning is logged to the trace output.</li>
+<li><strong>Inheritance Expansion (<code>handleDerived</code>):</strong>
+When <code>handleDerived</code> is enabled, UIExtenderEx queries <code>AccessTools2.AllTypes()</code> for all loaded types assignable to the target type. Each derived concrete type is registered as an independent target. <em>(Note: This discovery occurs at registration time; ViewModel classes loaded by assemblies dynamically at a later point are not automatically discovered).</em></li>
+<li><strong>Collision Detection &amp; Reporting:</strong>
+Member collisions are analyzed and reported to the trace log:
+<ul>
+<li>If a mixin declares a member with the same name as a member on the target ViewModel, the mixin's member takes precedence for prefab bindings and UI commands, while game C# code continues to access the ViewModel's member directly.</li>
+<li>If multiple mixins target the same ViewModel and define conflicting member names, the mixin registered latest wins.</li>
+</ul>
+</li>
+<li><strong>Method Override Registration:</strong>
+Discovers and registers any <code>[BUTRViewModelOverride]</code> methods declared on the mixin (see <a href="#method-overrides">Method Overrides</a>).</li>
+<li><strong>Patch Application &amp; State Recording:</strong>
+Records the mixin type in <code>Mixins[target]</code> in a <strong>disabled</strong> state, and calls <code>ViewModelWithMixinPatch.Patch(target, refreshMethodName)</code>.</li>
+</ol>
+<h3 id="why-mixin-members-are-flat">Why mixin members are flat</h3>
+<p>Mixin members are merged directly into the target ViewModel's root binding table. While two mods can collide on a property name, or a mixin member can collide with an existing ViewModel member, registration detects and reports these collisions rather than forbidding them. An alternative scoped model—where each mixin is mounted as an independent child ViewModel (e.g. <code>DataSource=&quot;{MyMixin}&quot;</code>)—would eliminate collisions, but was evaluated and rejected for 3.0 for several key reasons:</p>
+<ul>
+<li><strong>Incompatibility with vanilla widget property binding:</strong> <code>GauntletView.BindData</code> resolves <code>path.LastNode</code> against the widget's immediate ViewModel. Consequently, binding <code>@MyMixin\IsVisible</code> on a vanilla widget actually looks up <code>IsVisible</code> on the parent host. Only commands traverse the full path (<code>GauntletView.OnCommand</code> walks <code>Path.ParentPath</code>). In a 2026-09 survey of 125 distinct mixins on GitHub, multiple mods bind mixin properties directly onto vanilla widgets (most commonly a panel's <code>IsVisible</code>).</li>
+<li><strong>Host-level notification dispatch:</strong> Many existing mixins raise change notifications directly through the host ViewModel via <code>ViewModel.OnPropertyChanged(...)</code>. Isolating mixins into child scopes would cause these notifications to silently fail without raising an error.</li>
+<li><strong>Migration and cross-mod coordination overhead:</strong> Mods sharing common prefabs (such as Diplomacy's war and truce items) would be forced to coordinate on a shared scope name that does not collide with vanilla properties (<code>KingdomManagementVM</code> already defines a <code>Diplomacy</code> property). Mod authors would be required to rewrite every XML prefab block referencing mixin properties.</li>
+<li><strong>Collisions in practice are rare and actionable:</strong> Real-world collisions almost exclusively stemmed from code duplicated between forks of the same mod. Because all member names are registered upfront, UIExtenderEx can emit diagnostic warnings that identify both conflicting mods. Authors requiring isolation can already expose a nested child ViewModel from a flat mixin (as MCM does with <code>ModOptions</code>).</li>
+</ul>
+<p>Scoped mixin binding can still be introduced in the future as an opt-in mechanism without disrupting flat mixins.</p>
+<hr>
+<h2 id="what-is-patched">What is Patched</h2>
+<p><code>ViewModelWithMixinPatch.Patch</code> applies Harmony transpilers to ensure the lifecycle hooks fire reliably. Each target ViewModel type is patched once, and each unique <code>(type, refreshMethodName)</code> pair is patched once:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method Target</th>
+<th style="text-align: left;">Resolution Target</th>
+<th style="text-align: left;">Injected Hook</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>All Constructors</strong></td>
+<td style="text-align: left;">Every constructor declared directly on the target type</td>
+<td style="text-align: left;"><code>Constructor</code> hook</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>OnFinalize</code></strong></td>
+<td style="text-align: left;">The specific override implementation resolved by the type (may be declared on a base class)</td>
+<td style="text-align: left;"><code>Finalize</code> hook</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Refresh Method</strong></td>
+<td style="text-align: left;">The method implementation designated by <code>[ViewModelMixin(&quot;...&quot;)]</code> (defaults to <code>RefreshValues</code> if unspecified)</td>
+<td style="text-align: left;"><code>Refresh</code> hook</td>
+</tr>
+</tbody>
+</table>
+<h3 id="transpiler-hook-injection">Transpiler Hook Injection</h3>
+<p>Each targeted method is transpiled to insert the following IL sequence immediately before every <code>ret</code> opcode:</p>
+<pre><code class="lang-text">ldarg.0           // Load 'this' (ViewModel instance)
+ldc.i4 &lt;index&gt;    // Load unique method index
+call &lt;HookMethod&gt; // Invoke Constructor, Refresh, or Finalize hook
+</code></pre>
+<p>This ensures the lifecycle hook executes on every return path at the very end of the method body. The method index <code>&lt;index&gt;</code> is uniquely assigned and preserved across re-patching.</p>
+<h3 id="the-iscallon-hierarchy-guard">The <code>IsCallOn</code> Hierarchy Guard</h3>
+<p>In object-oriented hierarchies, constructors call base constructors (<code>base()</code>), and virtual method overrides call base implementations (<code>base.OnFinalize()</code>). Without protection, a derived ViewModel instance would trigger lifecycle hooks multiple times—once for each level of the inheritance hierarchy. Worse, mixins would be instantiated before the derived constructor body had finished running.</p>
+<p>To solve this, every hook begins with an evaluation of <code>IsCallOn(viewModel, index)</code> (cached per <code>(RuntimeType, MethodIndex)</code>):</p>
+<ul>
+<li><strong>Constructors:</strong> The hook acts <strong>only</strong> if the declaring type of the patched constructor matches the runtime type of the instance (<code>patched.DeclaringType == viewModel.GetType()</code>). Base constructor executions on derived instances are ignored.</li>
+<li><strong>Virtual Methods (<code>OnFinalize</code> / Refresh):</strong> The hook acts <strong>only</strong> if the patched method is the <em>most-derived override</em> for that virtual method slot on the instance's type. Invocations of base implementations via <code>base.Method()</code> remain silent.</li>
+<li><strong>Non-Virtual Methods:</strong> Always execute.</li>
+</ul>
+<hr>
+<h2 id="lifecycle-hooks-and-execution-sequence">Lifecycle Hooks and Execution Sequence</h2>
+<p>When lifecycle events occur on a ViewModel, the injected hooks iterate across all active <code>UIExtenderRuntime</code> instances in module registration order.</p>
+<pre><code class="lang-mermaid">sequenceDiagram
+    autonumber
+    participant Game as Game Engine
+    participant VM as ViewModel Instance
+    participant Hook as ViewModelWithMixinPatch
+    participant VC as ViewModelComponent (per module)
+    participant Mixin as Mixin Instance
+
+    Note over Game, VM: 1. Construction Phase
+    Game-&gt;&gt;VM: new DerivedViewModel(...)
+    opt Constructor calls RefreshValues internally
+        VM-&gt;&gt;Hook: Refresh(vm, index)
+        Hook-&gt;&gt;VC: Query MixinInstanceCache
+        Note over VC: Not constructed yet: Defer refresh.&lt;br/&gt;Store method name in ConstructorRefreshCache
+    end
+    VM-&gt;&gt;Hook: Constructor(vm, index) at end of derived constructor
+    loop For each UIExtenderRuntime (in registration order)
+        Hook-&gt;&gt;VC: InitializeMixinsForVMInstance(vm)
+        VC-&gt;&gt;Mixin: Activator.CreateInstance(mixinType, vm) for each enabled mixin
+        VC-&gt;&gt;VM: BeginRegistration(): Batch inject properties &amp; commands into binding table
+        VC-&gt;&gt;Mixin: Subscribe() to property change notifications
+        opt Refresh was deferred during construction
+            Hook-&gt;&gt;Mixin: OnRefresh() for mixins matching the deferred method
+        end
+    end
+
+    Note over Game, VM: 2. Refresh Phase
+    Game-&gt;&gt;VM: RefreshValues()
+    VM-&gt;&gt;Hook: Refresh(vm, index)
+    loop For each runtime with mixins for this type
+        Hook-&gt;&gt;Mixin: OnRefresh() on matching mixins
+    end
+
+    Note over Game, VM: 3. Finalization Phase
+    Game-&gt;&gt;VM: OnFinalize()
+    VM-&gt;&gt;Hook: Finalize(vm, index)
+    loop For each runtime (active and retired)
+        Hook-&gt;&gt;Mixin: Unsubscribe()
+        Hook-&gt;&gt;Mixin: OnFinalize()
+    end
+</code></pre>
+<h3 id="detailed-hook-operations">Detailed Hook Operations</h3>
+<ol>
+<li><strong>Constructor Hook (<code>Constructor</code>):</strong>
+<ul>
+<li>Returns immediately if the module registers no mixins for this ViewModel type.</li>
+<li>If mixins are registered, it accesses <code>MixinInstanceCache</code> (a <code>ConditionalWeakTable&lt;ViewModel, List&lt;IViewModelMixin&gt;&gt;</code>).</li>
+<li>Instantiates each <strong>enabled</strong> mixin that has not yet been created for this instance, passing the <code>ViewModel</code> reference to the mixin's constructor.</li>
+<li>Batches all public properties (<code>[DataSourceProperty]</code>) and commands (<code>[DataSourceMethod]</code>) into the instance's isolated binding table.</li>
+<li>Invokes <code>Subscribe()</code> on all newly created mixins to enable event notifications. Because subscriptions occur <em>after</em> all mixins in the module are instantiated, notifications emitted during a mixin's constructor are never dispatched prematurely.</li>
+<li>Executes any refreshes that were deferred while the constructor was executing.</li>
+</ul>
+</li>
+<li><strong>Refresh Hook (<code>Refresh</code>):</strong>
+<ul>
+<li>Identifies the method name associated with the hook.</li>
+<li>If the instance does not yet possess an entry in <code>MixinInstanceCache</code>, the call originated from within the ViewModel's constructor. The method name is recorded in <code>MixinInstanceRefreshFromConstructorCache</code> to be executed once the constructor hook completes.</li>
+<li>If the mixin instance already exists, it verifies that the mixin's <code>RefreshMethodName</code> matches the hook, and executes <code>mixin.OnRefresh()</code>.</li>
+<li>This architecture guarantees the foundational invariant: <strong><code>OnRefresh</code> never executes before the mixin's constructor has completed</strong>.</li>
+</ul>
+</li>
+<li><strong>Finalize Hook (<code>Finalize</code>):</strong>
+<ul>
+<li>For every attached mixin, invokes <code>Unsubscribe()</code> to detach event handlers, followed by <code>OnFinalize()</code>.</li>
+<li>Executes across active runtimes as well as retired runtimes (<code>ViewModelComponent.Retired</code>), guaranteeing that mixins belonging to unloaded modules are cleanly disposed.</li>
+</ul>
+</li>
+</ol>
+<h3 id="isolated-copy-on-write-binding-tables">Isolated Copy-on-Write Binding Tables</h3>
+<p>Gauntlet UI natively maintains a single static reflection table per <code>ViewModel</code> type, shared across all instances. Directly mutating this shared table would corrupt state across threads and interfere with unextended instances.</p>
+<p>UIExtenderEx resolves this via copy-on-write isolation:</p>
+<ul>
+<li>The first time an extension member is registered on a <code>ViewModel</code> instance, <code>instance.BeginRegistration()</code> creates a dedicated, instance-specific clone of the binding table.</li>
+<li>All properties and commands from all mixins are added to the clone in a single batch.</li>
+<li>When the registration batch is disposed, the completed table is published atomically to the ViewModel instance.</li>
+<li>Extension members are registered as <code>WrappedPropertyInfo</code> and <code>WrappedMethodInfo</code>, delegating member access directly to the mixin instance.</li>
+<li>Read operations never observe half-constructed tables, and the cloning overhead is incurred once per instance rather than once per member.</li>
+</ul>
+<hr>
+<p><a id="method-overrides"></a></p>
+<h2 id="method-overrides">Method Overrides</h2>
+<p>A mixin method decorated with <code>[BUTRViewModelOverride(&quot;MethodName&quot;)]</code> intercepts and overrides a <code>void</code> instance method of the target ViewModel.</p>
+<h3 id="validation--signature-rules">Validation &amp; Signature Rules</h3>
+<p>During registration, <code>RegisterOverrides</code> verifies the method signature:</p>
+<ul>
+<li>The method must return <code>void</code>.</li>
+<li>It cannot declare <code>ref</code> or <code>out</code> parameters.</li>
+<li>Its final parameter must be a delegate whose signature matches the preceding parameters (representing the <code>original</code> method call).</li>
+</ul>
+<p>If validation fails, a diagnostic error is logged to the trace output, the override is skipped, and the remainder of the mixin registers normally.</p>
+<h3 id="the-invocation-pipeline-viewmodeloverridepatch">The Invocation Pipeline (<code>ViewModelOverridePatch</code>)</h3>
+<p>A single Harmony prefix on the target ViewModel method manages the override execution chain:</p>
+<ol>
+<li><strong>Chain Collection:</strong>
+When the target method is called, the prefix queries all active runtimes for enabled overrides registered for this method on the calling instance. If no overrides are active, the original method body executes unaltered.</li>
+<li><strong>Delegation Chain (<code>Continuation</code>):</strong>
+The prefix initiates a recursive <code>Continuation</code> chain. It invokes the first override, passing an <code>original</code> delegate pointing to the next override in the chain.</li>
+<li><strong>Base Method Execution via Pass-Through:</strong>
+When the final override in the chain invokes its <code>original</code> delegate, the pipeline must execute the original method body without re-triggering the prefix. It sets a thread-static marker (<code>_passThrough = (instance, method)</code>) and invokes the method again. The prefix detects the pass-through token, clears it, and returns <code>true</code>, allowing the original engine method to execute cleanly.</li>
+<li><strong>Dynamic Cutoff:</strong>
+Because override enablement is evaluated dynamically on every method call, calling <code>UIExtender.Disable()</code> immediately halts override execution—even on ViewModels instantiated before disabling.</li>
+</ol>
+<hr>
+<h2 id="accessor-stubs-unsafeaccessorpatch">Accessor Stubs (<code>UnsafeAccessorPatch</code>)</h2>
+<p><code>[BUTRUnsafeAccessor]</code> designates static stub methods whose bodies are rewritten at runtime to access inaccessible (private, protected, or internal) fields and methods of engine classes.</p>
+<p>During assembly registration, <code>UnsafeAccessorPatch.Register</code> inspects all loadable types in the module:</p>
+<ul>
+<li><strong>Target Resolution:</strong>
+<ul>
+<li>For instance members, the target class is inferred from the type of the stub's first parameter (the instance reference), traversing base types upward.</li>
+<li>For static members, the target class is specified by the attribute.</li>
+<li>Field accessors must return a managed reference (<code>ref TField</code>).</li>
+</ul>
+</li>
+<li><strong>IL Transpilation:</strong>
+The stub's throwing placeholder body is replaced via a Harmony transpiler with direct opcode instructions: <code>call</code>, <code>callvirt</code>, <code>ldflda</code>, or <code>ldsflda</code>.</li>
+<li><strong>Visibility Check Suppression:</strong>
+Harmony generates the replacement method using dynamic method handles configured to skip visibility checks. This allows direct, high-performance member access without reflection invocation overhead.</li>
+<li><strong>Inlining Warning:</strong>
+Stubs should be decorated with <code>[MethodImpl(MethodImplOptions.NoInlining)]</code>. If omitted, callers compiled prior to patch application might inline the throwing stub body, resulting in runtime exceptions.</li>
+</ul>
+<hr>
+<h2 id="external-mixin-access">External Mixin Access</h2>
+<p>Pluggable prefab runtimes and generated pre-compiled C# code require direct access to mixin instances from ViewModel references.</p>
+<ul>
+<li><strong><code>ViewModelMixins.Get&lt;TMixin&gt;(viewModel)</code>:</strong>
+Queries <code>MixinInstanceCache</code> across all active runtimes and returns the attached mixin instance of type <code>TMixin</code>, or <code>null</code> if none was attached. It does not check whether the mixin is currently enabled: a ViewModel instantiated while the mixin was enabled retains its mixin instance (and <code>Get</code> continues returning it) even after <code>Disable()</code> is called. <code>Get</code> only returns <code>null</code> for that ViewModel if the runtime is completely removed via <code>Deregister()</code>.</li>
+<li><strong><code>ViewModelMixins.Select&lt;TMixin, TValue&gt;(viewModel, selector)</code>:</strong>
+Retrieves the mixin and applies a selector function, returning <code>default</code> if the mixin is absent.</li>
+<li><strong><code>MixinSource.GetEnabledMixinTypes(viewModelType)</code>:</strong>
+Provides the ordered sequence of active mixin types registered for a given ViewModel type, allowing Roslyn code generators to resolve member bindings identical to Gauntlet UI's runtime behavior.</li>
+</ul>
+<hr>
+<p><a id="internal-viewmodel-types"></a></p>
+<h2 id="internal-viewmodel-types">Internal ViewModel Types</h2>
+<ul>
+<li><strong><code>ViewModelWrapper</code>:</strong>
+A wrapper class designed to proxy another ViewModel's member table. <code>ViewModelPatch</code>'s prefix on <code>ViewModel.ExecuteCommand</code> forwards UI command dispatches to the wrapped inner instance.</li>
+</ul>
+<hr>
+<h2 id="teardown-and-retired-mixin-finalization">Teardown and Retired Mixin Finalization</h2>
+<p>When a mod unloads and calls <code>UIExtender.Deregister()</code>:</p>
+<ol>
+<li>The module's <code>UIExtenderRuntime</code> is removed from <code>UIExtender.GetAllRuntimes()</code>.</li>
+<li>Mixin dictionaries, reflection caches, and override tables are cleared.</li>
+<li>Existing <code>ViewModel</code> instances already possessing attached mixins retain those mixin objects until garbage collected. While property refreshes and method overrides no longer execute, mixin event subscriptions and resources must be cleaned up when the ViewModel closes.</li>
+<li>To ensure <code>OnFinalize()</code> executes, the deregistered <code>ViewModelComponent</code> is appended to <code>ViewModelComponent.Retired</code>. The global <code>Finalize</code> hook queries both live runtimes and retired components.</li>
+<li>Because per-instance cache mappings are stored in a <code>ConditionalWeakTable</code>, all associated references are collected automatically as ViewModels are deallocated.</li>
+</ol>
+<p>For complete teardown mechanics and state persistence rules, see <a href="Lifecycle.html#deregister">Lifecycle: Deregister</a>.</p>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/runtime/ViewModelPatching.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

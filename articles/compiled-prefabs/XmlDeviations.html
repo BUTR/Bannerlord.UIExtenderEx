@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Deviations from the XML Loader | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Deviations from the XML Loader | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/XmlDeviations.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="deviations-from-the-xml-loader">Deviations from the XML Loader</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It catalogs all intentional behavioral differences where compiled C# prefabs diverge from Gauntlet's runtime XML loader.
+For the triage rules governing how differences are approved, see <a href="HandlingDifferences.html">Handling Discrepancies from the XML Loader</a>.
+For differences between UIExtenderEx and TaleWorlds' offline code generator, see <a href="Generator.html#4-intended-behavioral-deviations-from-taleworlds-generator">Code Generator</a>.</p>
+</div>
+<hr>
+<h2 id="overview">Overview</h2>
+<p>A compiled prefab replicates the behavior of Gauntlet UI's runtime XML loader—including its asserts, non-fatal quirks, and failure modes—everywhere except the documented cases below.</p>
+<p>Each deviation represents a scenario where the XML loader either produces corrupted UI state or crashes on benign developer mistakes, and the compiled prefab intentionally executes the correct behavior. Every deviation is pinned by automated tests covering <strong>both</strong> the XML behavior and the compiled behavior.</p>
+<hr>
+<h2 id="catalog-of-intentional-deviations">Catalog of Intentional Deviations</h2>
+<h3 id="1-replaced-child-viewmodel-updates-every-bound-widget">1. Replaced Child ViewModel Updates Every Bound Widget</h3>
+<ul>
+<li><strong>XML Behavior</strong>: When a parent ViewModel replaces a child ViewModel instance, <code>GauntletView</code> only refreshes views directly nested beneath the view bound to that parent. Any widget that accesses the child ViewModel through a sibling scope (e.g., <code>DataSource=&quot;{..\Visual}&quot;</code> under an adjacent <code>&quot;{Hint}&quot;</code> scope) fails to update and continues displaying stale data from the previous ViewModel instance.</li>
+<li><strong>Compiled Behavior</strong>: All widgets bound to paths traversing the replaced child ViewModel are rebound to the new instance. Widgets whose bound values remain identical are reassigned without side effects (only internal brush <code>Version</code> counters reflect the assignment).</li>
+<li><strong>Rationale</strong>: Retaining stale data on screen is a silent failure that corrupts UI state.</li>
+<li><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0026">UIX0026</a> flags such sibling-traversing data source expressions as compile-time errors.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>BindingLoaderOracle.IntendedDeviations[&quot;stale child ViewModel&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="2-child-in-logical-children-location-resolves-parameters-in-declaring-scope">2. Child in Logical Children Location Resolves Parameters in Declaring Scope</h3>
+<ul>
+<li><p><strong>XML Behavior</strong>: When a widget passes child elements to a prefab that defines a <code>&lt;LogicalChildrenLocation /&gt;</code>, <code>WidgetTemplate.CreateWidgets</code> moves those children under the target prefab's internal container. When <code>SetAttributes</code> subsequently evaluates parameters, it resolves <code>*Parameter</code> expressions against the <em>receiving</em> prefab's parameters rather than the <em>declaring</em> prefab's parameters. Consequently, any parameter passed into the declaring prefab is ignored, falling back to default values:</p>
+<pre><code class="lang-xml">&lt;!-- MyPanel.xml --&gt;
+&lt;Parameters&gt;&lt;Parameter Name=&quot;Title&quot; DefaultValue=&quot;Untitled&quot; /&gt;&lt;/Parameters&gt;
+&lt;Window&gt;
+  &lt;WindowFrame&gt; &lt;!-- Contains &lt;LogicalChildrenLocation /&gt; --&gt;
+    &lt;Children&gt;&lt;TextWidget Text=&quot;*Title&quot; /&gt;&lt;/Children&gt;
+  &lt;/WindowFrame&gt;
+&lt;/Window&gt;
+
+&lt;!-- Usage in another prefab: XML renders &quot;Untitled&quot;, Compiled renders &quot;Recruits&quot; --&gt;
+&lt;MyPanel Parameter.Title=&quot;Recruits&quot; /&gt;
+</code></pre>
+</li>
+<li><p><strong>Compiled Behavior</strong>: Parameter references (<code>*Parameter</code>) are consistently resolved against the parameters of the prefab in which the widget was declared.</p>
+</li>
+<li><p><strong>Rationale</strong>: In the XML loader, whether a prefab's parameters reach its own widgets depends entirely on the internal implementation details of child prefabs. Introducing a content slot into a prefab silently breaks all consuming widgets.</p>
+</li>
+<li><p><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0027">UIX0027</a> flags parameter lookups inside logical children locations as compile-time errors and suggests explicitly forwarding them.</p>
+</li>
+<li><p><strong>Test Pinning</strong>: Verified by <code>FuzzFindingTests.APassedChildsParameter_InALogicalChildrenLocation_IsResolvedWhereItIsDeclared</code>.</p>
+</li>
+</ul>
+<hr>
+<h3 id="3-incompatible-bound-property-value-assigns-nothing-on-initial-load">3. Incompatible Bound Property Value Assigns Nothing on Initial Load</h3>
+<ul>
+<li><strong>XML Behavior</strong>: If a bound ViewModel property cannot be converted by <code>WidgetExtensions.ConvertObject</code> or widened via reflection (e.g., binding an <code>int</code> property to a <code>string</code> widget property, or a <code>string</code> to an <code>XmlElement</code>), <code>MethodInfo.Invoke</code> throws an <code>ArgumentException</code> during initial movie binding, aborting screen loading.</li>
+<li><strong>Compiled Behavior</strong>: The initial binding pass skips the assignment, allowing the widget property to retain its XML default value. Subsequent notifications carrying incompatible payloads route through <code>SetWidgetAttribute</code> and throw as XML does. Types that might be assignable at runtime (<code>object</code>, unsealed classes, or interfaces) are always evaluated dynamically.</li>
+<li><strong>Rationale</strong>: Crashing an entire screen and locking the player out of gameplay over a single non-critical binding mistake is unacceptable UI behavior.</li>
+<li><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0025">UIX0025</a> reports incompatible type bindings as compile-time errors.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>XmlLoaderParityTests.APairNeitherConvertsNorWidens_IsNotAssignedAtAll</code>.</li>
+</ul>
+<hr>
+<h3 id="4-incompatible-widget-value-is-not-written-back-to-viewmodel">4. Incompatible Widget Value Is Not Written Back to ViewModel</h3>
+<ul>
+<li><strong>XML Behavior</strong>: In two-way bindings, <code>GauntletView.OnViewPropertyChanged</code> passes the widget's announced value unconverted to <code>ViewModel.SetPropertyValue</code>. When the ViewModel property cannot accept the type (e.g., a <code>BrushWidget</code> announcing a <code>Brush</code> bound to a <code>string</code> property), reflection throws an <code>ArgumentException</code> every time the widget property changes. The ViewModel value does not update, and the exception disrupts execution.</li>
+<li><strong>Compiled Behavior</strong>: The write-back assignment is skipped when types are demonstrably incompatible. Null values are written back normally, numeric conversions are handled via casting, and flexible types (<code>object</code>, interfaces) are assigned dynamically.</li>
+<li><strong>Rationale</strong>: An unhandled exception firing continuously on UI changes without changing state is a framework defect.</li>
+<li><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0025">UIX0025</a> flags incompatible two-way write-back bindings at compile time.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>NeverFittingWriteBackTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;value the property can never take not written back&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="5-widgettag-is-initialized-to-null">5. <code>Widget.Tag</code> Is Initialized to Null</h3>
+<ul>
+<li><strong>XML Behavior</strong>: The <code>WidgetTemplate</code> constructor assigns <code>Tag = Guid.NewGuid()</code> on every parse for the benefit of TaleWorlds' internal prefab editor.</li>
+<li><strong>Compiled Behavior</strong>: <code>Widget.Tag</code> remains <code>null</code>.</li>
+<li><strong>Rationale</strong>: <code>Tag</code> is purely internal editor metadata that generates non-deterministic values per parse. TaleWorlds' own pre-compiled assemblies leave <code>Tag</code> as <code>null</code>.</li>
+<li><strong>Roslyn Analyzer</strong>: None required (editor-only metadata).</li>
+<li><strong>Test Pinning</strong>: Verified by <code>LoaderOracle.IgnoredProperties[&quot;Tag&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="6-alignment-properties-bound-to-enum-properties-function-bi-directionally">6. Alignment Properties Bound to Enum Properties Function Bi-directionally</h3>
+<ul>
+<li><strong>XML Behavior</strong>: <code>Widget.HorizontalAlignment</code> and <code>VerticalAlignment</code> announce change events using string representations of enum values (e.g., <code>&quot;Top&quot;</code>). <code>GauntletView.OnViewPropertyChanged</code> passes this string directly to <code>ViewModel.SetPropertyValue</code>, triggering an <code>ArgumentException</code> when attempting to assign a <code>string</code> to an enum property.</li>
+<li><strong>Compiled Behavior</strong>: When an alignment property is bound to an enum ViewModel property, the announced string is parsed back into the appropriate enum value and assigned successfully.</li>
+<li><strong>Rationale</strong>: Prevents crashes on two-way alignment bindings while ensuring the ViewModel reflects the active alignment state.</li>
+<li><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0025">UIX0025</a> flags the type mismatch at compile time.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>AlignmentBindingPatternTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;alignment name written back&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="7-floating-point-numbers-written-back-to-integers-are-cast">7. Floating-Point Numbers Written Back to Integers Are Cast</h3>
+<ul>
+<li><strong>XML Behavior</strong>: Certain widget properties (such as <code>Widget.SuggestedWidth</code>) announce values as <code>float</code>. If two-way bound to an <code>int</code> ViewModel property, reflection rejects the narrowing conversion, throwing an <code>ArgumentException</code> on each change.</li>
+<li><strong>Compiled Behavior</strong>: The announced floating-point value is truncated to an integer using an <code>unchecked</code> cast, allowing the binding to complete and synchronize bi-directionally.</li>
+<li><strong>Rationale</strong>: Eliminates continuous runtime exceptions while maintaining intuitive UI synchronization.</li>
+<li><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0025">UIX0025</a> reports narrowing assignments at compile time.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>WriteBackTypeTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;number cast written back&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="8-list-reached-out-of-replaced-child-scope-is-not-rebuilt">8. List Reached Out of Replaced Child Scope Is Not Rebuilt</h3>
+<ul>
+<li><p><strong>XML Behavior</strong>: Replacing a child ViewModel causes <code>GauntletView</code> to refresh all views in its hierarchy. Refreshing a list view destroys and re-instantiates all item widgets. This occurs even when the list is reached via a parent traversal (<code>{..}</code>) back to an unchanged collection on the root ViewModel:</p>
+<pre><code class="lang-xml">&lt;Widget DataSource=&quot;{SigilItem}&quot;&gt;
+  &lt;Children&gt;
+    &lt;Widget DataSource=&quot;{..}&quot;&gt;
+      &lt;Children&gt;
+        &lt;!-- Rebuilt from scratch in XML when SigilItem changes --&gt;
+        &lt;ListPanel DataSource=&quot;{Cultures}&quot; /&gt;
+      &lt;/Children&gt;
+    &lt;/Widget&gt;
+  &lt;/Children&gt;
+&lt;/Widget&gt;
+</code></pre>
+<p>Destroying items unnecessarily resets animations, interrupts active user interactions, and leaks gamepad navigation event subscriptions.</p>
+</li>
+<li><p><strong>Compiled Behavior</strong>: Because the collection at <code>Root\Cultures</code> has not changed, the list retains its existing widget instances.</p>
+</li>
+<li><p><strong>Rationale</strong>: Rebuilding unchanged items is redundant and leaks memory.</p>
+</li>
+<li><p><strong>Exemption Status</strong>: <strong>Approved Rule 1 exception without an analyzer</strong>. The pattern is used extensively in Native prefabs (<code>Lobby.Profile</code>, <code>PartyTroopTuple</code>), and prohibiting it would penalize mod authors copying native layouts.</p>
+</li>
+<li><p><strong>Test Pinning</strong>: Verified by <code>ListRebuiltThroughParentScopeTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;list rebuilt through {..}&quot;]</code>.</p>
+</li>
+</ul>
+<hr>
+<h3 id="9-list-with-path-prefix-sharing-replaced-property-name-is-not-rebuilt">9. List With Path Prefix Sharing Replaced Property Name Is Not Rebuilt</h3>
+<ul>
+<li><strong>XML Behavior</strong>: <code>GauntletView.OnPropertyChanged</code> uses <code>BindingPath.IsRelatedWithPathAsString</code>, which performs a plain <code>StartsWith</code> string check. If a ViewModel replaces property <code>Player</code>, a sibling view at <code>Root\PlayerActions</code> is erroneously treated as related and rebuilt from scratch.</li>
+<li><strong>Compiled Behavior</strong>: Only views whose data source paths match the modified scope are refreshed. <code>PlayerActions</code> remains untouched.</li>
+<li><strong>Rationale</strong>: Rebuilding sibling collections due to substring collisions is a clear bug in the XML loader's path comparison logic.</li>
+<li><strong>Exemption Status</strong>: <strong>Approved Rule 1 exception without an analyzer</strong>. Native prefabs exhibit this naming pattern (e.g., <code>Lobby.Friends</code>).</li>
+<li><strong>Test Pinning</strong>: Verified by <code>ListRebuiltThroughANamePrefixTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;list rebuilt through a name prefix&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="10-disconnected-widgets-do-not-write-back-reset-values">10. Disconnected Widgets Do Not Write Back Reset Values</h3>
+<ul>
+<li><strong>XML Behavior</strong>: When widgets are removed from the hierarchy, <code>EventManager.OnWidgetDisconnectedFromRoot</code> resets navigation properties (<code>GamepadNavigationIndex = -1</code>, <code>UsedNavigationMovements = None</code>, <code>IsUsingNavigation = false</code>). Because Gauntlet's XML loader does not detach property-changed listeners prior to widget removal, these reset values are written back into the ViewModel, corrupting persistent state when a screen closes or an item leaves a list.</li>
+<li><strong>Compiled Behavior</strong>: Generated classes unsubscribe two-way binding handlers in <code>DestroyDataSource</code> before disconnecting widgets from the visual tree, preventing reset values from polluting the ViewModel.</li>
+<li><strong>Rationale</strong>: Corrupting ViewModel state upon screen closing or item deletion is an engine bug.</li>
+<li><strong>Exemption Status</strong>: <strong>Approved Rule 1 exception without an analyzer</strong>. Detecting which widget properties undergo internal engine resets would require hardcoding game-version-specific implementation details into public SDK analyzers.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>ResetWrittenBackOnRemovalTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;reset written back on removal&quot;]</code>.</li>
+</ul>
+<hr>
+<h3 id="11-paths-traversing-lists-by-index-follow-live-mutations">11. Paths Traversing Lists by Index Follow Live Mutations</h3>
+<ul>
+<li><strong>XML Behavior</strong>: A <code>DataSource</code> path traversing a list by index (e.g., <code>{Perks\0\CandidatePerks}</code>) is only evaluated when the view is initially refreshed. If the underlying collection is modified in place (items added, removed, or sorted), the view fails to re-evaluate the index and remains bound to the previous item or an item that is no longer in the list.</li>
+<li><strong>Compiled Behavior</strong>: Whenever the collection raises a collection-changed event, the index path is re-evaluated, and the widget rebinds to whichever item currently resides at that index.</li>
+<li><strong>Rationale</strong>: Remaining bound to a displaced item produces stale or invalid screen data.</li>
+<li><strong>Roslyn Analyzer</strong>: <a href="../general/Analyzers.html#uix0028">UIX0028</a> reports indexed list path bindings as compile-time errors.</li>
+<li><strong>Test Pinning</strong>: Verified by <code>IndexedDataSourceTests</code> and <code>BindingLoaderOracle.IntendedDeviations[&quot;indexed item followed&quot;]</code>.</li>
+</ul>
+<hr>
+<h2 id="non-deviations">Non-Deviations</h2>
+<p>To avoid confusion, the following scenarios are <strong>not</strong> considered deviations:</p>
+<ol>
+<li><strong>Compilation Declines</strong>: When the code generator declines a movie (e.g., due to recursive constants, circular prefab roots, or unresolvable properties), the movie runs via the XML loader. Declines represent capability gaps rather than behavioral deviations and are tracked as oracle failures (<code>OracleOutcome.NotGenerated</code>).</li>
+<li><strong>Missing Resource Constant Arithmetic</strong>: If a constant performs mathematical operations on a missing sprite or brush layer dimension (e.g., <code>Additive=&quot;8&quot;</code> on a missing sprite), Gauntlet's XML loader throws a <code>FormatException</code> and aborts movie loading. Because the presence of sprite resources depends on external user mod configurations that cannot be validated statically, compiled prefabs replicate the XML loader's exception behavior.</li>
+</ol>
+<hr>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="HandlingDifferences.html">Handling Discrepancies from the XML Loader</a>: Governance rules, triage procedures, and exemption policies.</li>
+<li><a href="Generator.html">Code Generator</a>: Generator architecture, data sources, and member resolution.</li>
+<li><a href="../general/Analyzers.html">General Analyzers Documentation</a>: Index of all <code>UIX...</code> diagnostic rules.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/XmlDeviations.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

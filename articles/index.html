@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Documentation Articles | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Documentation Articles | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/index.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="documentation-articles">Documentation Articles</h1>
+
+<p>Explore the complete catalog of articles, guides, case studies, and architecture references for <strong>UIExtenderEx</strong>.</p>
+<hr>
+<h2 id="-general-guides">🚀 General Guides</h2>
+<p>Fundamental concepts for extending Bannerlord's UI, integrating with the broader modding ecosystem, and setting up build-time validation.</p>
+<ul>
+<li><strong><a href="general/Overview.html">Overview</a>:</strong> Introduction to Gauntlet UI's Model-View-ViewModel (MVVM) architecture, the two core pillars (Prefabs and Mixins), and getting started.</li>
+<li><strong><a href="general/InteractingWithOtherMods.html">Interacting with Other Mods</a>:</strong> Locating other mods' extenders via <code>UIExtender.GetUIExtenderFor</code>, toggling patches dynamically, and managing SubModule execution order.</li>
+<li><strong><a href="general/CompiledPrefabs.html">Compiled Prefabs</a>:</strong> User and mod author guide to the in-memory compiled prefabs system, runtime settings, cache folder layout, and troubleshooting.</li>
+<li><strong><a href="general/Analyzers.html">Analyzers</a>:</strong> Full reference for the <code>Bannerlord.UIExtenderEx.Analyzers</code> package, documenting rules <code>UIX0001</code> through <code>UIX0030</code>, multi-version validation against <code>types.json</code>, and automated IDE code fixes.</li>
+</ul>
+<hr>
+<h2 id="-uiextenderex-30">⚡ UIExtenderEx 3.0</h2>
+<p>Everything new in version 3.0, including backward compatibility details, new mixin hooks, and deep-dive migration case studies.</p>
+<ul>
+<li><strong><a href="v3/Overview.html">3.0 Overview &amp; Upgrade Guide</a>:</strong> Summary of 3.0 features, supported game versions, automatic behavioral upgrades, and recommended patterns.</li>
+<li><strong><a href="v3/Mixins.html">Mixin Hooks</a>:</strong> Native C# hooks replacing Harmony patches:
+<ul>
+<li><a href="v3/Mixins.html#taking-over-a-viewmodel-method"><code>[BUTRViewModelOverride]</code></a>: Intercepting ViewModel methods across all callers.</li>
+<li><a href="v3/Mixins.html#reaching-private-members"><code>[BUTRUnsafeAccessor]</code></a>: High-speed IL accessors for private fields and methods.</li>
+<li><a href="v3/Mixins.html#hearing-every-notification"><code>OnViewModelPropertyChanged</code></a>: Catching all 9 typed property notification overloads.</li>
+<li><a href="v3/Mixins.html#reaching-a-mixin-from-outside"><code>ViewModelMixins.Get</code></a>: Safe external mixin retrieval from ViewModel instances.</li>
+<li><a href="v3/Mixins.html#the-refresh-rule">The Refresh Rule</a>: Understanding constructor refresh forwarding.</li>
+</ul>
+</li>
+<li><strong><a href="v3/MCM.html">Worked Example: Mod Configuration Menu (MCM)</a>:</strong> Step-by-step walkthrough of how MCM replaced four Harmony patches, reflection delegates, and dummy properties using 3.0 mixin hooks.</li>
+<li><strong><a href="v3/Diplomacy.html">Worked Example: Diplomacy</a>:</strong> Real-world case study on optimizing a large additive mod (70+ members across 7 ViewModels) by eliminating redundant refresh cycles and unifying shared mixins.</li>
+</ul>
+<hr>
+<h2 id="-api-v2-guide">🛠️ API v2 Guide</h2>
+<p>The modern, recommended API for modifying Gauntlet UI prefabs and attaching ViewModel mixins.</p>
+<ul>
+<li><strong><a href="v2/Overview.html">API v2 Overview</a>:</strong> The modern prefab extension architecture, anatomy of a patch, execution rules, and XPath best practices.</li>
+<li><strong><a href="v2/PrefabExtensionInsertPatch.html">PrefabExtensionInsertPatch</a>:</strong> Structural XML transformations (<code>Child</code>, <code>Prepend</code>, <code>Append</code>, <code>Replace</code>, <code>ReplaceKeepChildren</code>, <code>Remove</code>) and supplying content via <code>[PrefabExtensionText]</code>, <code>[PrefabExtensionFileName]</code>, or <code>[PrefabExtensionXmlNode]</code>.</li>
+<li><strong><a href="v2/PrefabExtensionSetAttributePatch.html">PrefabExtensionSetAttributePatch</a>:</strong> Adding new XML attributes or updating values on existing widgets.</li>
+<li><strong><a href="v2/ViewModelMixin.html">ViewModel Mixins</a>:</strong> Deriving from <code>BaseViewModelMixin&lt;T&gt;</code>, defining <code>[DataSourceProperty]</code> and <code>[DataSourceMethod]</code>, raising property notifications, and lifecycle cleanup via <code>OnFinalize</code>.</li>
+<li><strong><a href="v2/PrefabLink.html">Prefab Links</a>:</strong> Using <code>[assembly: PrefabLink]</code> to statically link XML patches and custom prefabs to ViewModels and Mixins for compile-time validation.</li>
+<li><strong><a href="v2/Examples.html">Worked Examples</a>:</strong> Complete end-to-end starter project blueprint and featured open-source references.</li>
+</ul>
+<hr>
+<h2 id="-api-v1-legacy">📦 API v1 (Legacy)</h2>
+<p>Documentation for the legacy v1 prefab extension system and instructions for upgrading existing code.</p>
+<ul>
+<li><strong><a href="v1/Overview.html">API v1 (Legacy Prefabs)</a>:</strong> Reference documentation for <code>PrefabExtensionInsertPatch</code>, <code>PrefabExtensionReplacePatch</code>, and migration mappings to the modern v2 API.</li>
+</ul>
+<hr>
+<h2 id="-core-architecture--internals">🔍 Core Architecture &amp; Internals</h2>
+<p>Written for framework maintainers and advanced developers interested in the engine plumbing and hosting layer.</p>
+<ul>
+<li><strong><a href="runtime/Overview.html">Core Architecture</a>:</strong> Global Harmony patches (<code>GauntletMoviePatch</code>, <code>WidgetPrefabPatch</code>), dynamic mixin patches, the <code>Runtimes</code> hosting seam (<code>IPrefabRuntime</code>), and thread-safety models.</li>
+<li><strong><a href="runtime/Lifecycle.html">Lifecycle &amp; Startup</a>:</strong> Step-by-step execution timeline from SubModule load order validation, runtime installation, mod registration, enabling/disabling, to teardown and retired mixins.</li>
+<li><strong><a href="runtime/PrefabPatching.html">Prefab Patching</a>:</strong> The detailed XML patching pipeline, dynamic runtime registrations (<code>WidgetFactoryManager</code>, <code>BrushFactoryManager</code>), and engine XML loader bug fixes (<code>ParsePatch</code>, <code>WidgetExtensionsPatch</code>, <code>WidgetTemplatePatch</code>).</li>
+<li><strong><a href="runtime/ViewModelPatching.html">ViewModel Patching</a>:</strong> Member injection, flat binding table architecture, method override chains, unsafe accessor transpilation, and retired mixin finalization.</li>
+</ul>
+<hr>
+<h2 id="-compiled-prefabs-internals">⚙️ Compiled Prefabs Internals</h2>
+<p>Comprehensive documentation on UIExtenderEx's in-memory C# compilation engine, code generator, and verification suites.</p>
+<ul>
+<li><strong><a href="compiled-prefabs/Overview.html">Compiled Prefabs Architecture</a>:</strong> Problem definition, modern per-load evaluation, runtime assembly split, and thread model.</li>
+<li><strong><a href="compiled-prefabs/Pipeline.html">Compilation Pipeline</a>:</strong> The complete decision tree of <code>GauntletMovie.Load</code>, <code>GamePrefabRuntime</code> declination rules, fingerprint calculation (<code>PrefabFingerprint</code>), and dependency tracking (<code>PrefabDependencies</code>).</li>
+<li><strong><a href="compiled-prefabs/Generator.html">Code Generator</a>:</strong> Emitting C# classes from XML, member resolution priority, mixin receivers, and widget fast-assignment paths.</li>
+<li><strong><a href="compiled-prefabs/HandlingDifferences.html">Handling XML Differences</a>:</strong> Principles, governance rules, and triage process for discrepancies between compiled prefabs and the runtime XML loader.</li>
+<li><strong><a href="compiled-prefabs/XmlDeviations.html">Deviations from the XML Loader</a>:</strong> Authoritative catalog of all 11 approved behavioral differences from the XML loader and their accompanying analyzer guards.</li>
+<li><strong><a href="compiled-prefabs/Compilation.html">In-Memory Compilation</a>:</strong> Embedding Roslyn via ILRepack, preserving SIMD acceleration (<code>System.Numerics.Vectors</code>), dynamic binding redirects, and off-thread assembly loading.</li>
+<li><strong><a href="compiled-prefabs/Testing.html">Testing &amp; Verification Strategy</a>:</strong> Test project structure, automated test oracles (<code>LoaderOracle</code>, <code>BindingLoaderOracle</code>), memory ceilings, and benchmarks.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/index.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

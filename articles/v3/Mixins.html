@@ -1,0 +1,340 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Mixin Hooks | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Mixin Hooks | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v3/Mixins.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="mixin-hooks">Mixin Hooks</h1>
+
+<p>In previous versions of UIExtenderEx, developers frequently had to pair <a href="../v2/ViewModelMixin.html">ViewModel Mixins</a> with Harmony patches whenever they needed to intercept game methods, react to property updates, or read private ViewModel fields.</p>
+<p><strong>UIExtenderEx 3.0</strong> introduces native hooks built directly into <a class="xref" href="../../api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html"><code>BaseViewModelMixin&lt;TViewModel&gt;</code></a>, eliminating the need for Harmony across common UI extension scenarios.</p>
+<hr>
+<h2 id="quick-reference-replacing-harmony-with-mixin-hooks">Quick Reference: Replacing Harmony with Mixin Hooks</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Legacy Pattern (Harmony / Reflection)</th>
+<th style="text-align: left;">Modern 3.0 Mixin Hook</th>
+<th style="text-align: left;">Primary Advantage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Harmony prefix or postfix on a ViewModel method</td>
+<td style="text-align: left;"><a href="#taking-over-a-viewmodel-method"><code>[BUTRViewModelOverride]</code></a></td>
+<td style="text-align: left;">Covers all callers (UI, hotkeys, game code); cleanly scoped to mixin lifecycle.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Harmony postfix on property setters or manual <code>PropertyChanged</code> event handlers</td>
+<td style="text-align: left;"><a href="#hearing-every-notification"><code>OnViewModelPropertyChanged</code></a></td>
+<td style="text-align: left;">Captures all 9 typed property notification overloads automatically.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AccessTools</code>, <code>Traverse</code>, or <code>GetPrivate&lt;T&gt;()</code> reflection</td>
+<td style="text-align: left;"><a href="#reaching-private-members"><code>[BUTRUnsafeAccessor]</code></a></td>
+<td style="text-align: left;">Zero reflection overhead; validated at startup during <code>Register</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Static &quot;current instance&quot; fields or weak references on ViewModels</td>
+<td style="text-align: left;"><a href="#reaching-a-mixin-from-outside"><code>ViewModelMixins.Get&lt;T&gt;()</code></a></td>
+<td style="text-align: left;">Safe, strongly-typed retrieval without memory leaks or multi-window bugs.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="taking-over-a-viewmodel-method">Taking over a ViewModel method</h2>
+<p>In standard MVVM data binding, declaring a mixin method with the same name as a native ViewModel method only redirects clicks from prefab widgets; game hotkeys, controller shortcuts, and internal C# callers continue executing the vanilla method.</p>
+<p>Decorating a mixin method with <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.BUTRViewModelOverrideAttribute.html"><code>[BUTRViewModelOverride]</code></a> intercepts the native method for <strong>all callers</strong>:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.ViewModels;
+using System;
+using TaleWorlds.MountAndBlade.ViewModelCollection.GameOptions;
+
+[ViewModelMixin]
+internal sealed class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+{
+    public OptionsVMMixin(OptionsVM vm) : base(vm) { }
+
+    // Intercepts OptionsVM.ExecuteDone for all callers (UI button clicks, Escape key, etc.)
+    [BUTRViewModelOverride(nameof(OptionsVM.ExecuteDone))]
+    private void ExecuteDone(Action original)
+    {
+        // Custom pre-processing logic
+        SaveCustomModSettings();
+
+        // Invoke the original vanilla method (or omit to suppress vanilla behavior)
+        original();
+    }
+}
+</code></pre>
+<h3 id="execution-rules-and-constraints">Execution Rules and Constraints</h3>
+<ul>
+<li><strong>Invoking <code>original</code>:</strong> The <code>original</code> delegate represents the next override in the chain (if multiple mods intercept the same method), culminating in the vanilla game implementation. Omitting <code>original()</code> completely suppresses the vanilla method.</li>
+<li><strong>Universal Interception:</strong> Every caller passes through your override—whether triggered by XML or compiled prefab buttons, hotkey shortcuts, or internal TaleWorlds code.</li>
+<li><strong>Instance Scoping:</strong> Overrides only apply to ViewModel instances where the mixin is attached and enabled. Disabling the mixin via <code>Extender.Disable(typeof(MyMixin))</code> dynamically unhooks the override.</li>
+<li><strong>Supported Method Signatures:</strong> Only methods that return <code>void</code> and have no <code>ref</code> or <code>out</code> parameters can be overridden. The mixin method must take the target method's parameters followed by a trailing <code>Action</code> (or <code>Action&lt;...&gt;</code> matching the parameter types).</li>
+<li><strong>Compile-Time Validation:</strong> The <a href="../general/Analyzers.html">Roslyn Analyzers</a> emit <code>UIX0008</code> if an override signature is invalid or targets a non-existent method.</li>
+</ul>
+<hr>
+<h2 id="hearing-every-notification">Hearing every notification</h2>
+<p>To trigger UI updates when game state changes, mixins often need to respond to property changes raised by the target ViewModel.</p>
+<p>In TaleWorlds' Gauntlet framework, most ViewModels update properties using typed <code>OnPropertyChangedWithValue(...)</code> overloads (such as <code>int</code>, <code>bool</code>, <code>Color</code>, or <code>Vec2</code>). These overloads fire specialized typed events that standard <code>PropertyChanged</code> event handlers fail to receive.</p>
+<p>Override <code>OnViewModelPropertyChanged</code> to listen to <strong>all nine</strong> notification variants:</p>
+<pre><code class="lang-csharp">protected override void OnViewModelPropertyChanged(string propertyName)
+{
+    base.OnViewModelPropertyChanged(propertyName);
+
+    if (propertyName == nameof(MapInfoVM.IsInfoBarExtended))
+    {
+        // Re-evaluate your mixin property when the game updates the info bar state
+        OnPropertyChanged(nameof(CustomInfoWidgetVisible));
+    }
+}
+</code></pre>
+<h3 id="lifecycle-and-performance">Lifecycle and Performance</h3>
+<ul>
+<li>UIExtenderEx subscribes your mixin to the target ViewModel's notification events at the conclusion of the ViewModel constructor.</li>
+<li>It automatically detaches all listeners when the ViewModel is finalized, preventing memory leaks.</li>
+<li>Property changes triggered within your mixin's own constructor do not trigger this hook.</li>
+</ul>
+<hr>
+<h2 id="reaching-private-members">Reaching private members</h2>
+<p>When you need to read private fields or invoke non-public methods on TaleWorlds classes, reflection (<code>AccessTools</code>, <code>Traverse</code>, or <code>GetPrivate</code>) introduces runtime overhead and fails silently until executed.</p>
+<p>Modeled after .NET 8's <code>UnsafeAccessorAttribute</code>, <a class="xref" href="../../api/Bannerlord.UIExtenderEx.Attributes.BUTRUnsafeAccessorAttribute.html"><code>[BUTRUnsafeAccessor]</code></a> allows you to define compile-time static stubs that UIExtenderEx replaces with high-performance IL accessors during mod registration:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade.ViewModelCollection.GameOptions;
+
+internal static class OptionsAccessors
+{
+    // Accesses private field &quot;List&lt;ViewModel&gt; _categories&quot; on OptionsVM
+    [BUTRUnsafeAccessor(BUTRAccessorKind.Field, Name = &quot;_categories&quot;)]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static ref List&lt;ViewModel&gt; GetCategories(OptionsVM instance) =&gt; throw new NotImplementedException();
+}
+</code></pre>
+<h3 id="accessor-kinds-butraccessorkind">Accessor Kinds (<code>BUTRAccessorKind</code>)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><code>BUTRAccessorKind</code></th>
+<th style="text-align: left;">Target</th>
+<th style="text-align: left;">Stub Signature Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Field</code></td>
+<td style="text-align: left;">Instance field</td>
+<td style="text-align: left;">Takes the instance as parameter 1; returns the field type by <code>ref</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Method</code></td>
+<td style="text-align: left;">Instance method</td>
+<td style="text-align: left;">Takes the instance as parameter 1, followed by method arguments; returns the method's return type.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>StaticField</code></td>
+<td style="text-align: left;">Static field</td>
+<td style="text-align: left;">Takes no parameters; returns the field type by <code>ref</code>. Specify declaring type on attribute: <code>[BUTRUnsafeAccessor(..., typeof(DeclaringClass))]</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>StaticMethod</code></td>
+<td style="text-align: left;">Static method</td>
+<td style="text-align: left;">Takes the method's parameters; returns the method's return type. Specify declaring type on attribute.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="stub-requirements">Stub Requirements</h3>
+<ul>
+<li><strong><code>static</code> Method:</strong> The stub method must be declared <code>static</code>.</li>
+<li><strong>No Inlining:</strong> Always annotate the stub with <code>[MethodImpl(MethodImplOptions.NoInlining)]</code> to prevent callers from inlining the stub body before UIExtenderEx patches it.</li>
+<li><strong>Throwing Body:</strong> Provide a stub body such as <code>throw new NotImplementedException();</code>. This body is overwritten with IL at runtime.</li>
+<li><strong>Fail-Fast Startup Validation:</strong> During <code>Extender.Register(...)</code>, UIExtenderEx verifies all accessors. If a game update renames a private field, UIExtenderEx logs an error immediately at startup rather than throwing null reference exceptions during gameplay.</li>
+</ul>
+<hr>
+<h2 id="reaching-a-mixin-from-outside">Reaching a mixin from outside</h2>
+<p>When external code (such as campaign behaviors, event listeners, or Harmony patches in other systems) holds a reference to a <code>ViewModel</code> and needs to interact with its attached mixin, use <a class="xref" href="../../api/Bannerlord.UIExtenderEx.ViewModels.ViewModelMixins.html"><code>ViewModelMixins</code></a>:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.ViewModels;
+
+// Retrieve the attached mixin instance (returns null if not attached; disabling a mixin does not detach it)
+if (ViewModelMixins.Get&lt;MapInfoMixin&gt;(mapInfoVM) is { } mixin)
+{
+    mixin.UpdateCustomData();
+}
+
+// Safely project a single property value with fallback to default
+int relation = ViewModelMixins.Select&lt;KingdomClanItemVMMixin, int&gt;(clanItemVM, x =&gt; x.CustomRelationScore);
+</code></pre>
+<h3 id="why-avoid-common-workarounds">Why Avoid Common Workarounds?</h3>
+<ul>
+<li><strong>WeakReference properties on the ViewModel:</strong> Pollutes the Gauntlet data binding table with unnecessary member names.</li>
+<li><strong>Static &quot;Current&quot; Singletons:</strong> Causes subtle bugs whenever multiple screens or popup modals exist simultaneously.</li>
+<li><strong>Untyped Reflection:</strong> Lacks compile-time safety and suffers from performance overhead.</li>
+</ul>
+<hr>
+<h2 id="the-refresh-rule">The refresh rule</h2>
+<p>When configuring automated refresh handling via <code>[ViewModelMixin(nameof(SomeVM.RefreshValues))]</code>:</p>
+<pre><code class="lang-mermaid">sequenceDiagram
+    autonumber
+    participant Engine as TaleWorlds Engine
+    participant VM as Game ViewModel
+    participant UIExtender as UIExtenderEx
+    participant Mixin as ViewModel Mixin
+
+    Engine-&gt;&gt;VM: new SomeVM()
+    activate VM
+    VM-&gt;&gt;VM: Initialize fields
+    VM-&gt;&gt;VM: RefreshValues()
+    note over UIExtender: Refresh call queued
+    VM--&gt;&gt;Engine: Construction complete
+    deactivate VM
+
+    Engine-&gt;&gt;UIExtender: Construct Mixins
+    activate UIExtender
+    UIExtender-&gt;&gt;Mixin: new SomeVMMixin(vm)
+    activate Mixin
+    note over Mixin: Initialize mixin state
+    Mixin--&gt;&gt;UIExtender: Construction complete
+    deactivate Mixin
+
+    UIExtender-&gt;&gt;Mixin: OnRefresh()
+    activate Mixin
+    note over Mixin: Queued refresh dispatched
+    Mixin--&gt;&gt;UIExtender: Ready
+    deactivate Mixin
+    deactivate UIExtender
+</code></pre>
+<div class="IMPORTANT">
+<h5>Important</h5>
+<p><strong>Set up state in your constructor, and do not call <code>OnRefresh()</code> or the ViewModel's refresh method from within the constructor!</strong></p>
+<p>A scan of Bannerlord's codebase reveals that <strong>431 out of 535 ViewModels</strong> invoke <code>RefreshValues()</code> directly within their own constructors. UIExtenderEx intercepts this initial refresh and automatically forwards it to your mixin's <code>OnRefresh()</code> method <strong>immediately after your mixin finishes constructing</strong>.</p>
+<p>Manually calling <code>OnRefresh()</code> or <code>vm.RefreshValues()</code> in your mixin constructor causes your initialization logic to execute twice on every screen load.</p>
+</div>
+<hr>
+<h2 id="what-registration-reports">What registration reports</h2>
+<p>During <code>Extender.Register(...)</code>, UIExtenderEx scans registered assemblies and logs detailed diagnostics for configuration issues:</p>
+<ol>
+<li><strong>Member Collisions:</strong> Warns when a mixin declares a property or method whose name collides with a native member on the target ViewModel.</li>
+<li><strong>Cross-Mod Collisions:</strong> If two different mods register mixins that introduce the same property name to a single ViewModel, UIExtenderEx binds the last registered property and logs a warning naming both mods.</li>
+<li><strong>Unmatched Abstract Mixins:</strong> Warns if an abstract ViewModel is targeted without setting <code>handleDerived: true</code>.</li>
+<li><strong>Resilient Assembly Loading:</strong> If an assembly contains a mixin targeting an uninstalled DLC or missing dependency, UIExtenderEx skips the unresolvable mixin and continues registering all other valid types.</li>
+</ol>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v3/Mixins.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

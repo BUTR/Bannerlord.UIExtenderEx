@@ -1,0 +1,619 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Prefab Compilation Pipeline | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Prefab Compilation Pipeline | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Pipeline.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="prefab-compilation-pipeline">Prefab Compilation Pipeline</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It covers the internal mechanisms between the game requesting a Gauntlet UI movie and the registration of a compiled C# widget assembly.
+For the high-level architecture, see <a href="Overview.html">Overview</a>. For details on C# code emission, see <a href="Generator.html">Code Generator</a>.</p>
+</div>
+<hr>
+<h2 id="1-the-movie-load-decision">1. The Movie Load Decision</h2>
+<p>The entry point into the pipeline is a Harmony prefix patch on Gauntlet UI's movie loader:</p>
+<pre><code class="lang-csharp">GauntletMovie.Load(WidgetFactory widgetFactory, string movieName, IViewModel datasource, ref bool doNotUseGeneratedPrefabs, ...)
+</code></pre>
+<p>The hook is implemented in <code>GauntletMoviePatch.LoadPrefix</code> in the core assembly. The patch only applies if this specific engine overload exists. Its installation status is tracked by <code>PrefabRuntimes.IsMovieSwitchInstalled</code>, which gatekeeps the compiled prefabs feature: if the switch is not installed, <code>GameCompiledPrefabEnvironment.IsEnabled</code> evaluates to <code>false</code>, and no preloading or runtime compilation will occur.</p>
+<h3 id="decision-flow-algorithm">Decision Flow Algorithm</h3>
+<p>When <code>GauntletMovie.Load</code> executes, the prefix applies the following evaluation sequence:</p>
+<pre><code class="lang-text">LoadPrefix(widgetFactory, movieName, datasource, ref doNotUseGeneratedPrefabs)
+  1. If doNotUseGeneratedPrefabs is already true:
+       -&gt; Return immediately (the engine or an external caller explicitly requested XML loading).
+  2. For each registered IPrefabRuntime (in registration order):
+       -&gt; If runtime.TryServe(widgetFactory, movieName, datasource) returns true:
+            -&gt; Return immediately (the runtime vouched for and served the variant).
+       -&gt; If runtime.TryServe throws an exception:
+            -&gt; Log the failure, treat as declined (false), and query the next runtime.
+  3. If all runtimes decline:
+       -&gt; Set doNotUseGeneratedPrefabs = true (fall back to the game's native XML loader).
+</code></pre>
+<h3 id="runtime-evaluation-order">Runtime Evaluation Order</h3>
+<p>Runtimes register during module startup in the order declared in <code>SubModule.xml</code>:</p>
+<ol>
+<li><strong><code>GamePrefabRuntime</code> (Game Runtime)</strong>: Evaluates whether TaleWorlds' pre-compiled assembly for the movie is still valid and unmodified.</li>
+<li><strong><code>CompiledPrefabManager</code> (Compiled Runtime)</strong>: Evaluates whether a compiled assembly is cached, currently compiling, or needs to be scheduled for background compilation.</li>
+</ol>
+<p>Because <code>GamePrefabRuntime</code> is evaluated first, pristine movies that are completely untouched by mod patches or overrides are served by the game's pre-compiled classes without any overhead.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The obsolete attribute property <code>PrefabExtensionAttribute.AutoGenWidgetName</code> is maintained solely for backward binary compatibility with older mods and has no effect on runtime dispatching.</p>
+</div>
+<hr>
+<h2 id="2-the-game-prefab-runtime-gameprefabruntime">2. The Game Prefab Runtime (<code>GamePrefabRuntime</code>)</h2>
+<p><code>GamePrefabRuntime.TryServe</code> checks TaleWorlds' internal prefab dictionary:</p>
+<pre><code class="lang-csharp">GeneratedPrefabContext._generatedPrefabs: Dictionary&lt;string, Dictionary&lt;string, CreateGeneratedWidget&gt;&gt;
+</code></pre>
+<p>This table is keyed by movie name, and then by variant name (the full type name of the <code>IViewModel</code> data source, or <code>&quot;Default&quot;</code>).</p>
+<h3 id="declination-criteria">Declination Criteria</h3>
+<p><code>GamePrefabRuntime.TryServe</code> declines to serve a movie (<code>returns false</code>), passing responsibility to the compiled runtime, when any of the following conditions occur:</p>
+<ol>
+<li><strong>Missing Variant</strong>: No entry exists for the requested <code>(Movie, ViewModel)</code> pair. This applies to movies TaleWorlds never pre-compiled, as well as situations where a mod subclasses a base ViewModel. A subclass alters the variant key, causing a miss against the class generated for the base type.</li>
+<li><strong>Runtime-Owned Variant</strong>: The registered creator belongs to a runtime assembly (<code>PrefabRuntimes.IsRuntimeVariant</code>). A compiled build produced in an earlier session reflects a specific snapshot in time; its validity must be verified by <code>CompiledPrefabManager</code> against current fingerprints.</li>
+<li><strong>Naming Convention Invalidation</strong>: TaleWorlds naming conventions fail validation (<code>ConventionsHold</code> returns <code>false</code>).</li>
+<li><strong>Missing Root Widget Class</strong>: The root widget type cannot be resolved from the creator delegate.</li>
+<li><strong>Patched Inlined Prefabs</strong>: Any prefab inlined into the movie's widget tree appears in <code>PrefabSource.PatchedPrefabNames</code> (which lists prefabs modified by at least one currently <strong>enabled</strong> patch).</li>
+<li><strong>Runtime-Registered Prefabs</strong>: Any inlined prefab was registered at runtime via <code>WidgetFactoryManager</code>, replacing the original XML definition.</li>
+<li><strong>Cross-Module Prefab Overrides</strong>: <code>PrefabOverrideRegistry.ContainsOverridden</code> detects that more than one loaded module provides an XML file for an inlined prefab name.</li>
+</ol>
+<p>All prefab names are compared using <code>PrefabNames.Normalize</code>. TaleWorlds' code generator writes dotted prefab names with underscores (e.g., <code>ClanControl.*</code> becomes <code>ClanControl_*</code>), while Native ships 94 prefabs with dots in their filenames. Normalization reconciles these representations before comparison.</p>
+<h3 id="convention-verification-conventionshold">Convention Verification (<code>ConventionsHold</code>)</h3>
+<p>Because TaleWorlds' generated widget class names are not a public API, changes across game patches could silently break dependency analysis. If class naming changed, dependency discovery might return incomplete results, causing the game runtime to falsely assume a patched movie was pristine and render a stale, unpatched variant.</p>
+<p>To prevent this, <code>ConventionsHold</code> validates the game's pre-compiled variants against the active <code>WidgetFactory</code>:</p>
+<ul>
+<li>Every variant not owned by a dynamic runtime must resolve to a valid root widget class.</li>
+<li>The root widget class must encode its own movie name.</li>
+<li>Every dependent prefab name extracted from generated classes must resolve to a known prefab in <code>WidgetFactory.GetPrefabNames</code>.</li>
+</ul>
+<p>If a single convention check fails, <code>GamePrefabRuntime</code> declines <strong>all</strong> movies until the game collects its variants again (the next resource refresh), logging the first ten unresolvable names once. All movies then safely route through the compiled runtime or fall back to XML.</p>
+<p>Because Gauntlet UI rebuilds its variant collections on resource refreshes, convention verdicts are tracked per <code>GeneratedPrefabContext</code> instance using a <code>ConditionalWeakTable</code>. A Harmony postfix on <code>CollectPrefabs</code> invalidates the cached verdict upon each refresh. For Native's 79 pre-compiled variants, convention validation completes in 15–26 ms on initial run and 0–2 ms on subsequent checks.</p>
+<h3 id="inlined-prefab-set-discovery-getautogennames">Inlined Prefab Set Discovery (<code>GetAutoGenNames</code>)</h3>
+<p>To determine whether any sub-prefab embedded inside a movie is patched, <code>GetAutoGenNames(Type rootWidgetType)</code> discovers all prefabs inlined into a pre-compiled widget class. It combines two complementary discovery strategies:</p>
+<ol>
+<li><strong>Dependency Sibling Analysis</strong>: TaleWorlds' generator emits inlined prefabs as sibling classes in the same assembly using the pattern <code>&lt;Root&gt;_Dependency_&lt;n&gt;_&lt;Prefab&gt;</code>. All types in the root assembly matching this prefix are collected. This captures prefabs instantiated dynamically within method bodies (such as <code>ClanPartyTuple</code> inside <code>ClanScreen</code>), which cannot be discovered via fields.</li>
+<li><strong>Widget Field Graph Traversal</strong>: A visited-set graph traversal over all fields of type <code>Widget</code> (or derived classes) discovers classes generated for other movies that are referenced by the root. An iterative graph walk is used rather than recursion to avoid stack overflow exceptions caused by circular widget references (e.g., <code>InventoryScreenWidget</code> and <code>InventoryItemButtonWidget</code> hold mutual references).</li>
+</ol>
+<p>Results are cached per root widget type. The root widget type is extracted from the creator delegate via <code>GetRootWidgetType</code> (e.g., a method <code>CreateX</code> creating type <code>X</code> within the creator's assembly), avoiding assembly-wide type scans.</p>
+<p><code>GetPrefabName(string className)</code> converts generated class names back into XML prefab names:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Class Name Pattern</th>
+<th style="text-align: left;">Resolved Prefab Name</th>
+<th style="text-align: left;">Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Inventory__TaleWorlds_..._SPInventoryVM</code></td>
+<td style="text-align: left;"><code>Inventory</code></td>
+<td style="text-align: left;">Substring prior to the first <code>__</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Inventory__..._Dependency_3_InventoryEquippedItemSlot__DependendPrefab</code></td>
+<td style="text-align: left;"><code>InventoryEquippedItemSlot</code></td>
+<td style="text-align: left;">Name following <code>_Dependency_&lt;n&gt;_</code>, stripping the <code>__DependendPrefab</code> suffix.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Inventory__..._Dependency_2_Something__InheritedPrefab</code></td>
+<td style="text-align: left;"><code>Something</code></td>
+<td style="text-align: left;">Name following <code>_Dependency_&lt;n&gt;_</code>, stripping the <code>__InheritedPrefab</code> suffix.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Inventory__..._Dependency_1_ItemTemplate</code></td>
+<td style="text-align: left;"><code>Inventory</code></td>
+<td style="text-align: left;">Item template of the root XML (no suffix); resolves to the root movie name.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="detecting-cross-module-prefab-overrides-prefaboverrideregistry">Detecting Cross-Module Prefab Overrides (<code>PrefabOverrideRegistry</code>)</h3>
+<p>When multiple modules ship a prefab with the same relative path under their <code>GUI/Prefabs</code> directory, the last loaded module wins. The game's <code>ResourceDepot.CollectResources</code> only stores the winning file, making it impossible to query whether an override occurred after the fact.</p>
+<p><code>PrefabOverrideRegistry</code> re-scans the depot's <code>_resourceLocations</code>, inspecting each location for <code>*.xml</code> files (using an explicit <code>EndsWith(&quot;.xml&quot;)</code> check to avoid Windows wildcard matching on <code>.xml_dev</code>). Any prefab name encountered in more than one module location is flagged as overridden. Overridden prefabs are treated as modified, ensuring movies embedding them are compiled rather than served from stale pre-compiled assemblies.</p>
+<h3 id="context-re-collection-generatedprefabcontextpatch">Context Re-collection (<code>GeneratedPrefabContextPatch</code>)</h3>
+<p>When the engine reloads resources, <code>GeneratedPrefabContext.CollectPrefabs</code> clears its internal registry and rescans all loaded assemblies for classes implementing <code>IGeneratedUIPrefabCreator</code>.</p>
+<p>UIExtenderEx's compiled creator classes <strong>intentionally do not implement this interface</strong>. Implementing it would cause Gauntlet's eager scanner to register cached assemblies indiscriminately at startup, bypassing fingerprint validation.</p>
+<p>To restore compiled variants after a resource reload, <code>GeneratedPrefabContextPatch</code> applies a postfix to <code>CollectPrefabs</code> that invokes <code>OnPrefabsCollected</code>. This method drains any completed background compilation jobs, clears stale factory-keyed caches, and re-executes the registration delegate for every active build.</p>
+<hr>
+<h2 id="3-the-compiled-prefab-manager-compiledprefabmanager">3. The Compiled Prefab Manager (<code>CompiledPrefabManager</code>)</h2>
+<p><code>CompiledPrefabManager</code> (located in <code>Bannerlord.UIExtenderEx.CompiledPrefabs</code>) is the state machine orchestrating code generation, compilation, caching, and registration. It interacts with the game environment strictly through <code>ICompiledPrefabEnvironment</code>, allowing the entire manager to be verified using unit test fakes (<code>CompiledPrefabManagerTests</code>).</p>
+<h3 id="state-structure">State Structure</h3>
+<p>All manager state is keyed by <code>PrefabKey(string Movie, string Variant)</code>, where <code>Variant</code> is the full type name of the ViewModel (matching <code>GeneratedPrefabContext</code>'s internal dictionary keys):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>_registered</code></td>
+<td style="text-align: left;"><code>Dictionary&lt;PrefabKey, RegisteredPrefab&gt;</code></td>
+<td style="text-align: left;">Builds currently registered with Gauntlet, storing their fingerprint, dependency records, and re-collection delegate.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_pending</code></td>
+<td style="text-align: left;"><code>HashSet&lt;PrefabKey&gt;</code></td>
+<td style="text-align: left;">Movies currently undergoing background compilation. Only one job runs per key at a time; pending movies load via XML.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_failed</code></td>
+<td style="text-align: left;"><code>Dictionary&lt;(PrefabKey, string Fingerprint), int&gt;</code></td>
+<td style="text-align: left;">Failed builds, mapped to the <code>UIEnvironmentVersion</code> during failure. Failures are not retried unless the fingerprint changes or an environment version increments.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_warned</code></td>
+<td style="text-align: left;"><code>HashSet&lt;(PrefabKey, string Fingerprint)&gt;</code></td>
+<td style="text-align: left;">Tracks failure notifications displayed to the user to prevent duplicate on-screen warning popups.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_finished</code></td>
+<td style="text-align: left;"><code>ConcurrentQueue&lt;CompileJobResult&gt;</code></td>
+<td style="text-align: left;">Thread-safe queue holding compilation results produced by worker threads, awaiting main-thread registration.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_preloaded</code></td>
+<td style="text-align: left;"><code>ConcurrentDictionary&lt;string, (PrefabCacheEntry, Assembly)&gt;</code></td>
+<td style="text-align: left;">Assemblies loaded into memory during system warm-up, keyed by <code>PrefabCacheEntry.Key</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_unreadableReferences</code></td>
+<td style="text-align: left;"><code>HashSet&lt;string&gt;</code></td>
+<td style="text-align: left;">Assembly file paths that could not be read from disk. Failures are warned once; affected movies retry each load.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>_cache</code></td>
+<td style="text-align: left;"><code>PrefabCache?</code></td>
+<td style="text-align: left;">Thread-safe handle to the disk cache archive (<code>CompiledPrefabs.zip</code>). Lazily initialized under <code>_cacheLock</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>IsDisabled</code></td>
+<td style="text-align: left;"><code>bool</code></td>
+<td style="text-align: left;">Set if an unhandled exception occurs on the main thread or if the environment cannot be initialized. When disabled, all movies route to the XML loader.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resilient-exception-handling">Resilient Exception Handling</h3>
+<p>Unexpected exceptions in <code>TryUseCompiledPrefab</code> or <code>OnPrefabsCollected</code> invoke <code>Disable(Exception)</code>, permanently disabling the manager for the remainder of the game session to protect stability.</p>
+<p>Expected, non-fatal errors (such as a single movie failing code generation) are recorded per <code>PrefabKey</code> and do not disable the manager. If a referenced assembly file on disk is locked or unreadable, <code>PrefabReferenceSet</code> throws <code>PrefabReferenceException</code>; only movies requiring that specific assembly fall back to XML, while all other movies continue compiling normally.</p>
+<p>Critical entry points are protected by <code>[MethodImpl(MethodImplOptions.NoInlining)]</code> wrappers. Because the JIT compiles an entire method at once, referencing types from <code>Bannerlord.UIExtenderEx.Compiler</code> in a method body would trigger JIT compilation failures on startup if the compiler assembly were missing. The wrappers ensure checks against <code>IsDisabled</code> occur before any compiler types are resolved.</p>
+<hr>
+<h2 id="4-execution-flow-of-tryusecompiledprefab">4. Execution Flow of <code>TryUseCompiledPrefab</code></h2>
+<p>When <code>CompiledPrefabRuntime.TryServe</code> queries the manager, execution proceeds through the following steps on the main thread:</p>
+<pre><code class="lang-mermaid">flowchart TD
+    Start([Movie Load Request]) --&gt; CheckState{Manager enabled &amp;&lt;br/&gt;DataSource present?}
+    CheckState -- No --&gt; FallbackXML[Return false: Use XML]
+    CheckState -- Yes --&gt; Drain[1. DrainFinished: Register worker results]
+    Drain --&gt; FastFP[2. Compute fast cached fingerprint]
+    FastFP -- Unresolvable --&gt; FallbackXML
+    FastFP --&gt; CheckExisting{3. TryUseExisting:&lt;br/&gt;Registered, pending,&lt;br/&gt;failed, or cached?}
+    CheckExisting -- Registered &amp; valid --&gt; ServeCompiled[Return true: Use Compiled]
+    CheckExisting -- Pending or failed --&gt; FallbackXML
+    CheckExisting -- Cached hit &amp; valid --&gt; LoadCached[Load cached assembly &amp; register] --&gt; ServeCompiled
+    CheckExisting -- Miss: Build required --&gt; Snapshot[4. BeginSnapshot: Pin XML tree]
+    Snapshot --&gt; Gen[5. GenerateSources: Alternative code generator]
+    Gen -- Generator error --&gt; RecordFail[Record failure &amp; write report] --&gt; FallbackXML
+    Gen --&gt; CollectInputs[6. CollectInputs: Reference set &amp; full hash]
+    CollectInputs --&gt; CheckInputs{Matches existing&lt;br/&gt;under full hash?}
+    CheckInputs -- Yes --&gt; ServeCompiled
+    CheckInputs -- No --&gt; Dispatch[7. Dispatch CompileInBackground to worker]
+    Dispatch --&gt; FallbackXML
+</code></pre>
+<h3 id="detailed-execution-steps">Detailed Execution Steps</h3>
+<h4 id="1-drain-finished-worker-jobs-drainfinished">1. Drain Finished Worker Jobs (<code>DrainFinished</code>)</h4>
+<p>All completed compilation results in <code>_finished</code> are dequeued on the main thread. Finished keys are removed from <code>_pending</code>. Successful assemblies are registered via <code>TryRegister</code>. Failed jobs record their failure state, write error logs, and display an on-screen warning once per unique fingerprint.</p>
+<h4 id="2-fast-fingerprint-calculation-computefingerprint">2. Fast Fingerprint Calculation (<code>ComputeFingerprint</code>)</h4>
+<p>A lightweight fingerprint is computed using <code>environment.ComputeFingerprint(factory, movie, vmType, out failure)</code>. This utilizes the cached <code>PrefabSection</code> for the movie. If any prefab in the tree lacks an XML hash or is unknown to the factory, the check fails and the movie falls back to XML.</p>
+<h4 id="3-query-existing-builds-tryuseexisting">3. Query Existing Builds (<code>TryUseExisting</code>)</h4>
+<p>The manager evaluates four conditions in order:</p>
+<ol>
+<li><strong>Registered</strong>: A build is already registered under this fingerprint and its dependencies remain valid <span class="math">\(\to\)</span> returns <code>true</code>.</li>
+<li><strong>Pending</strong>: A background worker is currently compiling this pair <span class="math">\(\to\)</span> returns <code>false</code> (serves XML while waiting).</li>
+<li><strong>Failed</strong>: The pair previously failed on this fingerprint under the current <code>UIEnvironmentVersion</code> <span class="math">\(\to\)</span> returns <code>false</code>.</li>
+<li><strong>Cached on Disk</strong>: <code>TryUseCachedBuild</code> searches <code>_preloaded</code>, then checks the local <code>PrefabCache</code> archive and seed caches. If a valid build matching the fingerprint and dependencies is found, it is loaded, registered, and served <span class="math">\(\to\)</span> returns <code>true</code>.</li>
+</ol>
+<h4 id="4-tree-snapshotting-beginsnapshot">4. Tree Snapshotting (<code>BeginSnapshot</code>)</h4>
+<p>If no existing build is found, compilation is required. The manager creates an atomic <code>PrefabCompilationSnapshot</code>. This establishes a <code>PrefabLease</code> that pins the entire XML prefab tree in memory, preventing external patches or resource refreshes from altering the XML mid-generation.</p>
+<h4 id="5-code-generation-generatesources">5. Code Generation (<code>GenerateSources</code>)</h4>
+<p>The alternative code generator (<code>PrefabCodeGenerator</code>) executes on the main thread against the pinned snapshot. An active <code>TypeDependencies</code> session tracks every type and member inspected during generation. If code generation throws an exception, the failure is logged under <code>Failed/&lt;Movie&gt;/&lt;ViewModel&gt;</code>, and the movie falls back to XML.</p>
+<h4 id="6-input-collection--final-hash-verification-collectinputs">6. Input Collection &amp; Final Hash Verification (<code>CollectInputs</code>)</h4>
+<p><code>snapshot.CollectInputs()</code> resolves the compilation reference paths and computes the final compilation fingerprint over the exact pinned parse (<code>PrefabCompilationInputs</code>). References are collected after generation because code generation can dynamically trigger the loading of assemblies referenced by name. <code>TryUseExisting</code> is evaluated once more against this final hash in case an identical build exists under the exact input hash.</p>
+<h4 id="7-worker-dispatch-compileinbackground">7. Worker Dispatch (<code>CompileInBackground</code>)</h4>
+<p>An access-check suppression source file (<code>IgnoresAccessChecks.gen.cs</code>) is appended to the compilation unit. The pair is marked as pending in <code>_pending</code>, and a compilation task is dispatched to a background worker thread via <code>ICompiledPrefabEnvironment.RunInBackground</code>. The method returns <code>false</code>, allowing the current load request to be served seamlessly via XML while compilation proceeds asynchronously.</p>
+<p>The snapshot is disposed when the method exits, releasing all pinned prefab leases.</p>
+<hr>
+<h2 id="5-background-compilation--assembly-loading">5. Background Compilation &amp; Assembly Loading</h2>
+<p><code>CompileInBackground</code> executes on a thread-pool worker:</p>
+<pre><code>[Main Thread]                             [Worker Thread]
+      │                                          │
+      ├─► Queue CompileInBackground ────────────►│
+      │                                          ├─► 1. ICSharpCompiler.Compile
+      │                                          ├─► 2. PrefabDependencies.Compose
+      │                                          ├─► 3. PrefabCache.WriteToCache
+      │                                          ├─► 4. Assembly.Load(bytes)
+      │                                          ├─► 5. PrefabCache.Flush
+      │                                          │
+      │◄── Enqueue CompileJobResult ─────────────┴─► Return
+      │
+[Next Movie Load]
+      │
+      └─► DrainFinished() -&gt; TryRegister() -&gt; Serve
+</code></pre>
+<h3 id="worker-lifecycle-steps">Worker Lifecycle Steps</h3>
+<ol>
+<li><strong>Compilation</strong>: Invokes <code>ICompiledPrefabEnvironment.Compiler</code> (Roslyn) with the source strings and reference paths.</li>
+<li><strong>Dependency Composition</strong>: On success, <code>PrefabDependencies.Compose</code> maps the inspected types and generated <code>AssemblyRef</code> table entries to concrete assembly paths.</li>
+<li><strong>Disk Cache Storage</strong>: The compiled bytes, fingerprint, and dependency records are written to <code>PrefabCache</code>. If <code>DumpGeneratedCode</code> is enabled, source files are written to <code>Sources/&lt;Movie&gt;/&lt;ViewModel&gt;/</code>.</li>
+<li><strong>Off-Thread Assembly Loading</strong>: The assembly is loaded into the process via <code>Assembly.Load(byte[])</code> <strong>on the worker thread</strong>. In heavily modded setups, third-party mod assembly-load listeners can extend load times to 90–210 ms (see <a href="Compilation.html#off-thread-assembly-loading">Off-Thread Assembly Loading</a>); running this off-thread prevents UI frame drops.</li>
+<li><strong>Cache Flush</strong>: <code>PrefabCache.Flush</code> updates the archive on disk.</li>
+<li><strong>Result Queueing</strong>: Exactly one <code>CompileJobResult</code> is enqueued into <code>_finished</code>.</li>
+</ol>
+<p>If compilation or assembly loading fails, an error report containing the exception details, compiler diagnostic messages, and source files is written to <code>Failed/&lt;Movie&gt;/&lt;ViewModel&gt;/</code>.</p>
+<hr>
+<h2 id="6-creator-registration--gauntlet-integration">6. Creator Registration &amp; Gauntlet Integration</h2>
+<p>When <code>DrainFinished</code> dequeues a successful build, it invokes <code>TryRegister</code>, calling <code>environment.CreateCreator(assembly)</code>:</p>
+<ol>
+<li><strong>Creator Discovery</strong>: Resolves the generated class <code>Bannerlord.UIExtenderEx.AutoGenerated.GeneratedUIPrefabCreator</code> and its registration method <code>CollectGeneratedPrefabDefinitions(GeneratedPrefabContext)</code>.</li>
+<li><strong>Widget Table Registration</strong>: Discovers every <code>Widget</code> subclass in the compiled assembly and registers it in Gauntlet's internal <code>WidgetInfo</code> table via <code>WidgetInfo.AddWidgetType</code>. Without this step, instantiating the widget during movie rendering throws an exception.</li>
+<li><strong>Widget Validation</strong>: Queries <code>WidgetInfo.GetWidgetInfo</code> for each registered widget type to ensure initialization succeeded.</li>
+<li><strong>Delegate Binding</strong>: Creates an <code>Action&lt;GeneratedPrefabContext&gt;</code> delegate bound to the creator's collection method.</li>
+</ol>
+<p>The manager executes the delegate against the current <code>GeneratedPrefabContext</code> and stores the registration in <code>_registered</code>.</p>
+<hr>
+<h2 id="7-the-prefab-fingerprint-prefabfingerprint">7. The Prefab Fingerprint (<code>PrefabFingerprint</code>)</h2>
+<p>A compiled assembly is only valid for the exact inputs from which it was generated. The <strong>fingerprint</strong> is a SHA-256 hash computed over an ordered text specification generated by <code>PrefabFingerprint.Compose</code>:</p>
+<pre><code class="lang-text">generation:&lt;GenerationHash&gt;
+viewmodel:&lt;Type, Assembly&gt;
+dottedpaths:&lt;True|False&gt;
+widget:&lt;Name&gt;=&lt;FullTypeName&gt;, &lt;Assembly&gt;
+widgetpatched:&lt;Name&gt;=&lt;Type&gt;.&lt;Method&gt; is patched
+mixintarget:&lt;Type, Assembly&gt;
+mixin:&lt;Type, Assembly&gt;
+prefab:&lt;Name&gt;:&lt;XmlSha256&gt;
+</code></pre>
+<h3 id="fingerprint-components">Fingerprint Components</h3>
+<ul>
+<li><strong><code>generation</code></strong>: Output of <code>PrefabFingerprint.ComputeGeneration()</code>. Hashes the MVIDs of the core assemblies (<code>CompiledPrefabs</code>, <code>CodeGenerator</code>, <code>Compiler</code>) and the four primary TaleWorlds UI assemblies (<code>TaleWorlds.Library</code>, <code>TaleWorlds.GauntletUI</code>, <code>TaleWorlds.GauntletUI.PrefabSystem</code>, <code>TaleWorlds.GauntletUI.Data</code>). Any update to UIExtenderEx or the base game invalidates all cached fingerprints.</li>
+<li><strong><code>viewmodel</code></strong>: The full type name and assembly of the root ViewModel data source.</li>
+<li><strong><code>dottedpaths</code></strong>: Current value of <code>CodeGeneratorEnvironment.DottedPathsResolveCorrectly</code>.</li>
+<li><strong><code>widget</code></strong>: Alphabetically sorted mappings of widget tag names to concrete widget types and assemblies in the prefab closure (or <code>&quot;(prefab)&quot;</code> / <code>&quot;(unresolved)&quot;</code>).</li>
+<li><strong><code>widgetpatched</code></strong>: Emitted when a widget class has a method patched by Harmony. The generator tracks widget change notifications using method IL; if a method is patched, IL inspection is bypassed, altering code emission.</li>
+<li><strong><code>mixintarget</code> / <code>mixin</code></strong>: Grouped by target ViewModel and ordered by resolver priority. Mixin order is preserved because <code>MixinMemberResolver</code> selects the <em>last</em> registered mixin providing a given property name; sorting would obscure registration order changes.</li>
+<li><strong><code>prefab</code></strong>: Alphabetically sorted SHA-256 hashes of the patched XML content for every prefab in the movie's dependency tree.</li>
+</ul>
+<div class="IMPORTANT">
+<h5>Important</h5>
+<p>The fingerprint text explicitly <strong>excludes assembly versions and reference lists</strong>. Referencing assemblies are validated independently via the dependency tracking system.</p>
+</div>
+<hr>
+<h2 id="8-assembly-dependency-tracking-prefabdependencies">8. Assembly Dependency Tracking (<code>PrefabDependencies</code>)</h2>
+<p>Rather than hashing every referenced assembly into the fingerprint (which would cause a rebuild of every UI screen whenever an unrelated mod or library updated), UIExtenderEx isolates dependencies per build.</p>
+<p>A build depends strictly on two sources:</p>
+<ol>
+<li><strong>Inspected Types (<code>TypeDependencies</code>)</strong>: Recorded during code generation. Tracks every type and member queried by the generator (property lookups, method overloads, constructors, list element types, widget property paths, and mixin targets). Types are expanded to include base classes, interfaces, generic arguments, and declaring types.</li>
+<li><strong>Emitted Assembly References (<code>UsedReferencePaths</code>)</strong>: Derived from the emitted assembly's <code>AssemblyRef</code> metadata table, mapped back to the assemblies passed to the compiler.</li>
+</ol>
+<p>Because generated C# uses fully qualified type names (<code>global::</code>) and contains no <code>using</code> directives, external assemblies cannot introduce extension methods or namespace collisions unnoticed.</p>
+<h3 id="dependency-descriptions">Dependency Descriptions</h3>
+<p>Each dependency is recorded as <code>name:description</code>:</p>
+<ul>
+<li><strong>Game and Module Assemblies</strong>: Described by their Module Version ID (MVID).</li>
+<li><strong>Machine Framework Assemblies</strong>: Described by assembly version (e.g., <code>System.Runtime</code> version <code>6.0.0.0</code>). Framework servicing updates preserve binary compatibility while changing MVIDs; using versions prevents Windows updates from invalidating the cache.</li>
+<li><strong>Dynamic / Byte-Loaded Assemblies</strong>: Described by MVID extracted from memory.</li>
+</ul>
+<h3 id="fast-dependency-validation-findchanged">Fast Dependency Validation (<code>FindChanged</code>)</h3>
+<p>When checking a cached build, <code>FindChanged</code> validates each recorded dependency against currently loaded assemblies. If an assembly is not yet loaded, candidate files in the game and module search directories are checked.</p>
+<p>Once an assembly is loaded into the process, its identity cannot change; validation resolves via quick hash set lookups, completing in microseconds.</p>
+<hr>
+<h2 id="9-xml-registry--prefab-closures">9. XML Registry &amp; Prefab Closures</h2>
+<h3 id="post-patch-xml-hashing-prefabxmlregistry">Post-Patch XML Hashing (<code>PrefabXmlRegistry</code>)</h3>
+<p><code>PrefabXmlRegistry</code> maintains SHA-256 hashes of prefab documents <strong>after</strong> all UIExtenderEx patches have been applied.</p>
+<p>It subscribes to <code>PrefabSource.Parsed</code>, which is triggered by:</p>
+<ul>
+<li><code>WidgetPrefabPatch</code>: A transpiler on <code>WidgetPrefab.LoadFrom</code> that executes after <code>PrefabComponent.ProcessMovieIfNeeded</code> patches the document.</li>
+<li><code>WidgetFactoryManager.Create</code>: Captures prefabs constructed programmatically in code.</li>
+</ul>
+<p>The registry tracks two tables:</p>
+<ul>
+<li><code>Hashes</code>: Maps a prefab name to its latest XML hash.</li>
+<li><code>ParsedHashes</code>: A <code>ConditionalWeakTable&lt;WidgetPrefab, string&gt;</code> associating a parsed prefab instance with its document hash. This ensures a prefab constructed outside standard channels cannot inherit an outdated hash sharing its name.</li>
+</ul>
+<h3 id="prefab-sections-prefabsection">Prefab Sections (<code>PrefabSection</code>)</h3>
+<p>Parsing a movie's complete prefab closure (nested prefabs, inherited prefabs, and list item templates) can require 200–350 ms. <code>PrefabFingerprint.PrefabSection</code> caches this traversal:</p>
+<ul>
+<li><code>Hashes</code>: Dictionary of all prefab names in the closure to their XML hashes.</li>
+<li><code>WidgetTypes</code>: Sorted array of all widget tag names declared across the closure.</li>
+<li><code>Text</code>: Pre-computed <code>prefab:</code> fingerprint lines.</li>
+<li><code>Factory</code> / <code>RegistrationVersion</code>: The factory and version against which the section was calculated.</li>
+</ul>
+<p>A section is valid (<code>IsCurrent</code>) if the factory matches, <code>PrefabXmlRegistry.Version</code> is unchanged, all prefab hashes match, and no prefab in the closure was registered via a dynamic callback. Sections are invalidated when <code>WidgetFactoryManager.ReloadOnNextUse</code> triggers <code>PrefabSource.ReloadRequested</code>.</p>
+<hr>
+<h2 id="10-snapshots--factory-pinning">10. Snapshots &amp; Factory Pinning</h2>
+<p>TaleWorlds' <code>WidgetFactory</code> uses reference counting for loaded prefabs: <code>GetCustomType</code> parses XML on first request and retains the instance as long as its live usage count is greater than zero.</p>
+<h3 id="factory-leases-prefablease">Factory Leases (<code>PrefabLease</code>)</h3>
+<p>To prevent the code generator and fingerprint calculations from permanently locking prefabs in memory, <code>WidgetFactoryLookup.PrefabLease</code> provides a thread-static lexical scope:</p>
+<pre><code class="lang-csharp">using (PrefabLease.Begin(factory, pin: true))
+{
+    // All prefabs parsed during this block have their usage incremented
+}
+// Disposing the lease calls WidgetFactory.OnUnload for each acquired prefab
+</code></pre>
+<h3 id="atomic-snapshots-prefabcompilationsnapshot">Atomic Snapshots (<code>PrefabCompilationSnapshot</code>)</h3>
+<p>Earlier versions read the prefab tree twice—once to compute the fingerprint, and once to generate code. If a patch toggled or a dynamic factory returned new XML between reads, the emitted code mismatched the fingerprint.</p>
+<p><code>PrefabCompilationSnapshot.Begin</code> resolves this by opening a pinning lease and walking the tree once. The pinned prefabs are cached within the snapshot and served directly to the code generator. Input collection (<code>CollectInputs</code>) runs after code generation over the exact pinned instances, guaranteeing hash consistency.</p>
+<hr>
+<h2 id="11-reference-set-assembly-resolution-prefabreferenceset">11. Reference Set Assembly Resolution (<code>PrefabReferenceSet</code>)</h2>
+<p><code>PrefabReferenceSet.Collect(factory, vmType, section)</code> resolves the list of assembly references supplied to Roslyn.</p>
+<h3 id="resolution-steps">Resolution Steps</h3>
+<ol>
+<li><strong>Seed Collection</strong>:
+<ul>
+<li>TaleWorlds engine assemblies: <code>TaleWorlds.Library</code>, <code>TaleWorlds.GauntletUI</code>, <code>TaleWorlds.GauntletUI.PrefabSystem</code>, <code>TaleWorlds.GauntletUI.Data</code>, <code>TaleWorlds.TwoDimension</code>.</li>
+<li>UIExtenderEx assemblies: <code>Bannerlord.UIExtenderEx.CodeGenerator</code> and <code>Bannerlord.UIExtenderEx</code> (the compiled runtime is excluded).</li>
+<li>The root ViewModel assembly.</li>
+<li>Assemblies declaring widgets named in the section's <code>WidgetTypes</code>.</li>
+<li>Assemblies declaring enabled mixins reachable from the root ViewModel.</li>
+</ul>
+</li>
+<li><strong>Transitive Metadata Walk</strong>:
+Each assembly is inspected using <code>System.Reflection.Metadata</code> via <code>PrefabAssemblyReference.Read</code>. This inspects references without loading assemblies into the CLR, avoiding third-party load listeners. Dependencies are resolved against loaded assemblies first, then searched across:
+<ul>
+<li>The referencing assembly's directory.</li>
+<li>Seed assembly directories.</li>
+<li>Game <code>bin/&lt;platform&gt;</code> and module <code>bin/&lt;platform&gt;</code> directories.</li>
+<li>The runtime directory and <code>Facades</code> folders.</li>
+</ul>
+</li>
+<li><strong>Candidate Tie-Breaking (<code>Choose</code>)</strong>:
+If candidate DLLs with matching names have differing MVIDs, <code>Choose</code> selects the file matching the version requested by the referencing assembly.</li>
+<li><strong>Vector Deduplication</strong>:
+If both <code>System.Numerics.Vectors.dll</code> (shipped by TaleWorlds) and <code>System.Numerics.dll</code> (from the framework) define <code>System.Numerics.Vector2</code>, references are analyzed, and only the most frequently referenced assembly is retained.</li>
+</ol>
+<hr>
+<h2 id="12-environment-invalidation-matrix">12. Environment Invalidation Matrix</h2>
+<p>The table below outlines events that alter runtime state, the counters they increment, and their impact on cached movies:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Trigger Event</th>
+<th style="text-align: left;">Modified Counter / State</th>
+<th style="text-align: left;">Rebuild Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Prefab patch XML changes or replacement file edited</td>
+<td style="text-align: left;">Prefab XML hash on next parse</td>
+<td style="text-align: left;">Section invalidated; fingerprint changes; movie recompiles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UIExtender.Enable</code> / <code>Disable</code> / <code>Deregister</code> (Patches)</td>
+<td style="text-align: left;"><code>PrefabSource.ReloadRequested</code></td>
+<td style="text-align: left;">Live prefab dropped; re-parsed on next use; rebuilds if XML changed.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Mixin enabled, disabled, or deregistered</td>
+<td style="text-align: left;"><code>UIEnvironmentVersion</code></td>
+<td style="text-align: left;">Reachability recomputed; movies whose ViewModel reaches the mixin recompile.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WidgetFactoryManager.Register(Type)</code></td>
+<td style="text-align: left;"><code>UIEnvironmentVersion</code></td>
+<td style="text-align: left;">Widget names re-resolved; changes fingerprint if resolution changes.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WidgetFactoryManager.Register(name, factory)</code></td>
+<td style="text-align: left;"><code>PrefabXmlRegistry.Version</code><br><code>UIEnvironmentVersion</code></td>
+<td style="text-align: left;">All sections invalidated; movies embedding the prefab treat it as overridden.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>WidgetFactoryManager.ReloadOnNextUse(names)</code></td>
+<td style="text-align: left;"><code>PrefabSource.ReloadRequested</code></td>
+<td style="text-align: left;">Target prefabs re-parsed and re-hashed on next load.</td>
+</tr>
+<tr>
+<td style="text-align: left;">External assembly loaded into process</td>
+<td style="text-align: left;"><code>UIEnvironmentVersion</code></td>
+<td style="text-align: left;">Reference set recomputed; failed compilations re-evaluated; fingerprints unchanged.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Engine resource refresh (<code>CollectPrefabs</code>)</td>
+<td style="text-align: left;"><code>OnPrefabsCollected</code> clears caches; drops convention verdict</td>
+<td style="text-align: left;">Sections and reference sets recomputed; registered builds re-collected into context.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Mod DLL rebuilt (MVID updated)</td>
+<td style="text-align: left;">Assembly MVID</td>
+<td style="text-align: left;">Only movies with recorded dependencies on that assembly recompile.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Unrelated library updated (e.g., Harmony, Newtonsoft)</td>
+<td style="text-align: left;">None</td>
+<td style="text-align: left;">No rebuilds.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Game or UIExtenderEx updated</td>
+<td style="text-align: left;">Cache generation hash</td>
+<td style="text-align: left;">Entire disk cache invalidated and reset.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="13-disk-cache-architecture-prefabcache">13. Disk Cache Architecture (<code>PrefabCache</code>)</h2>
+<p>Cached assemblies and metadata are stored in <code>Modules/Bannerlord.UIExtenderEx/CompiledPrefabs</code>:</p>
+<pre><code class="lang-text">Modules/Bannerlord.UIExtenderEx/CompiledPrefabs/
+├── CompiledPrefabs.zip
+├── Sources/
+│   └── &lt;Movie&gt;/&lt;ViewModel&gt;/
+│       ├── &lt;Prefab&gt;.gen.cs
+│       └── IgnoresAccessChecks.gen.cs
+└── Failed/
+    └── &lt;Movie&gt;/&lt;ViewModel&gt;/
+        ├── errors.txt
+        └── &lt;Prefab&gt;.gen.cs
+</code></pre>
+<h3 id="the-zip-archive-format-compiledprefabszip">The Zip Archive Format (<code>CompiledPrefabs.zip</code>)</h3>
+<p>The cache archive uses format version 3:</p>
+<pre><code class="lang-text">cache.txt
+&lt;Movie&gt;/&lt;ViewModel&gt;.dll
+</code></pre>
+<p><code>cache.txt</code> contains a generation header followed by serialized build blocks:</p>
+<pre><code class="lang-text">format=3
+generation=A1B2C3D4E5F6...
+
+movie=Inventory
+variant=TaleWorlds.CampaignSystem.ViewModelCollection.Inventory.SPInventoryVM
+fingerprint=9F8E7D6C5B4A...
+sha256=1234567890ABCDEF...
+dependency=TaleWorlds.CampaignSystem.ViewModelCollection:MVID_HERE
+dependency=mscorlib:4.0.0.0
+</code></pre>
+<h3 id="concurrency-and-reliability">Concurrency and Reliability</h3>
+<ul>
+<li><strong>Atomic File Swapping</strong>: During <code>Flush</code>, the cache writes to a temporary zip file beside the archive and commits using <code>File.Replace</code>. If the game process is abruptly terminated, the original archive remains intact.</li>
+<li><strong>Flush Coalescing</strong>: Multiple background worker threads completing concurrently coalesce their disk flushes into sequential writes.</li>
+<li><strong>In-Memory Loading</strong>: Assemblies are read as byte arrays and loaded via <code>Assembly.Load(byte[])</code>, avoiding file lock contention on disk.</li>
+</ul>
+<h3 id="seed-caches-seedcaches">Seed Caches (<code>SeedCaches</code>)</h3>
+<p>Mod packs with pinned game and mod versions can distribute pre-compiled UI assemblies. If a <code>CompiledPrefabs.zip</code> file is placed at the root of any loaded module (e.g., <code>Modules/MyModPack/CompiledPrefabs.zip</code>), UIExtenderEx mounts it as a <strong>seed cache</strong>:</p>
+<ul>
+<li>Seed caches are read-only and queried after the local cache.</li>
+<li>A seed build is used only if its generation hash and fingerprint match the player's setup exactly.</li>
+<li>Assemblies are preloaded during warm-up; matches supersede local compilation.</li>
+<li>Seed caches are never written to or modified by UIExtenderEx.</li>
+</ul>
+<hr>
+<h2 id="14-system-warm-up-warmupcompilers">14. System Warm-up (<code>WarmUpCompilers</code>)</h2>
+<p>To eliminate runtime compilation stutter during gameplay, <code>CompiledPrefabRuntime.OnSubModuleLoad</code> invokes <code>CompiledPrefabManager.WarmUpCompilers</code>. This schedules an asynchronous task on a background worker thread that executes three operations:</p>
+<ol>
+<li><strong>Preload Cached Assemblies</strong>: Scans <code>CompiledPrefabs.zip</code> and all valid seed caches, loading assemblies of the current generation into <code>_preloaded</code>. This shifts assembly-load listener overhead off the main thread.</li>
+<li><strong>JIT-Prepare the Code Generator</strong>: Executes <code>RuntimeHelpers.PrepareMethod</code> across all methods and constructors in <code>Bannerlord.UIExtenderEx.GauntletUI.CodeGenerator</code> and <code>TaleWorlds.Library.CodeGeneration</code>. This avoids an 80–90 ms JIT compilation pause when the first patched movie generates code on the main thread.</li>
+<li><strong>Warm the Roslyn Compiler</strong>: Invokes <code>ICSharpCompiler.WarmUp</code>. Roslyn compiles a minimal dummy widget class against the collected reference set. This initializes Roslyn's internal syntax trees, binders, and metadata caches, shifting an initial compilation delay of ~2 seconds (2,040 ms measured) from gameplay to background startup.</li>
+</ol>
+<hr>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="Overview.html">Overview</a>: High-level architecture, prefab runtimes, and module dependencies.</li>
+<li><a href="Generator.html">Code Generator</a>: Alternative code generator implementation details, mixin binding generation, and by-name binding fallback strategies.</li>
+<li><a href="Compilation.html">Compilation</a>: Roslyn embedding, ILRepack internalization, reference publicizing, and access check suppression.</li>
+<li><a href="Testing.html">Testing</a>: Unit testing harnesses, game-backed integration suites, and benchmarks.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Pipeline.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

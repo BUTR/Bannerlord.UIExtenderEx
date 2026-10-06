@@ -1,0 +1,16 @@
+/* The BUTR logo in the navbar. The modern template puts no size rule on #logo and
+   uses whatever the SVG declares. 36px keeps the navbar at the 59px the template
+   lays out for (its anchors scroll to a 60px margin); the width follows. */
+#logo {
+  height: 36px;
+  width: auto;
+  margin-right: .5rem;
+}
+
+/* The LastModified plugin appends an <hr> and a .last-modified block to every
+   conceptual article and has no per-page opt-out. On the 404 page it would date
+   a page the reader never asked for, so hide it there. */
+article[data-uid="not-found"] > hr:has(+ .last-modified),
+article[data-uid="not-found"] > .last-modified {
+  display: none;
+}

@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>UIExtenderEx 3.0 Overview &amp; Upgrade Guide | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="UIExtenderEx 3.0 Overview &amp; Upgrade Guide | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v3/Overview.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="uiextenderex-30-overview--upgrade-guide">UIExtenderEx 3.0 Overview &amp; Upgrade Guide</h1>
+
+<p><strong>UIExtenderEx 3.0</strong> is a major update delivering substantial performance gains, developer-focused diagnostics, and modern C# hooks that eliminate the need for Harmony patches in ViewModel extensions.</p>
+<p>Despite the major version bump, <strong>UIExtenderEx 3.0 maintains full backward compatibility</strong> with the modern <a href="../v2/Overview.html">v2 Prefabs API</a> and <a href="../v2/ViewModelMixin.html"><code>BaseViewModelMixin&lt;T&gt;</code></a>. Mods built against UIExtenderEx 2.13 run seamlessly on 3.0 without code changes.</p>
+<hr>
+<h2 id="whats-new-in-30">What's New in 3.0</h2>
+<h3 id="1-compiled-prefabs-engine">1. Compiled Prefabs Engine</h3>
+<p>Bannerlord achieves fast UI loading by compiling vanilla XML prefabs into native C# classes ahead of time. UIExtenderEx 3.0 brings this performance advantage to modded interfaces:</p>
+<ul>
+<li>Injected XML patches are dynamically compiled into optimized C# assemblies on the fly.</li>
+<li>Screens with extensive mod extensions load with near-vanilla performance, bypassing runtime XML parsing.</li>
+<li>Learn more in <a href="../general/CompiledPrefabs.html">Compiled Prefabs Deep Dive</a>.</li>
+</ul>
+<h3 id="2-built-in-mixin-hooks-zero-harmony-required">2. Built-in Mixin Hooks (Zero Harmony Required)</h3>
+<p>Previously, mods often had to combine UIExtenderEx mixins with Harmony patches whenever they needed to intercept ViewModel methods, access private fields, or react to property updates. Version 3.0 introduces native hooks directly within <a class="xref" href="../../api/Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html"><code>BaseViewModelMixin&lt;T&gt;</code></a>:</p>
+<ul>
+<li><strong>Method Overrides (<a href="Mixins.html#taking-over-a-viewmodel-method"><code>[BUTRViewModelOverride]</code></a>):</strong> Intercept or replace vanilla ViewModel methods across all callers (UI buttons, hotkeys, and internal game logic), with support for calling the original implementation.</li>
+<li><strong>Fast Private Member Access (<a href="Mixins.html#reaching-private-members"><code>[BUTRUnsafeAccessor]</code></a>):</strong> Read or write private fields and invoke private methods using zero-overhead IL stubs that are verified at registration time.</li>
+<li><strong>Universal Property Notifications (<a href="Mixins.html#hearing-every-notification"><code>OnViewModelPropertyChanged</code></a>):</strong> Catch all property changes dispatched by the target ViewModel—including typed value notifications (<code>PropertyChangedWithValue</code>) that vanilla <code>PropertyChanged</code> handlers miss.</li>
+<li><strong>Safe External Mixin Retrieval (<a href="Mixins.html#reaching-a-mixin-from-outside"><code>ViewModelMixins.Get</code></a>):</strong> Retrieve the active mixin instance attached to any ViewModel without relying on static singletons or weak-reference properties.</li>
+</ul>
+<h3 id="3-smarter-registration-and-error-reporting">3. Smarter Registration and Error Reporting</h3>
+<p>Registration in 3.0 provides actionable diagnostics directly in your logs:</p>
+<ul>
+<li>Detects and logs property or method name collisions between mixins and target ViewModels.</li>
+<li>Gracefully handles partial assembly loads. If a mod contains a mixin targeting an uninstalled DLC or missing mod dependency, UIExtenderEx registers all available types and logs a clean warning rather than crashing <code>Extender.Register(...)</code>. See <a href="Mixins.html#what-registration-reports">What registration reports</a>.</li>
+<li>Identifies unresolvable accessor stubs and warns when abstract mixins lack <code>handleDerived: true</code>.</li>
+</ul>
+<h3 id="4-roslyn-analyzers-and-static-linking">4. Roslyn Analyzers and Static Linking</h3>
+<p>The <a href="../general/Analyzers.html">Bannerlord.UIExtenderEx.Analyzers</a> package provides real-time compile-time checking inside Visual Studio and Rider. Using <a href="../v2/PrefabLink.html"><code>[assembly: PrefabLink]</code></a>, the analyzer validates your XML bindings, attributes, and XPath expressions against your C# ViewModel and mixin definitions before you launch the game.</p>
+<hr>
+<h2 id="real-world-case-studies">Real-World Case Studies</h2>
+<p>To demonstrate how 3.0 simplifies real-world mod codebases, explore our worked examples:</p>
+<ul>
+<li><strong><a href="MCM.html">Worked Example: MCM</a>:</strong> Demonstrates how the Mod Configuration Menu replaced four distinct Harmony patches, eliminated custom delegate management, and cleaned up options handling by adopting 3.0 mixin hooks.</li>
+<li><strong><a href="Diplomacy.html">Worked Example: Diplomacy</a>:</strong> Illustrates how a large mod (70+ members across 7 ViewModels) cleaned up redundant refresh cycles, simplified property change listening, and unified shared mixin logic using base classes.</li>
+</ul>
+<hr>
+<h2 id="upgrading-from-uiextenderex-2x">Upgrading from UIExtenderEx 2.x</h2>
+<h3 id="supported-game-versions">Supported Game Versions</h3>
+<p>UIExtenderEx 3.0 targets <strong>Mount &amp; Blade II: Bannerlord v1.3.4 and later</strong>. Mods targeting older legacy game releases should continue using UIExtenderEx 2.13.</p>
+<h4 id="why-v134">Why v1.3.4?</h4>
+<p>While UIExtenderEx 2.x supported game releases dating back to v1.0.0, version 3.0 establishes <strong>v1.3.4</strong> as its new baseline. This requirement is driven by breaking Gauntlet UI API changes introduced in Bannerlord v1.3:</p>
+<ul>
+<li><strong>Visual Definition Easing Overhaul (Primary Reason):</strong><br>
+In v1.3, TaleWorlds redesigned animation interpolation on <code>VisualDefinition</code>. The legacy constructor accepting a simple <code>bool easeIn</code> flag was removed in favor of a new five-argument constructor requiring <code>EaseType</code>, <code>EaseFunction</code>, and <code>AnimationInterpolation</code>. Because the <a href="../general/CompiledPrefabs.html">Compiled Prefabs</a> code generator emits strongly-typed C# constructors directly into generated prefab classes, the generated code can only compile against the new engine API.</li>
+<li><strong>Direct Engine Calls (Zero Reflection):</strong><br>
+UIExtenderEx 3.0 replaces reflection with direct, zero-overhead API calls wherever possible. When registering dynamically loaded widget classes, it invokes <code>WidgetInfo.Refresh()</code>. In pre-v1.3 versions, this method was named <code>WidgetInfo.Reload()</code>. While 2.x bridged this gap using reflection, 3.0 targets the modern method directly.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Engine API</th>
+<th style="text-align: left;">Pre-v1.3</th>
+<th style="text-align: left;">v1.3 and Later</th>
+<th style="text-align: left;">Impact in 3.0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Visual Definitions</strong></td>
+<td style="text-align: left;"><code>VisualDefinition(..., bool easeIn)</code></td>
+<td style="text-align: left;"><code>VisualDefinition(..., EaseType, EaseFunction)</code></td>
+<td style="text-align: left;">Code generator emits the new 5-parameter constructor for animated widgets.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Widget Table Refresh</strong></td>
+<td style="text-align: left;"><code>WidgetInfo.Reload()</code></td>
+<td style="text-align: left;"><code>WidgetInfo.Refresh()</code></td>
+<td style="text-align: left;">Invoked directly without reflection when registering dynamic widget types.</td>
+</tr>
+</tbody>
+</table>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Versions v1.3.0 through v1.3.2 were beta-only releases; <strong>v1.3.4</strong> is the first official stable game release that includes all of these API updates.</p>
+</div>
+<h3 id="automatic-behavioral-changes-no-code-changes-required">Automatic Behavioral Changes (No Code Changes Required)</h3>
+<ol>
+<li><strong>Compiled Prefabs by Default:</strong> Your prefab patches are compiled into executable C# code. Ensure all patch XML fragments loaded via <code>[PrefabExtensionFileName]</code> are located outside <code>GUI/Prefabs</code> (e.g. <code>GUI/PrefabExtensions/</code>). See <a href="../general/CompiledPrefabs.html#keep-patch-fragments-out-of-guiprefabs">Keep Patch Fragments Out of GUI/Prefabs</a>.</li>
+<li><strong>Abstract Mixin Registration:</strong> In 2.x, a mixin declared for an abstract ViewModel without <code>handleDerived: true</code> could never match an instance, but incurred construction overhead. In 3.0, UIExtenderEx skips registering it and logs a warning. Set <code>[ViewModelMixin(handleDerived: true)]</code> if you intend to extend derived subclasses.</li>
+<li><strong>Resilient Assembly Scanning:</strong> Missing dependencies or uninstalled DLC types no longer abort the entire registration process. Valid patches and mixins continue to register normally.</li>
+<li><strong>Standalone Remove Patches:</strong> In 3.0, a <code>PrefabExtensionInsertPatch</code> with <code>InsertType.Remove</code> no longer requires a dummy content property.</li>
+</ol>
+<h3 id="recommended-code-improvements">Recommended Code Improvements</h3>
+<p>While existing 2.x code continues to function, modernizing your codebase with 3.0 features is strongly recommended:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Legacy 2.x Pattern</th>
+<th style="text-align: left;">Modern 3.0 Alternative</th>
+<th style="text-align: left;">Benefit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Harmony prefix/postfix on ViewModel methods</td>
+<td style="text-align: left;"><a href="Mixins.html#taking-over-a-viewmodel-method"><code>[BUTRViewModelOverride]</code></a></td>
+<td style="text-align: left;">Removes Harmony dependency; cleanly scoped to mixin lifecycle.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Harmony postfix on property setters or manual event handler</td>
+<td style="text-align: left;"><a href="Mixins.html#hearing-every-notification"><code>OnViewModelPropertyChanged</code></a></td>
+<td style="text-align: left;">Catches all 9 typed property notification overloads automatically.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>AccessTools.FieldRefAccess</code> or <code>GetPrivate&lt;T&gt;</code></td>
+<td style="text-align: left;"><a href="Mixins.html#reaching-private-members"><code>[BUTRUnsafeAccessor]</code></a></td>
+<td style="text-align: left;">Zero reflection overhead; checked at startup during registration.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Storing static &quot;current instance&quot; or weak reference on VM</td>
+<td style="text-align: left;"><a href="Mixins.html#reaching-a-mixin-from-outside"><code>ViewModelMixins.Get&lt;T&gt;()</code></a></td>
+<td style="text-align: left;">Safe, strongly-typed retrieval without static leaks or name collisions.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Calling <code>OnRefresh()</code> manually inside mixin constructor</td>
+<td style="text-align: left;">Rely on automatic refresh forwarding</td>
+<td style="text-align: left;">Prevents running expensive refresh logic twice on screen load. (See <a href="Mixins.html#the-refresh-rule">The Refresh Rule</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>[PrefabExtensionXmlDocument]</code></td>
+<td style="text-align: left;"><code>[PrefabExtensionXmlNode]</code></td>
+<td style="text-align: left;">Cleaner API; handles both <code>XmlDocument</code> and <code>XmlNode</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v3/Overview.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

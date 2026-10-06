@@ -1,0 +1,437 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Alternative Gauntlet UI Code Generator | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Alternative Gauntlet UI Code Generator | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Generator.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="alternative-gauntlet-ui-code-generator">Alternative Gauntlet UI Code Generator</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It details the design, emission rules, and behavioral parity of the code generator in <code>Bannerlord.UIExtenderEx.CodeGenerator</code>.
+For the high-level architecture, see <a href="Overview.html">Overview</a>. For how compilation is coordinated, see <a href="Pipeline.html">Pipeline</a>.</p>
+</div>
+<hr>
+<h2 id="1-overview--architectural-philosophy">1. Overview &amp; Architectural Philosophy</h2>
+<p><code>Bannerlord.UIExtenderEx.CodeGenerator</code> provides an <strong>alternative implementation</strong> of the ahead-of-time Gauntlet UI code generator (<code>TaleWorlds.GauntletUI.CodeGenerator</code>) that TaleWorlds uses to produce the game's <code>*.AutoGenerated*.dll</code> assemblies.</p>
+<p>While TaleWorlds' generator runs offline as a command-line build tool, UIExtenderEx's generator is designed specifically for <strong>in-memory, runtime execution</strong> against live, patched prefab XML. Its output is bound to the game's UI engine while maintaining strict behavioral fidelity.</p>
+<h3 id="the-guiding-principle-parity-with-the-xml-loader">The Guiding Principle: Parity with the XML Loader</h3>
+<p>The central design rule governing the generator is:</p>
+<blockquote>
+<p><strong>The Gauntlet runtime XML loader is the authoritative standard for UI behavior.</strong></p>
+</blockquote>
+<p>Every mod is developed and tested against the behavior of Gauntlet's XML loader. Furthermore, whenever runtime code generation or compilation fails, a movie transparently falls back to that same XML loader.</p>
+<p>Where TaleWorlds' offline code generator and Gauntlet's runtime XML loader diverge, UIExtenderEx's generator intentionally aligns with the <strong>XML loader</strong>:</p>
+<ul>
+<li>Invalid or non-convertible attribute values do not crash the movie; they log an assertion and leave the property at its default, matching the XML loader.</li>
+<li>Unresolved properties fall back to dynamic, by-name binding instead of being silently omitted.</li>
+<li>Missing ViewModel mixins or data source instances fail gracefully rather than throwing null reference exceptions.</li>
+</ul>
+<p>Behavioral equivalence is continuously validated by automated test suites (<code>GameGeneratorEquivalenceTests</code>, <code>LoaderOracle</code>, and <code>BindingLoaderOracle</code>).</p>
+<hr>
+<h2 id="2-generator-entry-point--output-structure">2. Generator Entry Point &amp; Output Structure</h2>
+<p>The code generator is invoked in memory during the compilation pipeline:</p>
+<pre><code class="lang-csharp">var generator = new PrefabCodeGenerator(
+    CompiledPrefabManager.GeneratedNamespace,
+    widgetFactory,
+    spriteData,
+    brushFactory);
+
+generator.AddMovie(movieName, viewModelType.FullName, viewModelType);
+List&lt;KeyValuePair&lt;string, string&gt;&gt; files = generator.GenerateInMemory();
+</code></pre>
+<h3 id="key-operational-differences-from-the-games-generator">Key Operational Differences from the Game's Generator</h3>
+<ul>
+<li><strong>In-Memory Generation</strong>: Emits C# source code directly to string buffers rather than reading and writing loose files on disk.</li>
+<li><strong>Shared Resource Re-use</strong>: Consumes the game's already initialized <code>WidgetFactory</code>, <code>SpriteData</code>, and <code>BrushFactory</code> instances instead of reloading them from disk.</li>
+<li><strong>Null ViewModel Support</strong>: Passing a <code>null</code> data source type generates the static widget hierarchy without databinding. This mode is used by test oracles (<code>LoaderOracle</code>) to compare raw widget layout trees against the XML loader.</li>
+</ul>
+<h3 id="output-files">Output Files</h3>
+<p><code>GenerateInMemory</code> returns a list of source file pairs:</p>
+<ol>
+<li><strong><code>&lt;Movie&gt;.gen.cs</code></strong>: Contains the root widget class and all inlined sub-prefab dependency classes required by the movie.</li>
+<li><strong><code>PrefabCodes.gen.cs</code></strong>: Declares <code>GeneratedUIPrefabCreator</code>, exposing factory methods (<code>Create&lt;Class&gt;</code>) for each movie variant, and <code>CollectGeneratedPrefabDefinitions(GeneratedPrefabContext)</code> to register them into Gauntlet's context.</li>
+<li><strong><code>IgnoresAccessChecks.gen.cs</code></strong>: Appended by <code>CompiledPrefabManager</code> to allow generated code to access <code>internal</code> ViewModel and mixin members without publicization.</li>
+</ol>
+<h3 id="strict-dependency-hygiene-no-using-directives">Strict Dependency Hygiene (No <code>using</code> Directives)</h3>
+<p>Generated source files contain <strong>zero <code>using</code> directives</strong>. Every referenced type is fully qualified starting from <code>global::</code> (via <code>ViewModelMemberResolution.GetCodeTypeName</code>):</p>
+<pre><code class="lang-csharp">// Example generated instantiation
+global::TaleWorlds.GauntletUI.BaseTypes.Widget _widget_0 = new global::TaleWorlds.GauntletUI.BaseTypes.Widget(this.Context);
+</code></pre>
+<p><strong>Rationale</strong>: If generated code imported namespaces (such as <code>using TaleWorlds.Library;</code>), any newly loaded assembly could introduce types or extension methods that alter binding resolution without warning. Using fully qualified names ensures generated assemblies only depend on the exact assemblies recorded in their dependency manifests.</p>
+<h3 id="identifier-sanitization-generatednaming">Identifier Sanitization (<code>GeneratedNaming</code>)</h3>
+<p>Prefab names, ViewModel types, and property names are sanitized into valid C# identifiers using <code>GeneratedNaming.GetUsableName</code>:</p>
+<ul>
+<li>Dots (<code>.</code>) are converted to underscores (<code>_</code>).</li>
+<li>Characters invalid in C# identifiers (e.g., <code>+</code> for nested classes, or hyphens and spaces in XML filenames) are encoded as hexadecimal Unicode points enclosed by underscores (e.g., <code>_002B_</code>).</li>
+<li>Identifiers starting with a digit are prefixed with an underscore.</li>
+<li>ViewModel members colliding with C# keywords are escaped with an <code>@</code> prefix (e.g., <code>@event</code>).</li>
+<li>Sibling name collisions in the same scope (e.g., visual definitions <code>Tab.Left</code> and <code>Tab_Left</code>) are resolved via <code>GeneratedNaming.GetUniqueName</code>, which appends an index to subsequent entries while preserving the first.</li>
+</ul>
+<hr>
+<h2 id="3-namespace--code-organization">3. Namespace &amp; Code Organization</h2>
+<p>The generator resides in the <code>Bannerlord.UIExtenderEx.GauntletUI.CodeGenerator</code> namespace, partitioned by responsibility:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Subnamespace / Folder</th>
+<th style="text-align: left;">Primary Types</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Root</strong></td>
+<td style="text-align: left;"><code>PrefabCodeGenerator</code><br><code>CodeGeneratorEnvironment</code><br><code>TypeDependencies</code></td>
+<td style="text-align: left;">Main entry point; host environment hooks (runtime registrations, dotted-path flags, patched method flags); dependency tracking sessions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>Prefabs/</code></strong></td>
+<td style="text-align: left;"><code>PrefabClass</code><br><code>PrefabClassOptions</code><br><code>MovieClasses</code><br><code>PrefabValues</code><br><code>ConstantResourceAnalysis</code></td>
+<td style="text-align: left;">Models generated widget classes (movies, base prefabs, used prefabs, list templates); handles prefab parameters, visual definitions, and resource-dependent constants.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>Widgets/</code></strong></td>
+<td style="text-align: left;"><code>WidgetNode</code><br><code>WidgetFactoryLookup</code><br><code>WidgetPropertyPath</code><br><code>WidgetRaises</code><br><code>WidgetFastAssignment</code><br><code>LoaderStringConversion</code></td>
+<td style="text-align: left;">Models individual widgets in a template; resolves widget classes; walks property paths; inspects widget IL for change notifications; evaluates attribute string conversions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>Databinding/</code></strong></td>
+<td style="text-align: left;"><code>WidgetBinding</code><br><code>DatabindingEmitter</code><br><code>DataSourceScope</code><br><code>OuterPath</code><br><code>ViewModelPaths</code></td>
+<td style="text-align: left;">Emits databinding logic: property bindings, commands, list item scopes, mixin receivers, and outer scope traversals (<code>^n\Rest</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>CSharp/</code></strong></td>
+<td style="text-align: left;"><code>GeneratedLiteral</code><br><code>GeneratedNaming</code></td>
+<td style="text-align: left;">Formatting utilities for C# literals (strings, floats, comments) and identifier sanitization.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>Extensions/</code></strong></td>
+<td style="text-align: left;"><code>MethodCodeExtensions</code><br><code>KeyValuePairExtensions</code></td>
+<td style="text-align: left;">Helpers for emitting structured code blocks and NetStandard 2.0 utility polyfills.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>Runtime/</code></strong></td>
+<td style="text-align: left;"><code>DynamicMember</code><br><code>IDynamicMemberHost</code><br><code>LoaderAsserts</code></td>
+<td style="text-align: left;">Runtime helper library called by generated assemblies for by-name dynamic binding fallbacks and loader-equivalent assertions.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="4-intended-behavioral-deviations-from-taleworlds-generator">4. Intended Behavioral Deviations from TaleWorlds' Generator</h2>
+<p><code>GameGeneratorEquivalenceTests</code> generates C# source for the entire suite of Native prefabs using both generators and asserts text equivalence. The differences between the two represent deliberate improvements to match the Gauntlet XML loader:</p>
+<h3 id="architectural-differences">Architectural Differences</h3>
+<ol>
+<li><strong>No <code>using</code> Directives</strong>: Eliminates unintended namespace pollution and guarantees reproducible assembly dependency tracking.</li>
+<li><strong>Creator Class Isolation</strong>: <code>GeneratedUIPrefabCreator</code> omits <code>IGeneratedUIPrefabCreator</code>. This prevents Gauntlet's eager assembly scanner from registering cached assemblies prematurely on startup before fingerprint validation has completed.</li>
+<li><strong>No Erroneous Conversions on Write-Back</strong>: When two-way bindings write back to a ViewModel property, TaleWorlds' generator appends <code>.Name</code> (for sprites) or <code>.ToString()</code> (for colors), which Gauntlet's XML loader never does. UIExtenderEx writes back the exact value, matching <code>ViewModel.SetPropertyValue</code>.</li>
+<li><strong>Clearing <code>Sprite</code> and <code>Brush</code> on Null Strings</strong>: In the XML loader, <code>WidgetExtensions.ConvertObject</code> passes null strings directly to property setters, clearing them. TaleWorlds' generator guarded assignments against null, leaving previous values intact. UIExtenderEx replicates the loader's clearing behavior.</li>
+<li><strong>Live Widget Search for Attribute Targets</strong>: TaleWorlds' generator resolved widget references against the compile-time template, which fails when widgets are relocated to a prefab's logical children location. UIExtenderEx emits a live <code>FindChild</code> query matching <code>SetWidgetAttributeFromString</code>.</li>
+</ol>
+<h3 id="databinding--lifecycle-differences">Databinding &amp; Lifecycle Differences</h3>
+<ol>
+<li><strong>Command Listener Detach/Attach Ordering</strong>: In <code>GauntletView.RefreshBinding</code>, listeners are detached prior to property assignment and reattached afterward. UIExtenderEx mirrors this order and correctly attaches command listeners even when a view's data source is <code>null</code>, enabling widgets in null scopes to fire commands against parent scopes.</li>
+<li><strong>Deterministic List Item Construction</strong>: When binding a list, the XML loader adds items sequentially via <code>GauntletView.AddItemToList</code>. Template selection depends on the item's instantaneous index rather than final list count. UIExtenderEx instantiates items at the end of the widget list, sets IDs and attributes, and repositions them to match the XML loader's exact sibling index and render seed (<code>Widget._seed</code>).</li>
+<li><strong>Ubiquitous <code>GeneratedWidgetData</code></strong>: TaleWorlds' generator only attached <code>GeneratedWidgetData</code> components to drag targets and list items. UIExtenderEx attaches it to all widgets, allowing commands with widget parameters (<code>GauntletView.ConvertCommandParameter</code>) to inspect the data source of any widget.</li>
+<li><strong>Explicit Empty IDs</strong>: When a widget template specifies no ID, <code>WidgetTemplate.CreateWidgets</code> assigns <code>widget.Id = &quot;&quot;</code>. UIExtenderEx explicitly emits these assignments, preventing embedded prefabs from inadvertently inheriting IDs from surrounding templates.</li>
+<li><strong>Selective Notification Subscriptions (<code>WidgetRaises</code>)</strong>: Rather than indiscriminately subscribing to all nine Gauntlet property-change notifications across every bound widget, UIExtenderEx analyzes widget class IL at generation time to discover which notifications each property actually raises. This reduces generated subscription boilerplate by over 80% (e.g., reducing <code>Lobby</code> UI bindings from 40,365 lines to 4,727 lines).</li>
+<li><strong>Guard Wrapping with <code>LoaderAsserts</code></strong>: All attribute assignments are wrapped in try/catch blocks that invoke <code>LoaderAsserts</code>, reporting failures via <code>Debug.FailedAssert</code> with identical messaging to <code>SetWidgetAttributeFromString</code> without interrupting UI loading.</li>
+<li><strong>Round-Trip Float Formatting</strong>: Numbers and color channels are formatted using invariant culture and full round-trip precision (<code>GeneratedLiteral.Float</code>), preventing precision drift (e.g., <code>#F3DCB8</code> shifting to <code>#F3DCB7</code> on .NET Framework).</li>
+</ol>
+<hr>
+<h2 id="5-data-sources--scope-hierarchy">5. Data Sources &amp; Scope Hierarchy</h2>
+<p>Data sources are evaluated according to the rules of <code>PrefabDatabindingExtension.AfterAttributesSet</code>:</p>
+<pre><code>[Movie Root] (Bound to Root ViewModel)
+   │
+   ├─► [Child Widget] (Inherits parent scope or declares DataSource=&quot;{Path}&quot;)
+   │      │
+   │      └─► [Used Prefab Root]
+   │             ├─ If caller binds nothing: receives parent scope; applies RootDataSource.
+   │             └─ If caller binds attributes: caller adopts DataSource (IgnoresRootDataSource).
+   │
+   └─► [List Item Widget] (Bound to individual element instance in IMBBindingList)
+          │
+          └─► [Outer Path] (^2\Rest: accesses parent scope 2 levels above item root)
+</code></pre>
+<h3 id="scope-resolution-rules">Scope Resolution Rules</h3>
+<ul>
+<li><strong>Movie Root</strong>: The root widget of a movie is always initialized at <code>Root</code>, regardless of any <code>DataSource</code> attribute declared on its XML root element.</li>
+<li><strong>List Items</strong>: The root widget of an item template is bound directly to the item instance at its respective index.</li>
+<li><strong>Embedded Prefab Integration</strong>: An embedded prefab and the widget referencing it share a single conceptual view:
+<ul>
+<li>If the referencing widget binds <strong>no</strong> attributes: The generated class receives the surrounding scope and applies its declared root <code>DataSource</code> internally (<code>PrefabClassOptions.RootDataSource</code>). Paths stepping above its root (e.g., <code>{..\Hint}</code>) remain valid.</li>
+<li>If the referencing widget binds attributes or commands: The referencing widget adopts the data source, and the embedded class is configured with <code>IgnoresRootDataSource</code> to prevent duplicate binding listeners.</li>
+</ul>
+</li>
+<li><strong>Outer Paths (<code>^n\Rest</code>)</strong>: Paths that step above the root of an embedded prefab or list item (e.g., <code>{..\..\ActiveService}</code>) cannot be resolved statically. These are modeled as <code>OuterPath</code> instances. The parent class resolves the path within its own scope and passes it down via <code>SetOuterDataSource</code> whenever its scope refreshes.</li>
+<li><strong>Raw Binding Paths</strong>: Paths climbing above the movie root (e.g., <code>..\ExecuteDone</code> at <code>Root</code>) simplify to the root itself, matching Gauntlet's <code>GetViewModelAtPath</code>.</li>
+</ul>
+<hr>
+<h2 id="6-command-binding--invocation">6. Command Binding &amp; Invocation</h2>
+<p>When a Gauntlet event fires a command (e.g., <code>Command.Click=&quot;ExecuteAction&quot;</code>), execution is routed through <code>GauntletView.OnCommand</code> and <code>ViewModel.ExecuteCommand</code>.</p>
+<h3 id="invocation-rules">Invocation Rules</h3>
+<p>UIExtenderEx generates typed invocation code that strictly reproduces the behavior of <code>ViewModel.ExecuteCommand</code>:</p>
+<ol>
+<li><strong>Parameterless Methods</strong>: Execute regardless of how many arguments the Gauntlet UI event provided.</li>
+<li><strong>Parameter Matching</strong>: If the method accepts parameters, the argument count must match the parameter count; otherwise, execution is aborted.</li>
+<li><strong>Type Coercion</strong>: String arguments targeted at non-string parameters are converted using Gauntlet's internal <code>ConvertValueTo</code> rules (integers via <code>Convert.ToInt32</code>, floats via invariant <code>Convert.ToSingle</code>, and unsupported conversions to <code>null</code>).</li>
+<li><strong>Type Compatibility</strong>: Arguments must be assignable (<code>IsAssignableFrom</code>) without widening; otherwise, the call is aborted.</li>
+<li><strong>Exception Handling</strong>: Exceptions thrown by the command method are wrapped in a <code>TargetInvocationException</code>, matching reflection behavior.</li>
+</ol>
+<h3 id="dynamic-command-fallback">Dynamic Command Fallback</h3>
+<p>If a command target cannot be resolved statically at generation time (e.g., non-public base class methods, generic methods, or paths stepping into un-annotated child ViewModels like <code>Options\ExecuteReset</code>), UIExtenderEx emits a dynamic call via <code>DynamicMember.Execute</code>:</p>
+<pre><code class="lang-csharp">global::Bannerlord.UIExtenderEx.GauntletUI.CodeGenerator.Runtime.DynamicMember.Execute(
+    _datasource_Root, &quot;ExecuteReset&quot;, &quot;OptionalStringParameter&quot;);
+</code></pre>
+<hr>
+<h2 id="7-viewmodel-member-resolution--mixins">7. ViewModel Member Resolution &amp; Mixins</h2>
+<p><code>ViewModelMemberResolution</code> handles all member lookups for databinding:</p>
+<h3 id="lookup-priority">Lookup Priority</h3>
+<ol>
+<li><strong>Properties (<code>GetProperty</code>)</strong>:
+<ul>
+<li>First: Queries <code>MixinMemberResolver</code> for active ViewModel mixins providing the property.</li>
+<li>Second: Queries public instance properties on the target ViewModel class.</li>
+<li><em>Non-public properties are rejected</em>: Gauntlet's XML loader cannot bind non-public properties; generating code for them would cause divergence between XML and compiled modes.</li>
+</ul>
+</li>
+<li><strong>Methods (<code>GetMethod</code>)</strong>:
+<ul>
+<li>First: Queries <code>MixinMemberResolver</code> for mixins.</li>
+<li>Second: Queries public and non-public instance methods on the ViewModel class (since <code>ViewModel.ExecuteCommand</code> searches private base methods).</li>
+</ul>
+</li>
+<li><strong>Missing Members (<code>DeclaresNoMember</code>)</strong>:
+<ul>
+<li>If a <code>DataSource</code> path traverses a member that exists but is not publicly readable (e.g., a private property), the generator <strong>declines the movie</strong> and falls back to XML.</li>
+<li>If an attribute binding targets such a member, the binding is omitted (matching the XML loader, which leaves it unbound), and the movie still compiles.</li>
+<li>If the type declares no member with that name at all, the generator emits a <strong>dynamic by-name binding</strong>.</li>
+</ul>
+</li>
+</ol>
+<h3 id="mixin-receivers">Mixin Receivers</h3>
+<p>To minimize allocation and reflection overhead, mixin members are accessed through cached <strong>mixin receivers</strong> emitted directly into the generated class:</p>
+<pre><code class="lang-csharp">private global::TaleWorlds.Library.ViewModel _mixinOwner_0;
+private MyCustomMixin _mixin_0;
+
+private MyCustomMixin GetMixin_0()
+{
+    if (!object.ReferenceEquals(_datasource_Root, _mixinOwner_0))
+    {
+        _mixinOwner_0 = _datasource_Root;
+        _mixin_0 = global::Bannerlord.UIExtenderEx.ViewModels.ViewModelMixins.Get&lt;MyCustomMixin&gt;(_datasource_Root);
+    }
+    return _mixin_0;
+}
+</code></pre>
+<h4 id="performance-impact">Performance Impact</h4>
+<ul>
+<li><strong>Cached Receiver</strong>: <strong>1.4 ns</strong> per access.</li>
+<li><strong>Direct <code>ViewModelMixins.Get&lt;T&gt;</code></strong>: <strong>139 ns</strong> and 30 bytes allocated per access.</li>
+<li><strong>Dynamic By-Name Fallback</strong>: <strong>81 ns</strong> per access.</li>
+</ul>
+<hr>
+<h2 id="8-dynamic-member--by-name-runtime">8. Dynamic Member &amp; By-Name Runtime</h2>
+<p>The game's own <code>KingdomManagement</code> depends on this. <code>KingdomDecision.xml</code> binds <code>DataSource=&quot;{CurrentDecision}&quot;</code>, a property declared as <code>DecisionItemBaseVM</code>, and <code>SettlementDecisionPanel.xml</code> binds <code>{NotableCharacters}</code>, which only the subclass <code>SettlementDecisionItemVM</code> declares. Without by-name binding that movie does not compile (<code>GameMovieGenerationTests</code>).</p>
+<p>Only bindings the generator cannot resolve take this path. Measured on net472 Release: a by-name read plus widget assignment takes about 105 ns, against about 5 ns typed. A typed notification including the writeback takes about 176 ns, against about 22 ns. Per movie the difference stays small. With 50 list items whose item bindings all go by name, a movie opened in 0.61–0.85 ms, against 0.52–0.57 ms fully resolved and 2.0–2.5 ms from XML (<code>CompiledVersusXmlBenchmarks</code>, 2026-09-21). Nothing on this path is cached; the <code>DynamicMember</code> class comment says why.</p>
+<p>When a binding references a property that cannot be statically verified (such as a derived ViewModel injected into a list, or an untyped <code>object</code> property), UIExtenderEx utilizes <code>DynamicMember</code>:</p>
+<pre><code class="lang-csharp">// Emitted by-name binding fallback
+object uiExtenderExValue = global::Bannerlord.UIExtenderEx.GauntletUI.CodeGenerator.Runtime.DynamicMember.Get(
+    _datasource_Root, &quot;CustomDynamicProperty&quot;);
+
+if (uiExtenderExValue is bool typedValue)
+{
+    _widget_0.IsVisible = typedValue;
+}
+else
+{
+    global::TaleWorlds.GauntletUI.PrefabSystem.WidgetExtensions.SetWidgetAttribute(
+        this.Context, _widget_0, &quot;IsVisible&quot;, uiExtenderExValue);
+}
+</code></pre>
+<h3 id="the-dynamicmember-api">The <code>DynamicMember</code> API</h3>
+<p>Located in <code>Bannerlord.UIExtenderEx.GauntletUI.CodeGenerator.Runtime</code>:</p>
+<ul>
+<li><code>Get(target, name)</code>: Calls <code>ViewModel.GetPropertyValue</code>.</li>
+<li><code>Set(target, name, value)</code>: Writes the property as <code>ViewModel.SetPropertyValue</code> would, delegating to the installed host's <code>TrySetProperty</code> method when present.</li>
+<li><code>Execute(target, name, preparedArguments)</code>: Calls <code>ViewModel.ExecuteCommand</code>.</li>
+<li><code>GetChild(target, path)</code>: Traverses one step down an untyped object graph.</li>
+<li><code>GetListItem(list, index)</code>: Retrieves a list element by integer index.</li>
+<li><code>Step(target, segment)</code>: Unified traversal over either ViewModel properties or list indices.</li>
+</ul>
+<hr>
+<h2 id="9-typed-payloads--widget-fast-path">9. Typed Payloads &amp; Widget Fast-Path</h2>
+<p>Gauntlet widgets notify changes via <code>PropertyChangedWithValue</code> events carrying typed payloads. <code>WidgetFastAssignment</code> bypasses reflection (<code>WidgetExtensions.SetWidgetAttribute</code>) whenever direct assignment is type-safe.</p>
+<h3 id="direct-assignment-eligibility">Direct Assignment Eligibility</h3>
+<p>A property assignment is eligible for fast-path compilation if:</p>
+<ol>
+<li>It consists of a single property path segment (non-dotted).</li>
+<li>The widget setter is public and accepts exactly one argument.</li>
+<li>The property is not an indexer or nullable type.</li>
+<li>The property type is directly referenceable by the generated assembly.</li>
+</ol>
+<h3 id="specialized-payload-handlers">Specialized Payload Handlers</h3>
+<p>Generated classes emit dedicated notification handlers for each payload type (<code>bool</code>, <code>int</code>, <code>float</code>, <code>uint</code>, <code>Color</code>, <code>double</code>, <code>Vec2</code>, and <code>object</code>). This allows incoming change events to be assigned to widget fields directly without CLR object boxing.</p>
+<hr>
+<h2 id="10-resource-dependent-constants">10. Resource-Dependent Constants</h2>
+<p>Gauntlet prefab XML allows constants to query runtime sprite and brush layer dimensions:</p>
+<pre><code class="lang-xml">&lt;Constant Name=&quot;Header.Width&quot; SpriteName=&quot;General\Header&quot; SpriteValueType=&quot;Width&quot; /&gt;
+</code></pre>
+<p>Because texture packs and UI reskins can modify sprite sheet dimensions at runtime without altering prefab XML, baking these values as static literals at generation time causes visual bugs.</p>
+<h3 id="dynamic-resolution-mechanism">Dynamic Resolution Mechanism</h3>
+<ol>
+<li><strong>Dependency Analysis</strong>: <code>ConstantResourceAnalysis.DependsOnResources</code> recursively traverses constant definitions to identify any constant that transitively references a sprite or brush dimension.</li>
+<li><strong>Emitted Resolver Method</strong>: The generator emits <code>UIExtenderEx_ResolveResourceValue</code> into the class body.</li>
+<li><strong>Runtime Context Evaluation</strong>: When widgets are instantiated, the resolver evaluates dimensions dynamically against the active <code>UIContext</code>, ensuring custom textures are sized correctly without requiring assembly recompilation.</li>
+</ol>
+<hr>
+<h2 id="11-generation-failure--decline-conditions">11. Generation Failure &amp; Decline Conditions</h2>
+<p>If code generation cannot produce a correct assembly, it aborts cleanly, records the cause under <code>Failed/&lt;Movie&gt;/&lt;ViewModel&gt;/errors.txt</code>, and allows the movie to load via the XML loader.</p>
+<p>A movie declines code generation under the following conditions:</p>
+<ul>
+<li><strong>Malformed Prefabs</strong>: Patch fragments improperly placed in <code>GUI/Prefabs</code> lacking root templates.</li>
+<li><strong>Circular Prefab Inheritance</strong>: Prefab replacement patches creating infinite recursive base class chains (<code>PrefabClass.GetBaseTypeName</code>).</li>
+<li><strong>Inaccessible Properties</strong>: Property paths referencing non-public getters.</li>
+<li><strong>Type Contradictions</strong>: Data sources used simultaneously as a list item template and an object scope.</li>
+<li><strong>Recursive Constants</strong>: Constants referencing themselves in cyclical loops (<code>ConstantResourceAnalysis.ReferencesItself</code>), which would otherwise trigger stack overflows.</li>
+<li><strong>Unbounded Recursive Scope Climbing</strong>: A self-referential prefab whose instances nest progressively deeper while their outer paths climb progressively higher. Supporting this would require generating an infinite number of outer data source parameters; native Gauntlet XML also throws an unhandled exception on such prefabs.</li>
+</ul>
+<p>Outer paths of arbitrary depth are fully supported. Gauntlet's XML loader simplifies paths by canceling <code>..</code> segments against preceding property steps. When a path climbs above the movie root, Gauntlet evaluates it as follows:</p>
+<ul>
+<li><strong>One level above root</strong> (e.g., <code>{..}</code>): Cancels <code>Root</code>, leaving an empty path that re-roots to the movie root.</li>
+<li><strong>Two levels above root</strong> (e.g., <code>{..\..}</code>): Resolves directly to the movie root.</li>
+<li><strong>Three or more levels above root</strong> (e.g., <code>{..\..\..}</code>): Attempts to look up a property named <code>..</code> on the root ViewModel. Because no ViewModel declares a property named <code>..</code>, this always evaluates to <code>null</code>.</li>
+</ul>
+<p>Consequently, a generated class does not need outer data sources for paths that climb at least three levels beyond the deepest instance of that class below the movie root (<code>OuterPath.NullFrom</code>, calculated across all instantiation sites via <code>DatabindingEmitter.SettleRootDepths</code>). These scopes remain <code>null</code>, matching XML behavior. For paths reaching one or two levels above the movie root, the host class resolves and hands down the appropriate data source.</p>
+<hr>
+<h2 id="12-verification--test-oracles">12. Verification &amp; Test Oracles</h2>
+<p>UIExtenderEx enforces generator correctness through automated oracles:</p>
+<h3 id="static-oracle-loaderoracle">Static Oracle (<code>LoaderOracle</code>)</h3>
+<p>Instantiates prefabs twice—once via <code>WidgetPrefab.Instantiate</code> (XML loader) and once via the compiled class. It constructs deep snapshots of the resulting widget graphs (<code>WidgetSnapshot</code>), comparing every public property, field, visual definition, and <code>Debug.FailedAssert</code> call to guarantee parity.</p>
+<h3 id="dynamic-binding-oracle-bindingloaderoracle">Dynamic Binding Oracle (<code>BindingLoaderOracle</code>)</h3>
+<p>Synthesizes ViewModels with randomized mock data matching the prefab's binding expressions (<code>ViewModelSynthesizer</code>). It runs the XML and compiled movies in parallel, firing property change events, list mutations, and commands in cycles to ensure dynamic behavior is identical.</p>
+<p>For full architectural details on test runners, chunk isolation, and benchmarks, see <a href="Testing.html">Testing</a>.</p>
+<hr>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="Overview.html">Overview</a>: Architecture overview and runtime split.</li>
+<li><a href="Pipeline.html">Pipeline</a>: Lifecycle of movie loading, fingerprinting, and cache management.</li>
+<li><a href="XmlDeviations.html">Deviations from XML</a>: Complete list of intentional differences between compiled code and the XML loader.</li>
+<li><a href="Testing.html">Testing</a>: Comprehensive documentation of unit test suites, harnesses, and test execution.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Generator.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

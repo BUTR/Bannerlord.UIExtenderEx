@@ -1,0 +1,387 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>In-Memory Compilation &amp; Roslyn Integration | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="In-Memory Compilation &amp; Roslyn Integration | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Compilation.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="in-memory-compilation--roslyn-integration">In-Memory Compilation &amp; Roslyn Integration</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It explains how UIExtenderEx bundles, isolates, and executes the Roslyn C# compiler at runtime to compile generated prefab widgets.
+For the compilation pipeline lifecycle, see <a href="Pipeline.html">Pipeline</a>. For how the alternative code generator emits C# source code, see <a href="Generator.html">Code Generator</a>.</p>
+</div>
+<hr>
+<h2 id="1-overview">1. Overview</h2>
+<p>UIExtenderEx embeds an in-memory C# compilation engine directly within the module. The Roslyn compiler (<code>Microsoft.CodeAnalysis.CSharp</code>) and all required support libraries are merged into <code>Bannerlord.UIExtenderEx.Compiler</code> using <strong>ILRepack</strong> with full type internalization.</p>
+<p>This design achieves several critical architectural goals:</p>
+<ul>
+<li><strong>Zero Namespace / Assembly Collisions</strong>: Internalizing Roslyn prevents version conflicts with other mods, tools (such as ButterLib), or the game engine.</li>
+<li><strong>Standalone Autonomy</strong>: Compiles C# in-memory without requiring the .NET SDK, external compiler executables (<code>csc.exe</code>), or third-party framework dependencies.</li>
+<li><strong>Graceful Fault Tolerance</strong>: The compiled runtime references the compiler assembly strictly through abstract interfaces (<code>ICSharpCompiler</code>). If <code>Bannerlord.UIExtenderEx.Compiler.dll</code> is missing or quarantined by antivirus software, the runtime fails gracefully, and patched movies automatically route through the native XML loader without crashing the game (<a href="Overview.html#runtime-dependencies--isolation">Overview</a>).</li>
+</ul>
+<hr>
+<h2 id="2-dedicated-compiler-project-architecture">2. Dedicated Compiler Project Architecture</h2>
+<p>The compiler implementation is housed in an independent project (<code>Bannerlord.UIExtenderEx.Compiler</code>) rather than integrated directly into the compiled runtime assembly.</p>
+<h3 id="the-optimization-invariant">The Optimization Invariant</h3>
+<p>ILRepack merges dependencies into the target host assembly, and the merged code inherits the host assembly's <code>DebuggableAttribute</code>. When Roslyn was previously embedded directly inside <code>CompiledPrefabs</code>, compiling a Debug build forced Roslyn to run with optimizations disabled (<code>DisableOptimizations</code>), resulting in a <strong>3× performance degradation</strong> (e.g., compiling <code>ClanScreen</code> took 2.4 seconds instead of 0.9 seconds).</p>
+<p>By isolating the compiler in a dedicated project:</p>
+<ul>
+<li>The project file enforces <code>&lt;Optimize&gt;true&lt;/Optimize&gt;</code> across <strong>all</strong> build configurations (including Debug).</li>
+<li>Roslyn always executes with full JIT compiler optimizations.</li>
+<li>Maintainers can build and debug the rest of the UIExtenderEx solution with standard debugging symbols and unoptimized stepping.</li>
+</ul>
+<h3 id="build-configuration--merge-safety">Build Configuration &amp; Merge Safety</h3>
+<ul>
+<li><strong>Comprehensive Configuration Targets</strong>: The ILRepack build property <code>ILRepackTargetConfigurations</code> is configured as <code>$(Configuration)</code>, ensuring the merge runs across all release channels (<code>Debug</code>, <code>Release</code>, <code>Stable_Release</code>, <code>Beta_Release</code>).</li>
+<li><strong>Intermediate Assembly Cleanup</strong>: ILRepack merges output back into <code>@(IntermediateAssembly)</code> in the <code>obj/</code> folder. Without intervention, MSBuild sees the merged binary as newer than source files, skipping subsequent compilations and causing ILRepack to recursively merge Roslyn into its own output (ballooning file size from 12 MB to 35 MB over successive builds). The MSBuild target <code>RecompileBeforeILRepack</code> purges <code>@(IntermediateAssembly)</code> prior to <code>CoreCompile</code>, preventing recursive bloat.</li>
+<li><strong>Bundled Roslyn Version</strong>: The project bundles Roslyn version <strong>5.9.0</strong> (<code>RoslynVersion</code> in <code>build/common.props</code>), which keeps the binary footprint at ~12 MB. For compile times, see <a href="#measured-compile-times">Measured Compile Times</a>.</li>
+</ul>
+<hr>
+<h2 id="3-the-rationale-for-bundling-roslyn">3. The Rationale for Bundling Roslyn</h2>
+<p>Roslyn depends on tightly coupled pairs of foundational libraries: <code>System.Collections.Immutable</code> and <code>System.Reflection.Metadata</code>.</p>
+<p>Each release of <code>System.Reflection.Metadata</code> is compiled against an exact version of <code>System.Collections.Immutable</code> and exchanges generic <code>ImmutableArray&lt;T&gt;</code> instances across assembly boundaries. In a modded game environment, different components ship conflicting versions of these assemblies:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Environment / Mod Component</th>
+<th style="text-align: left;"><code>System.Collections.Immutable</code></th>
+<th style="text-align: left;"><code>System.Reflection.Metadata</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Game Engine</strong> (<code>mono/lib/mono/4.5</code>)</td>
+<td style="text-align: left;"><code>1.2.3.0</code></td>
+<td style="text-align: left;"><code>1.4.3.0</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ButterLib / Community Frameworks</strong></td>
+<td style="text-align: left;"><code>1.2.5.0</code></td>
+<td style="text-align: left;"><code>1.4.5.0</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-boundary-mismatch-problem">The Boundary Mismatch Problem</h3>
+<p>When both versions exist in the same process, .NET's assembly resolution can load <code>System.Reflection.Metadata</code> from one source and <code>System.Collections.Immutable</code> from another. Because the CLR treats <code>ImmutableArray&lt;T&gt;</code> from different assembly versions as distinct, incompatible types, any call across the assembly seam fails immediately with a <code>MissingMethodException</code>.</p>
+<p>Furthermore, multiple competing <code>AppDomain.AssemblyResolve</code> handlers (TaleWorlds' <code>AssemblyLoader</code>, BLSE's <code>AssemblyResolverFeature</code>, and mod-specific resolvers) probe directories by simple assembly name without version checks, making resolution order dependent on arbitrary module load ordering.</p>
+<p><strong>Solution</strong>: Merging Roslyn and internalizing all its types within <code>Bannerlord.UIExtenderEx.Compiler</code> eliminates external assembly binding entirely. Roslyn always binds to its own private, co-packaged copies of <code>System.Collections.Immutable</code> and <code>System.Reflection.Metadata</code>.</p>
+<p>Auxiliary components that inspect metadata directly (<code>PrefabAssemblyReference</code> and <code>ReferencePublicizer</code>) reside within this same assembly to leverage the internalized metadata reader.</p>
+<h3 id="alternatives-not-taken">Alternatives Not Taken</h3>
+<p>Bundling Roslyn directly replaced loading the game's native Roslyn 3.3 from <code>bin/Win64_Shipping_Client/mono/lib/mono/4.5</code>. Several alternative approaches were evaluated and rejected:</p>
+<ul>
+<li><strong>Using the game's Roslyn with a custom assembly resolver:</strong> UIExtenderEx's <code>AssemblyResolve</code> handler is registered after BLSE's. Because BLSE resolves assemblies by simple name from the first module <code>bin/</code> folder in load order without comparing versions, any mod shipping either <code>System.Collections.Immutable</code> or <code>System.Reflection.Metadata</code> dictates which version Roslyn receives. Preloading the game's copies with <code>Assembly.LoadFrom</code> does not prevent this, as assemblies loaded that way probe their own directory first and can pull in a mismatched copy of the other library.</li>
+<li><strong>Out-of-process compilation via <code>csc.exe</code> or <code>VBCSCompiler.exe</code>:</strong> The game ships compiler executables configured with redirects for the dependency pair, but <code>csc</code> lacks an <code>IgnoreAccessibility</code> option. Consequently, every reference would require disk-persisted member-level publicizing rather than the fast in-memory <code>TypeDef</code> patching performed by <code>ReferencePublicizer</code>. Furthermore, an external compiler process would require lifecycle monitoring and timeout handling. Bundling Roslyn adds ~12 MB to disk with zero runtime overhead (the binary is memory-mapped and warmed up asynchronously).</li>
+<li><strong>Isolated <code>AppDomain</code> (.NET Framework) or <code>AssemblyLoadContext</code> (.NET 6):</strong> This would require maintaining separate isolation logic for each runtime target. Furthermore, <code>AppDomain</code> is obsolete on modern .NET, and fingerprint metadata extraction on the main thread would remain outside the isolated domain.</li>
+<li><strong>Maintaining a secondary compiler fallback:</strong> A previous <code>csc</code> fallback silently masked complete Roslyn failures. For example, when another mod shipped a conflicting <code>System.Numerics.Vectors</code>, Roslyn failed on <code>Vector2</code> (CS0012), and <code>csc</code> compiled the templates without logging the underlying error while limiting generated code to C# 5. Standardizing on a single compiler ensures errors are surfaced cleanly while allowing movies to fall back to XML (the <code>Vector2</code> collision is now explicitly handled by <code>PrefabReferenceSet.DropDuplicateVector2</code>).</li>
+</ul>
+<hr>
+<h2 id="4-packaging-merged-vs-excluded-dependencies">4. Packaging: Merged vs. Excluded Dependencies</h2>
+<p>The ILRepack task packages the compiler's output directory, internalizing all dependencies while applying specific exclusions:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Classification</th>
+<th style="text-align: left;">Assemblies</th>
+<th style="text-align: left;">Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Merged &amp; Internalized</strong></td>
+<td style="text-align: left;"><code>Microsoft.CodeAnalysis</code><br><code>Microsoft.CodeAnalysis.CSharp</code><br><code>System.Collections.Immutable</code><br><code>System.Reflection.Metadata</code><br><code>System.Runtime.CompilerServices.Unsafe</code><br><code>System.Text.Encoding.CodePages</code><br><em>(On net472 also: <code>System.Memory</code>, <code>System.Buffers</code>, <code>System.Threading.Tasks.Extensions</code>)</em></td>
+<td style="text-align: left;">Isolates the complete compilation engine from the external environment.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Excluded from Merge &amp; Distribution</strong></td>
+<td style="text-align: left;"><code>System.Numerics.Vectors</code></td>
+<td style="text-align: left;">Excluded to preserve hardware SIMD acceleration (see below).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Excluded Resources</strong></td>
+<td style="text-align: left;"><code>&lt;culture&gt;/Microsoft.CodeAnalysis*.resources.dll</code></td>
+<td style="text-align: left;">Satellite localized assemblies are omitted; compiler diagnostic messages are emitted in English.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="preserving-simd-hardware-acceleration-systemnumericsvectors">Preserving SIMD Hardware Acceleration (<code>System.Numerics.Vectors</code>)</h3>
+<p><code>System.Numerics.Vectors</code> is explicitly excluded from the merge via <code>ExcludeAssembliesFromILRepack</code>.</p>
+<p><strong>Technical Rationale</strong>: The .NET runtime JIT compiler only treats <code>Vector&lt;T&gt;</code> as a hardware-accelerated SIMD type when it resides in an assembly named <code>System.Numerics.Vectors</code>. When merged into another assembly:</p>
+<ul>
+<li><code>Vector.IsHardwareAccelerated</code> evaluates to <code>false</code>.</li>
+<li><code>Vector&lt;byte&gt;.Count</code> drops from 32 to 16.</li>
+<li>SIMD-accelerated memory utilities (such as <code>Span&lt;byte&gt;.IndexOf</code> used extensively by <code>System.Memory</code> and <code>System.Reflection.Metadata</code>) run <strong>5× slower</strong>.</li>
+</ul>
+<p><code>System.Numerics.Vectors</code> is referenced as a compile-only asset (<code>ExcludeAssets=&quot;runtime&quot;</code>). At runtime, the assembly binds directly to the copy shipped in Mount &amp; Blade II: Bannerlord's base directory.</p>
+<h3 id="dynamic-binding-redirects-vectorsbinding">Dynamic Binding Redirects (<code>VectorsBinding</code>)</h3>
+<p>On <code>.NET Framework 4.7.2</code> (<code>net472</code>), strong-name assembly binding requires exact version matching:</p>
+<ul>
+<li><code>System.Memory</code> on NuGet requests <code>System.Numerics.Vectors 4.1.6.0</code>.</li>
+<li>Mount &amp; Blade II: Bannerlord ships <code>System.Numerics.Vectors 4.1.3.0</code>.</li>
+<li>Game modules cannot register XML binding redirects (<code>app.config</code>) with the host process.</li>
+</ul>
+<p><code>VectorsBinding</code> solves this on <code>net472</code> via a programmatic module initializer (<code>ModuleInitializerAttribute</code>):</p>
+<ol>
+<li>Subscribes to <code>AppDomain.CurrentDomain.AssemblyResolve</code> before any method requiring <code>Vector&lt;T&gt;</code> is JIT-compiled.</li>
+<li>Intercepts failed binding requests for <code>System.Numerics.Vectors</code>.</li>
+<li>Resolves the request using the highest version already loaded in the process, or loads the game's file from the application root by simple name.</li>
+<li>Because the assembly retains its genuine identity, the JIT continues to vectorize operations correctly.</li>
+</ol>
+<hr>
+<h2 id="5-in-memory-compilation-options">5. In-Memory Compilation Options</h2>
+<p>Compilation is executed by <code>RoslynCompiler.Compile</code> using configured options:</p>
+<pre><code class="lang-csharp">var options = new CSharpCompilationOptions(
+    OutputKind.DynamicallyLinkedLibrary,
+    optimizationLevel: OptimizationLevel.Release,
+    deterministic: true)
+    .WithMetadataImportOptions(MetadataImportOptions.All);
+
+IgnoreAccessibility(options); // Enables TopLevelBinderFlags = 0x400000 via reflection
+</code></pre>
+<h3 id="configuration-details">Configuration Details</h3>
+<ul>
+<li><strong>Deterministic Builds (<code>deterministic: true</code>)</strong>: Given identical source code and reference sets, the compiler produces bit-for-bit identical binary output and matching MVIDs.</li>
+<li><strong>Modern Language Parsing</strong>: Syntax trees are parsed using <code>LanguageVersion.Latest</code>.</li>
+<li><strong>Importing Non-Public Metadata (<code>MetadataImportOptions.All</code>)</strong>: Instructs Roslyn to load all internal and private type declarations from reference assemblies.</li>
+<li><strong>Suppressing Binder Accessibility Checks (<code>IgnoreAccessibility</code>)</strong>: Uses reflection to set the internal Roslyn binder flag <code>TopLevelBinderFlags = 0x400000</code>. This enables the compiler to reference and bind against <code>internal</code> and <code>private</code> members across referenced assemblies.</li>
+<li><strong>In-Memory Emission</strong>: Emits raw PE assembly bytes directly to a memory stream without generating PDB files.</li>
+</ul>
+<h3 id="diagnostic-triage">Diagnostic Triage</h3>
+<p>When compilation fails, warnings are suppressed, and only diagnostics of severity <code>DiagnosticSeverity.Error</code> are retained. <code>CompiledPrefabManager</code> prefixes diagnostics with <code>Roslyn (bundled)</code>, writes the full error report to <code>Failed/&lt;Movie&gt;/&lt;ViewModel&gt;/errors.txt</code>, and logs the first five diagnostics to the trace log.</p>
+<hr>
+<h2 id="6-accessing-internal-types--publicization">6. Accessing Internal Types &amp; Publicization</h2>
+<p>Mod ViewModels and mixin classes are frequently declared as <code>internal</code>. While the Roslyn binder flag <code>IgnoreAccessibility</code> permits member access inside method bodies, C# forbids <code>internal</code> types from appearing in public signatures or type declarations (e.g., class inheritance, field types, or parameter signatures).</p>
+<p>To support <code>internal</code> types without triggering compilation errors, UIExtenderEx employs a dual-stage strategy:</p>
+<pre><code>[Reference Assembly on Disk]
+           │
+           ├─► 1. ReferencePublicizer (In-Memory PE Patch)
+           │      Rewrites TypeDef visibility flags to public.
+           │      Passed to Roslyn as MetadataReference.
+           │
+           └─► 2. IgnoresAccessChecksSource (C# Source Emission)
+                  Emits [assembly: IgnoresAccessChecksTo(&quot;&lt;Name&gt;&quot;)]
+                  Bypasses CLR runtime accessibility checks upon execution.
+</code></pre>
+<h3 id="1-in-memory-reference-publicization-referencepublicizer">1. In-Memory Reference Publicization (<code>ReferencePublicizer</code>)</h3>
+<p>For every non-framework assembly passed to the compiler, <code>ReferencePublicizer</code> creates an in-memory publicized copy:</p>
+<ul>
+<li>Inspects the assembly's ECMA-335 CLI metadata tables directly via <code>System.Reflection.Metadata</code>.</li>
+<li>Patches the <code>TypeDef</code> table flags: top-level types are rewritten to <code>TypeAttributes.Public</code>, and nested types to <code>TypeAttributes.NestedPublic</code>.</li>
+<li>Member accessibility is left untouched (handled by Roslyn's <code>IgnoreAccessibility</code>).</li>
+<li>Framework assemblies (<code>mscorlib</code>, <code>netstandard</code>, <code>System.*</code>, <code>Microsoft.*</code>) are skipped.</li>
+<li>The publicized image is passed to Roslyn as an in-memory <code>MetadataReference.CreateFromImage(bytes, filePath: realPath)</code>.</li>
+</ul>
+<h3 id="2-runtime-access-check-suppression-ignoresaccesscheckssource">2. Runtime Access Check Suppression (<code>IgnoresAccessChecksSource</code>)</h3>
+<p>Publicized metadata satisfies Roslyn during compile time, but at runtime the CLR will enforce access boundaries when the compiled code references <code>internal</code> members in unpublicized mod assemblies.</p>
+<p>To satisfy the CLR, <code>IgnoresAccessChecksSource</code> appends <code>IgnoresAccessChecks.gen.cs</code> to every compilation unit:</p>
+<ul>
+<li>Declares <code>System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute</code>.</li>
+<li>Emits an attribute declaration for each referenced assembly:
+<pre><code class="lang-csharp">[assembly: System.Runtime.CompilerServices.IgnoresAccessChecksTo(&quot;TargetModAssembly&quot;)]
+</code></pre>
+</li>
+<li>The CLR runtime honors this attribute, allowing generated assemblies to access internal members of target assemblies without reflection.</li>
+</ul>
+<h3 id="reference-metadata-caching-referencescache">Reference Metadata Caching (<code>References.Cache</code>)</h3>
+<p>Parsing assembly metadata into Roslyn <code>MetadataReference</code> instances is computationally expensive. <code>References.Cache</code> maintains a static cache of <code>MetadataReference</code> instances keyed by file path, length, and last-write timestamp:</p>
+<ul>
+<li>Warm-up compilation against the broad reference set pre-populates this cache.</li>
+<li>If a mod DLL is recompiled or overwritten while the game is running, the timestamp check detects the modification and automatically invalidates the cached reference.</li>
+</ul>
+<hr>
+<h2 id="7-assembly-loading--gauntlet-ui-integration">7. Assembly Loading &amp; Gauntlet UI Integration</h2>
+<p>Once Roslyn successfully emits PE assembly bytes, the assembly must be integrated into the running game:</p>
+<h3 id="measured-compile-times">Measured Compile Times</h3>
+<p>From one in-game session on 2026-09-20, after warm-up. &quot;Main thread&quot; is the preparation done before the job goes to the worker; the movie opens through XML meanwhile.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Movie</th>
+<th style="text-align: right;">Generated C#</th>
+<th style="text-align: right;">Main thread</th>
+<th style="text-align: right;">Roslyn</th>
+<th style="text-align: right;">Load</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">KingdomManagement</td>
+<td style="text-align: right;">10,798 KB</td>
+<td style="text-align: right;">335 ms</td>
+<td style="text-align: right;">1,592 ms</td>
+<td style="text-align: right;">153 ms</td>
+</tr>
+<tr>
+<td style="text-align: left;">ClanScreen</td>
+<td style="text-align: right;">8,357 KB</td>
+<td style="text-align: right;">427 ms</td>
+<td style="text-align: right;">1,369 ms</td>
+<td style="text-align: right;">206 ms</td>
+</tr>
+<tr>
+<td style="text-align: left;">Inventory</td>
+<td style="text-align: right;">4,490 KB</td>
+<td style="text-align: right;">235 ms</td>
+<td style="text-align: right;">830 ms</td>
+<td style="text-align: right;">266 ms</td>
+</tr>
+<tr>
+<td style="text-align: left;">CharacterDeveloper</td>
+<td style="text-align: right;">1,958 KB</td>
+<td style="text-align: right;">132 ms</td>
+<td style="text-align: right;">530 ms</td>
+<td style="text-align: right;">239 ms</td>
+</tr>
+<tr>
+<td style="text-align: left;">TutorialScreen</td>
+<td style="text-align: right;">244 KB</td>
+<td style="text-align: right;">55 ms</td>
+<td style="text-align: right;">65 ms</td>
+<td style="text-align: right;">116 ms</td>
+</tr>
+</tbody>
+</table>
+<p>The Roslyn warm-up at startup took 2,040 ms in the same session.</p>
+<h3 id="off-thread-assembly-loading">Off-Thread Assembly Loading</h3>
+<p>Compiled assemblies are loaded via <code>Assembly.Load(byte[])</code> <strong>on a background worker thread</strong> via <code>GameCompiledPrefabEnvironment.LoadAssembly</code>.</p>
+<p><strong>Performance Rationale</strong>: In modded environments, many mods install <code>AppDomain.CurrentDomain.AssemblyLoad</code> event listeners. Measured in a modded game, <code>Assembly.Load</code> took <strong>90–210 ms</strong> with third-party listener processing, compared to 1–15 ms for the load itself. Executing the load on worker threads prevents UI frame drops during gameplay.</p>
+<p>Loading from a byte array also ensures:</p>
+<ul>
+<li><code>Assembly.Location</code> is empty, ensuring dynamic prefab assemblies are never mistakenly identified as external dependency files.</li>
+<li>No file locks are held on disk, allowing cache archives to be updated and reorganized freely.</li>
+</ul>
+<h3 id="gauntlet-widget-table-registration-widgetinfotable">Gauntlet Widget Table Registration (<code>WidgetInfoTable</code>)</h3>
+<p>Gauntlet UI maintains a static lookup table of all known widget types:</p>
+<pre><code class="lang-csharp">WidgetInfo.AddWidgetType(Type widgetType)
+</code></pre>
+<p>The game populates this table once at startup. If a UI screen attempts to instantiate a <code>Widget</code> subclass defined in an assembly that was loaded later, Gauntlet throws a <code>KeyNotFoundException</code>.</p>
+<p>To ensure compiled widgets can be instantiated:</p>
+<ol>
+<li><code>WidgetInfoTable.Add</code> reflects into Gauntlet's private <code>_widgetInfos</code> dictionary.</li>
+<li>Directly inserts a <code>new WidgetInfo(type)</code> for every <code>Widget</code> subclass defined in the compiled assembly.</li>
+<li>If the internal table is not yet initialized or cannot be reached via reflection, it falls back to Gauntlet's native <code>WidgetInfo.Refresh</code> method.</li>
+</ol>
+<hr>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="Overview.html">Overview</a>: High-level architecture, runtime split, and dependencies.</li>
+<li><a href="Pipeline.html">Pipeline</a>: Compilation pipeline lifecycle, fingerprinting, and cache mechanics.</li>
+<li><a href="Generator.html">Code Generator</a>: Source code emission rules and databinding generation.</li>
+<li><a href="Testing.html">Testing</a>: Automated verification suites and compiler test harnesses.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Compilation.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

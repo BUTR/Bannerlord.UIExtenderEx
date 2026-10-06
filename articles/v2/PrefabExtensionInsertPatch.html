@@ -1,0 +1,462 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>PrefabExtensionInsertPatch | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="PrefabExtensionInsertPatch | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/PrefabExtensionInsertPatch.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="prefabextensioninsertpatch">PrefabExtensionInsertPatch</h1>
+
+<p><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html"><code>PrefabExtensionInsertPatch</code></a> is the primary structural patch type in the v2 API. It allows you to insert new elements, prepend or append siblings, replace existing nodes (with or without preserving their child hierarchy), or remove nodes entirely from a Gauntlet Movie XML document.</p>
+<p>The patch's behavior is governed by two key properties:</p>
+<ul>
+<li><strong><code>Type</code> (<code>InsertType</code>):</strong> Determines the transformation applied to the target node.</li>
+<li><strong><code>Index</code> (<code>int</code>):</strong> Controls positional placement for child insertions and child inheritance during replacements.</li>
+</ul>
+<hr>
+<h2 id="insertion-types-inserttype">Insertion Types (<code>InsertType</code>)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><code>InsertType</code></th>
+<th style="text-align: left;">Behavior</th>
+<th style="text-align: left;">Positional Context (<code>Index</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Child</code></td>
+<td style="text-align: left;">Inserts the new XML nodes as children of the target element.</td>
+<td style="text-align: left;"><code>Index</code> specifies the 0-based position among existing children. Default is <code>0</code> (first child). Values greater than or equal to the current child count append to the end.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Prepend</code></td>
+<td style="text-align: left;">Inserts the new XML nodes immediately <strong>before</strong> the target node as adjacent siblings.</td>
+<td style="text-align: left;"><code>Index</code> is not used.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Append</code></td>
+<td style="text-align: left;">Inserts the new XML nodes immediately <strong>after</strong> the target node as adjacent siblings.</td>
+<td style="text-align: left;"><code>Index</code> is not used.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Replace</code></td>
+<td style="text-align: left;">Replaces the target node and all of its existing children with the new XML content.</td>
+<td style="text-align: left;"><code>Index</code> is not used.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ReplaceKeepChildren</code></td>
+<td style="text-align: left;">Replaces the target node with the new XML content, while preserving the original node's children and re-parenting them into the new node.</td>
+<td style="text-align: left;">If inserting multiple nodes, <code>Index</code> specifies which newly inserted node inherits the original children.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Remove</code></td>
+<td style="text-align: left;">Completely removes the target node and all of its children from the movie.</td>
+<td style="text-align: left;">No content or <code>Index</code> required.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="supplying-xml-content">Supplying XML Content</h2>
+<p>Unless using <code>InsertType.Remove</code>, every <code>PrefabExtensionInsertPatch</code> must declare <strong>exactly one</strong> public instance property or parameterless method decorated with a content attribute derived from <code>PrefabExtensionContentAttribute</code>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Attribute</th>
+<th style="text-align: left;">Expected Member Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionTextAttribute.html"><code>[PrefabExtensionText]</code></a></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">An XML snippet string.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionFileNameAttribute.html"><code>[PrefabExtensionFileName]</code></a></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The file name of an XML file located in your module's <code>GUI/</code> directory.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodeAttribute.html"><code>[PrefabExtensionXmlNode]</code></a></td>
+<td style="text-align: left;"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.xml.xmlnode"><code>XmlNode</code></a> or <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.xml.xmldocument"><code>XmlDocument</code></a></td>
+<td style="text-align: left;">An in-memory XML node or document. If an <code>XmlDocument</code> is provided, its root element (<code>DocumentElement</code>) is used.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><a class="xref" href="../../api/Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.PrefabExtensionXmlNodesAttribute.html"><code>[PrefabExtensionXmlNodes]</code></a></td>
+<td style="text-align: left;"><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1"><code>IEnumerable&lt;XmlNode&gt;</code></a></td>
+<td style="text-align: left;">A sequence of XML nodes to insert sequentially in order.</td>
+</tr>
+</tbody>
+</table>
+<div class="NOTE">
+<h5>Note</h5>
+<p><code>[PrefabExtensionXmlDocument]</code> is obsolete. Use <code>[PrefabExtensionXmlNode]</code> instead, which accepts both <code>XmlDocument</code> and <code>XmlNode</code>.</p>
+</div>
+<h3 id="member-visibility-and-evaluation">Member Visibility and Evaluation</h3>
+<ul>
+<li>Content properties or methods must be <strong><code>public</code> instance</strong> members. UIExtenderEx cannot invoke <code>private</code>, <code>protected</code>, or <code>static</code> members.</li>
+<li>The content member is evaluated dynamically each time the movie is patched, not cached permanently.</li>
+<li>All XML comments inside the supplied content, at any depth, are stripped before insertion.</li>
+<li>In UIExtenderEx 3.0+, <code>InsertType.Remove</code> patches do not require any content member. (In legacy 2.x versions, a dummy content member was required).</li>
+</ul>
+<h3 id="stripping-root-nodes-with-removerootnode">Stripping Root Nodes with <code>RemoveRootNode</code></h3>
+<p>When inserting multiple sibling elements, XML syntax normally requires wrapping them in a single root element (for example, <code>&lt;Root&gt;&lt;WidgetA /&gt;&lt;WidgetB /&gt;&lt;/Root&gt;</code>).</p>
+<p>To avoid inserting an unwanted container widget, pass <code>true</code> to the <code>RemoveRootNode</code> parameter on the attribute constructor:</p>
+<ul>
+<li><code>[PrefabExtensionText(true)]</code></li>
+<li><code>[PrefabExtensionFileName(true)]</code></li>
+<li><code>[PrefabExtensionXmlNode(true)]</code></li>
+</ul>
+<p>When set to <code>true</code>, UIExtenderEx discards the wrapper root element and inserts all of its child elements directly.</p>
+<hr>
+<h2 id="examples">Examples</h2>
+<h3 id="1-prepending-a-sibling-inserttypeprepend">1. Prepending a Sibling (<code>InsertType.Prepend</code>)</h3>
+<p>Inserts the new widget directly before the target element at the same hierarchy level.</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs2;
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle&quot;)]
+internal sealed class PrependTabPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Prepend;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;OptionsTabToggle Id=\&quot;CustomPrependedTab\&quot; /&gt;&quot;;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- Before Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;Gameplay&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+
+&lt;!-- After Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;CustomPrependedTab&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;Gameplay&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+</code></pre>
+<hr>
+<h3 id="2-appending-a-sibling-inserttypeappend">2. Appending a Sibling (<code>InsertType.Append</code>)</h3>
+<p>Inserts the new widget directly after the target element at the same hierarchy level.</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle&quot;)]
+internal sealed class AppendTabPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Append;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;OptionsTabToggle Id=\&quot;CustomAppendedTab\&quot; /&gt;&quot;;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- Before Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;Gameplay&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+
+&lt;!-- After Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;Gameplay&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;CustomAppendedTab&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+</code></pre>
+<hr>
+<h3 id="3-inserting-as-a-child-at-an-index-inserttypechild">3. Inserting as a Child at an Index (<code>InsertType.Child</code>)</h3>
+<p>Inserts the new element into the target container at a specific 0-based index.</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children&quot;)]
+internal sealed class InsertChildAtIndexPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Child;
+
+    // 0 = first child, 1 = second child, etc.
+    // If the index exceeds the child count, the element is appended to the end.
+    public override int Index =&gt; 1;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;OptionsTabToggle Id=\&quot;InsertedSecondTab\&quot; /&gt;&quot;;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- Before Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;FirstTab&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;ThirdTab&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+
+&lt;!-- After Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;FirstTab&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;InsertedSecondTab&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;ThirdTab&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+</code></pre>
+<hr>
+<h3 id="4-replacing-an-entire-node-inserttypereplace">4. Replacing an Entire Node (<code>InsertType.Replace</code>)</h3>
+<p>Replaces the target node and all of its descendants with your new widget.</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle[@Id='Audio']&quot;)]
+internal sealed class ReplaceTabPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Replace;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;CustomAudioPanel Id=\&quot;ReplacementAudioPanel\&quot; /&gt;&quot;;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- Before Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;Audio&quot;&gt;
+            &lt;Children&gt;
+                &lt;Standard.TopPanel /&gt;
+            &lt;/Children&gt;
+        &lt;/OptionsTabToggle&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+
+&lt;!-- After Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;CustomAudioPanel Id=&quot;ReplacementAudioPanel&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+</code></pre>
+<hr>
+<h3 id="5-replacing-a-node-while-preserving-children-inserttypereplacekeepchildren">5. Replacing a Node While Preserving Children (<code>InsertType.ReplaceKeepChildren</code>)</h3>
+<p>Replaces the target container element with a new widget while preserving all existing child nodes. If inserting multiple new nodes, <code>Index</code> designates which new node receives the preserved children.</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/ListPanel&quot;)]
+internal sealed class SwapContainerKeepChildrenPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.ReplaceKeepChildren;
+
+    // If multiple nodes are inserted, Index specifies which one inherits the children (0 = first node)
+    public override int Index =&gt; 0;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;NavigatableGridWidget Id=\&quot;CustomGrid\&quot; ColumnCount=\&quot;2\&quot; /&gt;&quot;;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- Before Patch --&gt;
+&lt;ListPanel Id=&quot;OldList&quot;&gt;
+    &lt;Children&gt;
+        &lt;ButtonWidget Id=&quot;Button1&quot; /&gt;
+        &lt;ButtonWidget Id=&quot;Button2&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/ListPanel&gt;
+
+&lt;!-- After Patch --&gt;
+&lt;NavigatableGridWidget Id=&quot;CustomGrid&quot; ColumnCount=&quot;2&quot;&gt;
+    &lt;Children&gt;
+        &lt;ButtonWidget Id=&quot;Button1&quot; /&gt;
+        &lt;ButtonWidget Id=&quot;Button2&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/NavigatableGridWidget&gt;
+</code></pre>
+<h4 id="preserving-children-with-multi-node-injection-removerootnode--true">Preserving Children with Multi-Node Injection (<code>RemoveRootNode = true</code>)</h4>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/ListPanel&quot;)]
+internal sealed class MultiNodeReplaceKeepChildrenPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.ReplaceKeepChildren;
+
+    // Node at index 1 (&lt;Panel Id=&quot;Target&quot;&gt;) receives the preserved children
+    public override int Index =&gt; 1;
+
+    [PrefabExtensionText(removeRootNode: true)]
+    public string Content =&gt; &quot;&quot;&quot;
+        &lt;Wrapper&gt;
+            &lt;Widget Id=&quot;Header&quot; /&gt;
+            &lt;Panel Id=&quot;Target&quot; /&gt;
+            &lt;Widget Id=&quot;Footer&quot; /&gt;
+        &lt;/Wrapper&gt;
+        &quot;&quot;&quot;;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- After Patch --&gt;
+&lt;Widget Id=&quot;Header&quot; /&gt;
+&lt;Panel Id=&quot;Target&quot;&gt;
+    &lt;Children&gt;
+        &lt;ButtonWidget Id=&quot;Button1&quot; /&gt;
+        &lt;ButtonWidget Id=&quot;Button2&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/Panel&gt;
+&lt;Widget Id=&quot;Footer&quot; /&gt;
+</code></pre>
+<hr>
+<h3 id="6-removing-a-node-inserttyperemove">6. Removing a Node (<code>InsertType.Remove</code>)</h3>
+<p>Deletes the target element and its entire subtree from the movie XML.</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children/OptionsTabToggle[@Id='UnwantedTab']&quot;)]
+internal sealed class RemoveTabPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Remove;
+}
+</code></pre>
+<pre><code class="lang-xml">&lt;!-- Before Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;Tab1&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;UnwantedTab&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;Tab2&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+
+&lt;!-- After Patch --&gt;
+&lt;OptionsScreenWidget Id=&quot;Options&quot;&gt;
+    &lt;Children&gt;
+        &lt;OptionsTabToggle Id=&quot;Tab1&quot; /&gt;
+        &lt;OptionsTabToggle Id=&quot;Tab2&quot; /&gt;
+    &lt;/Children&gt;
+&lt;/OptionsScreenWidget&gt;
+</code></pre>
+<hr>
+<h2 id="loading-xml-from-external-files-prefabextensionfilename">Loading XML from External Files (<code>[PrefabExtensionFileName]</code>)</h2>
+<p>For large UI templates, keeping XML inside external <code>.xml</code> files instead of C# string literals improves syntax highlighting, validation, and maintainability.</p>
+<pre><code class="lang-csharp">[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children&quot;)]
+internal sealed class ExternalFilePatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Append;
+
+    // Loads GUI/PrefabExtensions/MyCustomContainer.xml from your module folder
+    [PrefabExtensionFileName]
+    public string FileName =&gt; &quot;MyCustomContainer&quot;;
+}
+</code></pre>
+<h3 id="file-resolution-rules">File Resolution Rules</h3>
+<ol>
+<li><strong>Folder Location:</strong> Place patch XML files in your module's <code>GUI/</code> directory or any subfolder within it (such as <code>GUI/PrefabExtensions/MyCustomContainer.xml</code>).</li>
+<li><strong>File Extension:</strong> You can include or omit the <code>.xml</code> extension in the string (<code>&quot;MyCustomContainer&quot;</code> or <code>&quot;MyCustomContainer.xml&quot;</code>). Matching is case-insensitive.</li>
+<li><strong>Module Resolution:</strong> UIExtenderEx identifies your module using the string identifier provided when calling <code>UIExtender.Create(&quot;MyModuleId&quot;)</code>.</li>
+<li><strong>Hot Reloading:</strong> The external file is read from disk each time the movie is patched. You can edit the XML file while the game is running, reload the screen (or call <code>Extender.Disable(typeof(MyPatch))</code> followed by <code>Extender.Enable(typeof(MyPatch))</code>), and see your changes without restarting the game or recompiling your C# assembly.</li>
+</ol>
+<div class="CAUTION">
+<h5>Caution</h5>
+<p><strong>Do NOT place patch XML files inside <code>GUI/Prefabs/</code>!</strong></p>
+<p>TaleWorlds' <code>WidgetFactory</code> registers every XML file inside <code>GUI/Prefabs</code> as a standalone prefab. However, patch fragments are incomplete snippets that use a <code>&lt;Widget&gt;</code> or <code>&lt;DummyRoot&gt;</code> root rather than <code>&lt;Prefab&gt;</code>. While the XML loader ignores unreferenced fragment files, the compiled-prefab generator attempts to parse them, triggering an engine exception that forces any movie referencing the fragment to fall back to XML. Always place patch fragments in a separate folder, such as <code>GUI/PrefabExtensions/</code>.</p>
+<p>See <a href="../general/CompiledPrefabs.html#keep-patch-fragments-out-of-guiprefabs">Keep Patch Fragments Out of GUI/Prefabs</a> for more information.</p>
+</div>
+<hr>
+<h2 id="compile-time-checking-with-prefab-links">Compile-Time Checking with Prefab Links</h2>
+<p>To ensure that injected XML widgets, attributes, and data bindings (<code>@PropertyName</code>, <code>Command.Click=&quot;@MethodName&quot;</code>) are validated at compile time, pair your patch with <a href="PrefabLink.html"><code>[assembly: PrefabLink]</code></a>. The <a href="../general/Analyzers.html">Roslyn Analyzers</a> will inspect your XML and confirm all bindings against the target ViewModel and its registered <a href="ViewModelMixin.html">ViewModel Mixins</a>.</p>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/PrefabExtensionInsertPatch.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

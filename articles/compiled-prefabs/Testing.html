@@ -1,0 +1,465 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Testing &amp; Verification Strategy | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Testing &amp; Verification Strategy | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Testing.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="testing--verification-strategy">Testing &amp; Verification Strategy</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It documents the automated test suites, test harnesses, oracles, and benchmarking tools used to verify the compiled prefabs pipeline.
+For the pipeline architecture, see <a href="Overview.html">Overview</a> and <a href="Pipeline.html">Pipeline</a>. For behavioral deviations from XML, see <a href="XmlDeviations.html">Deviations from the XML Loader</a>.</p>
+</div>
+<hr>
+<h2 id="1-test-project-structure">1. Test Project Structure</h2>
+<p>Automated testing is divided across specialized test projects located in the <code>tests/</code> directory:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Test Project</th>
+<th style="text-align: left;">Focus Area</th>
+<th style="text-align: left;">External Dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Bannerlord.UIExtenderEx.Tests</code></td>
+<td style="text-align: left;">Core framework: ViewModel mixins, prefab patching engine, Harmony patches, settings, and runtime switching.</td>
+<td style="text-align: left;">Game assemblies or reference assemblies.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Bannerlord.UIExtenderEx.CodeGenerator.Tests</code></td>
+<td style="text-align: left;">Alternative code generator in isolation: tests syntax tree emission, by-name bindings, and snapshot parity against temporary XML files.</td>
+<td style="text-align: left;">None (runs standalone).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Bannerlord.UIExtenderEx.CompiledPrefabs.Tests</code></td>
+<td style="text-align: left;">Compilation manager, fingerprint calculations, disk caching, real <code>UIContext</code> integration, and past oracle/fuzzer regression tests.</td>
+<td style="text-align: left;">Game UI assemblies.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Bannerlord.UIExtenderEx.Corpus.Tests</code></td>
+<td style="text-align: left;">Full-scale oracle comparison over every prefab shipped by the installed game; runs in dedicated multi-process chunks.</td>
+<td style="text-align: left;">Full Mount &amp; Blade II game installation.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Bannerlord.UIExtenderEx.Analyzers.Tests</code></td>
+<td style="text-align: left;">Roslyn analyzers, code fixes, and diagnostic targets compiled against .NET Framework 4.7.2.</td>
+<td style="text-align: left;">BUTR game reference packages (no game required).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="shared-testing-infrastructure-bannerlorduiextenderextestsshared">Shared Testing Infrastructure (<code>Bannerlord.UIExtenderEx.Tests.Shared</code>)</h3>
+<p><code>Bannerlord.UIExtenderEx.Tests.Shared</code> is a shared library providing test fixtures and utilities across projects:</p>
+<ul>
+<li><strong>Test Oracles</strong>: <code>LoaderOracle</code> and <code>BindingLoaderOracle</code>.</li>
+<li><strong>Introspection Tools</strong>: <code>WidgetSnapshot</code>, <code>ViewModelSynthesizer</code>, <code>OracleMemoryGuard</code>, and <code>OracleRetention</code>.</li>
+<li><strong>Test Environments</strong>: <code>PrefabWorkspace</code>, <code>TestUIContext</code>, <code>CompiledMovie</code>, and <code>TestGame</code>.</li>
+<li><strong>Runtime Bootstrap</strong>: <code>TestRuntime.Start</code>, providing standardized test environment setup for all test assemblies.</li>
+</ul>
+<hr>
+<h2 id="2-executing-tests">2. Executing Tests</h2>
+<p>Run the primary test suites via the .NET CLI:</p>
+<pre><code class="lang-powershell">foreach ($project in 'Tests', 'CodeGenerator.Tests', 'CompiledPrefabs.Tests', 'Corpus.Tests') {
+    dotnet test &quot;tests/Bannerlord.UIExtenderEx.$project/Bannerlord.UIExtenderEx.$project.csproj&quot; `
+        --configuration Debug --framework net472 -p:GameFolder=&quot;C:\Program Files (x86)\Steam\steamapps\common\Mount &amp; Blade II Bannerlord&quot;
+}
+</code></pre>
+<h3 id="locating-game-assemblies">Locating Game Assemblies</h3>
+<p>The build property <code>GameFolder</code> defines whether test projects reference local binaries from <code>bin/Win64_Shipping_Client</code> or fallback to NuGet reference packages (<code>Bannerlord.ReferenceAssemblies.Core</code>).</p>
+<p>If not specified explicitly, <code>GameFolder</code> resolves in order:</p>
+<ol>
+<li>Environment variable <code>BANNERLORD_GAME_DIR</code>.</li>
+<li>Windows Steam Registry installation paths.</li>
+<li>Default Steam library path.</li>
+</ol>
+<p>Runtime tests inspect <code>TestGame.Directory</code> to verify that <code>TaleWorlds.GauntletUI.CodeGenerator.dll</code> exists; if a game installation is absent, game-dependent tests skip automatically (<code>Assert.Ignore</code>).</p>
+<h3 id="other-game-versions">Other Game Versions</h3>
+<p>The tests need no full installation: the game's <code>bin/Win64_Shipping_Client</code> assemblies, <code>Version.xml</code>, the modules' <code>bin</code> assemblies and <code>SubModule.xml</code>, and the <code>GUI</code> folders (about 60 MB per version) are enough. <code>.github/resources/FileFilters.regexp</code> lists them for DepotDownloader; point <code>BANNERLORD_GAME_DIR</code> and <code>GameFolder</code> at a folder holding them to run the suites against that version.</p>
+<p>CI downloads them from Steam:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Workflow</th>
+<th style="text-align: left;">Versions</th>
+<th style="text-align: left;">Build</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>test.yml</code> (pushes, pull requests)</td>
+<td style="text-align: left;">Current stable and beta</td>
+<td style="text-align: left;">Stable also builds against its own reference package; beta builds as it ships, since its reference package is a prerelease</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>test-fully.yml</code> (weekly, or by hand)</td>
+<td style="text-align: left;">Every version from <code>GameVersion</code> in <code>build/common.props</code> to the current beta</td>
+<td style="text-align: left;">As it ships, against the oldest supported version</td>
+</tr>
+</tbody>
+</table>
+<p><code>.github/resources/GameVersions.ps1</code> reads the versions and the Steam branch serving each from the build registry of Bannerlord.ReferenceAssemblies. A version whose branch is gone (a beta that moved on) cannot be downloaded and is not tested. Each job checks that <code>Version.xml</code> reports the version it asked for, because DepotDownloader falls back to the public branch for one that does not exist.</p>
+<h3 id="multi-target-framework-validation-net472-and-net60">Multi-Target Framework Validation (<code>net472</code> and <code>net6.0</code>)</h3>
+<p>Mount &amp; Blade II: Bannerlord runs on two distinct runtime environments in production:</p>
+<ol>
+<li><strong>Steam / GOG / Epic Games</strong>: .NET Framework 4.7.2 (<code>net472</code>).</li>
+<li><strong>Microsoft Store / Xbox App (GDK)</strong>: .NET 6 (<code>net6.0</code>).</li>
+</ol>
+<p>All changes must pass automated test suites on <strong>both</strong> target frameworks.</p>
+<h4 id="platform-specific-test-considerations">Platform-Specific Test Considerations</h4>
+<ul>
+<li><strong>Detour Initialization on .NET 6</strong>: On <code>net6.0</code>, <code>AccessTools2.FieldRefAccess</code> requires MonoMod's detour runtime to be initialized before static field references can resolve. <code>TestRuntime.Start</code> initializes a temporary <code>Harmony</code> instance in an assembly-level <code>[SetUpFixture]</code> before running tests.</li>
+<li><strong>SubModule Emulation</strong>: The test runner does not load game SubModules automatically. <code>TestRuntime.Start</code> explicitly initializes the runtimes in declared order (<code>XmlPrefabRuntime.Install</code>, <code>GamePrefabRuntime.Install</code>, <code>CompiledPrefabRuntime.Install</code>) and executes <code>UIExtender</code>'s static constructor.</li>
+<li><strong>Harmony Versioning</strong>: Production builds compile against Harmony 2.3.3+, but test suites run against the version bundled with the game (Harmony 2.4.2+). Earlier versions (2.2.2) suffered from an internal CLR bug (<code>0x80131506</code>) under .NET 6 JIT compilation; running against modern Harmony ensures reliable execution across both targets.</li>
+</ul>
+<hr>
+<h2 id="3-test-harnesses--shared-infrastructure">3. Test Harnesses &amp; Shared Infrastructure</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Harness / Utility</th>
+<th style="text-align: left;">Purpose in Test Scenarios</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>PrefabWorkspace</code></td>
+<td style="text-align: left;">Creates an isolated temporary directory containing test prefab XML, an active <code>ResourceDepot</code>, a <code>WidgetFactory</code> with <code>PrefabDatabindingExtension</code>, and a <code>PrefabLease</code> tracking live prefab usage.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TestUIContext</code></td>
+<td style="text-align: left;">Initializes a minimal, headless <code>UIContext</code> capable of instantiating and measuring widgets without launching the game engine graphics pipeline.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>TestGame</code></td>
+<td style="text-align: left;">Discovers and validates a local game installation, loading reference assemblies and Native resources.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>GameInstallation</code></td>
+<td style="text-align: left;">Corpus test utility that loads Native UI assets (prefabs, brushes, fonts, sprite data, and widget types).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>CompiledMovie</code></td>
+<td style="text-align: left;">High-level facade that compiles a movie via <code>RoslynCompiler</code>, loads the assembly into memory, registers it with Gauntlet, and provides helper methods (<code>SetDataSource</code>, <code>ById</code>, <code>FireEvent</code>) to drive interactive tests.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="4-test-suite-taxonomy">4. Test Suite Taxonomy</h2>
+<h3 id="generator-syntax--verified-snapshots-codegeneratortests">Generator Syntax &amp; Verified Snapshots (<code>CodeGenerator.Tests</code>)</h3>
+<p>Tests in this suite assert that the emitted C# source code is syntactically correct, strictly qualified with <code>global::</code>, and structurally sound:</p>
+<ul>
+<li><strong>Verified Snapshots</strong>: Several suites use <a href="https://github.com/VerifyTests/Verify">Verify</a> (<code>Snapshots/*.verified.cs</code>). Any change in emitted code produces a <code>.received.cs</code> diff file for maintainer review. In unattended test runs, <code>DiffEngine_Disabled=true</code> suppresses GUI diff tool popups while flagging unintended regressions.</li>
+</ul>
+<h3 id="loader-semantics-loadersemanticstests">Loader Semantics (<code>LoaderSemanticsTests</code>)</h3>
+<p>Pins Gauntlet's runtime XML loader contracts directly against TaleWorlds assemblies:</p>
+<ul>
+<li>Verifies that missing scalar bindings assign widget property defaults.</li>
+<li>Verifies that <code>SetPropertyValue</code> behaves as a no-op without public setters.</li>
+<li>Verifies collection traversal semantics over <code>IMBBindingList</code>.</li>
+<li>Ensures that if TaleWorlds modifies an engine rule in an update, tests fail here immediately rather than causing silent code generator divergence.</li>
+</ul>
+<h3 id="dynamic-member--mixin-runtime">Dynamic Member &amp; Mixin Runtime</h3>
+<p>Validates by-name binding dispatches, mixin method lookups, and mixin shadowing against real ViewModel instances:</p>
+<ul>
+<li>Tests instances sharing types but holding differing mixin registrations.</li>
+<li>Tests dynamic lookups where a mixin member overrides an existing ViewModel property.</li>
+</ul>
+<h3 id="end-to-end-equivalence-gauntletmovieload">End-to-End Equivalence (<code>GauntletMovie.Load</code>)</h3>
+<p>Executes test prefabs through <code>GauntletMovie.Load</code> in parallel—instantiating an XML movie, a compiled movie, and a control movie:</p>
+<ul>
+<li>Validates all documented exceptions in <a href="XmlDeviations.html">Deviations from the XML Loader</a>.</li>
+<li>Confirms two-way data updates, property change notifications, and command invocations.</li>
+</ul>
+<h3 id="manager--fingerprint-lifecycle">Manager &amp; Fingerprint Lifecycle</h3>
+<p>Validates <code>CompiledPrefabManager</code> against test fakes:</p>
+<ul>
+<li>Confirms state transitions, fingerprint invalidation triggers, and snapshot pinning leases.</li>
+<li>Verifies cache archive serialization (<code>CompiledPrefabs.zip</code>) and graceful degradation when the compiler assembly is missing (<code>CompilerMissingTests</code>).</li>
+</ul>
+<h3 id="acceptance-against-taleworlds-generator-gamegeneratorequivalencetests">Acceptance against TaleWorlds Generator (<code>GameGeneratorEquivalenceTests</code>)</h3>
+<p>Executes TaleWorlds' <code>TaleWorlds.GauntletUI.CodeGenerator</code> and UIExtenderEx's code generator against all unpatched Native prefabs:</p>
+<ul>
+<li>Compares emitted source code character-by-character after applying known architectural deviations (<code>IntendedDeviations</code>).</li>
+<li>Ensures that for standard prefabs with no mixins, the output matches TaleWorlds' emission.</li>
+</ul>
+<hr>
+<h2 id="5-automated-test-oracles-proving-xml-parity">5. Automated Test Oracles: Proving XML Parity</h2>
+<p>Rather than relying solely on manually written test assertions, UIExtenderEx uses <strong>test oracles</strong> where the Gauntlet runtime XML loader serves as the ground truth.</p>
+<pre><code>                    ┌────────────────────────────┐
+                    │      Input Prefab XML      │
+                    └─────────────┬──────────────┘
+                                  │
+                  ┌───────────────┴───────────────┐
+                  ▼                               ▼
+       ┌─────────────────────┐         ┌─────────────────────┐
+       │     XML Loader      │         │   Compiled Prefab   │
+       │  (Ground Truth)     │         │      (Candidate)    │
+       └──────────┬──────────┘         └──────────┬──────────┘
+                  │                               │
+                  └───────────────┬───────────────┘
+                                  ▼
+                   ┌─────────────────────────────┐
+                   │   Oracle Comparison Engine  │
+                   │ (Properties, Fields, Calls) │
+                   └─────────────────────────────┘
+</code></pre>
+<h3 id="1-static-oracle-loaderoracle">1. Static Oracle (<code>LoaderOracle</code>)</h3>
+<p>Tests prefabs without active ViewModels:</p>
+<ul>
+<li>Instantiates the prefab via both <code>WidgetPrefab.Instantiate</code> and the compiled class.</li>
+<li>Traverses both widget hierarchies using <code>WidgetSnapshot</code>:
+<ul>
+<li>Compares every public property to a depth of two nested objects.</li>
+<li>Compares every private and public field down to the base <code>Widget</code> class (excluding dynamic event subscriber tables).</li>
+<li>Validates all calls made to <code>Debug.FailedAssert</code>, matching exact diagnostic messages.</li>
+</ul>
+</li>
+<li>A second XML instance is built in parallel to detect non-deterministic widget properties (such as widgets generating random IDs in constructors).</li>
+</ul>
+<h3 id="2-dynamic-binding-oracle-bindingloaderoracle">2. Dynamic Binding Oracle (<code>BindingLoaderOracle</code>)</h3>
+<p>Tests complete databinding lifecycles:</p>
+<ol>
+<li>Analyzes the prefab's binding expressions and uses <code>ViewModelSynthesizer</code> to synthesize an in-memory ViewModel matching the required properties, lists, and commands.</li>
+<li>Loads three movies simultaneously: the candidate compiled movie, an XML movie, and a second XML control movie.</li>
+<li>Drives all three instances through standardized stress cycles:
+<ul>
+<li>Initial layout initialization.</li>
+<li>Mutating every property twice.</li>
+<li>Replacing nested child ViewModels.</li>
+<li>Adding, inserting, removing, and clearing list collections.</li>
+<li>Firing all bound commands.</li>
+<li>Disconnecting the movies from the visual tree.</li>
+</ul>
+</li>
+<li>After every step, verifies that widget properties, ViewModel invocation logs, and assertion counts match across all instances.</li>
+</ol>
+<hr>
+<h2 id="6-oracle-performance--memory-management">6. Oracle Performance &amp; Memory Management</h2>
+<p>Running the dynamic binding oracle over every Native prefab (several hundred) loads hundreds of dynamic assemblies that cannot be unloaded by .NET Framework 4.7.2. Without strict memory management, an unconstrained run can consume upwards of 40 GB of RAM and crash the test host.</p>
+<p>The test suite enforces several safeguards:</p>
+<ul>
+<li><strong>Process Chunking (<code>OracleChunks</code>)</strong>: Prefabs are executed in isolated worker processes that terminate upon completion, freeing unmanaged and JIT resources.</li>
+<li><strong>Memory Ceiling Guard (<code>OracleMemoryGuard</code>)</strong>: An asynchronous watchdog monitors process memory against <code>UIEXTENDEREX_ORACLE_MAX_MEMORY_MB</code> (default 3 GB). If memory exceeds the threshold, the chunk process terminates cleanly and restarts with a smaller batch size.</li>
+<li><strong>Isolated UI Contexts</strong>: Each test prefab runs in an isolated <code>UIContext</code>. Shared contexts leak memory through <code>EventManager</code> event listener tables (<code>EventManagerPatch</code>).</li>
+<li><strong>Chunk Partitioning</strong>:
+<ul>
+<li>The static corpus runs across three parallel processes (<code>UIEXTENDEREX_ORACLE_PARALLEL=3</code>).</li>
+<li>The binding corpus runs in batches of 40 prefabs across two parallel worker processes that share the memory ceiling (see the rationale in <code>OracleChunks.DefaultParallelism</code>).</li>
+</ul>
+</li>
+</ul>
+<h3 id="running-corpus-tests-locally">Running Corpus Tests Locally</h3>
+<p>To run the full corpus or fuzzer locally:</p>
+<pre><code class="lang-powershell"># Run the static corpus over all official prefabs
+dotnet test &quot;tests/Bannerlord.UIExtenderEx.Corpus.Tests/Bannerlord.UIExtenderEx.Corpus.Tests.csproj&quot; `
+    --configuration Release --framework net472 -p:GameFolder=&quot;&lt;path to game&gt;&quot;
+
+# Run the binding oracle over a specific subset of prefabs
+$env:UIEXTENDEREX_ORACLE_PREFABS=&quot;Inventory,ClanScreen,CharacterDeveloper&quot;
+dotnet test ... --filter FullyQualifiedName~EveryOfficialPrefab_BindsTheSameCompiledAsFromXml
+</code></pre>
+<p>Reports detailing every tested prefab and detected discrepancy are written to <code>%TEMP%/UIExtenderEx-oracle/</code>.</p>
+<p>Diagnostic environment variables for investigating test failures (set each to <code>1</code>):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Variable</th>
+<th style="text-align: left;">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>UIEXTENDEREX_ORACLE_DUMP_SOURCES</code></td>
+<td style="text-align: left;">Exports generated C# files for each prefab to <code>%TEMP%/UIExtenderEx-oracle/</code> (including synthesized ViewModels when using the binding oracle).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UIEXTENDEREX_ORACLE_DUMP_VIEWS</code></td>
+<td style="text-align: left;">Binding oracle: dumps the XML movie's <code>GauntletView</code> visual tree upon opening.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UIEXTENDEREX_ORACLE_DUMP_LOGS</code></td>
+<td style="text-align: left;">Binding oracle: logs ViewModel member invocations immediately surrounding the point where XML and compiled execution diverge.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UIEXTENDEREX_ORACLE_MEMORY</code></td>
+<td style="text-align: left;">Binding oracle: tracks live memory, working set, and loaded assembly counts at each phase. (Forces garbage collection cycles; reduces test throughput).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>UIEXTENDEREX_ORACLE_TRACE</code></td>
+<td style="text-align: left;">Writes execution steps sequentially to <code>trace-&lt;pid&gt;.txt</code> to capture diagnostics before fatal process crashes (such as stack overflows).</td>
+</tr>
+</tbody>
+</table>
+<p><code>UIEXTENDEREX_ORACLE_PARALLEL</code> and <code>UIEXTENDEREX_ORACLE_CHUNK</code> override process concurrency and batch chunk size, respectively.</p>
+<hr>
+<h2 id="7-performance-benchmarks">7. Performance Benchmarks</h2>
+<p>Benchmark suites are marked as <code>[Explicit]</code> and measure execution throughput:</p>
+<pre><code class="lang-powershell">dotnet test &quot;tests/Bannerlord.UIExtenderEx.CompiledPrefabs.Tests/Bannerlord.UIExtenderEx.CompiledPrefabs.Tests.csproj&quot; `
+    --configuration Release --framework net472 --filter FullyQualifiedName~CompiledVersusXmlBenchmarks
+</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Benchmark Suite</th>
+<th style="text-align: left;">What It Measures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>CompiledVersusXmlBenchmarks</code></td>
+<td style="text-align: left;">End-to-end rendering speed comparing XML loading, compiled loading with direct typed bindings, and compiled loading with dynamic by-name fallbacks.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>PrefabLoadBenchmarks</code></td>
+<td style="text-align: left;">Evaluates decision-path overhead in <code>GauntletMoviePatch</code>: validating cached sections, computing fingerprints, and building reference sets.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DynamicMemberBenchmarks</code></td>
+<td style="text-align: left;">Nanosecond-level timing of individual reflection reads, writes, and mixin receiver dispatches.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="8-authoring-workflow-adding-tests-for-code-generation-changes">8. Authoring Workflow: Adding Tests for Code Generation Changes</h2>
+<p>When introducing new code generation features or fixing emission bugs, follow this checklist:</p>
+<ol>
+<li><strong>Define Test Fixtures</strong>: Add sample ViewModel and widget types to <code>FastPathVMs.cs</code> and <code>FastPathWidgets.cs</code> (or create a dedicated fixture in <code>Bannerlord.UIExtenderEx.Tests.Shared</code>).</li>
+<li><strong>Assert Emitted Source Code</strong>: Create a unit test in <code>CodeGenerator.Tests</code> using <code>PrefabWorkspace.Generate</code> to verify that the emitted C# source matches expectations.</li>
+<li><strong>Verify Interactive Behavior</strong>: Create an end-to-end integration test using <code>CompiledMovie.Build</code>. Instantiate the movie, attach the ViewModel, mutate properties, fire events, and assert widget values.</li>
+<li><strong>Validate Equivalence</strong>: If the change affects standard bindings, run <code>GameGeneratorEquivalenceTests</code>. If the deviation is intentional, document it in <code>IntendedDeviations</code> with technical rationale.</li>
+<li><strong>Update Fingerprints</strong>: If the change adds new compile-time dependencies, update <code>PrefabFingerprint.Compose</code> and add a test case to <code>FingerprintInvalidationTests</code>.</li>
+</ol>
+<hr>
+<h2 id="9-in-game-verification">9. In-Game Verification</h2>
+<p>To verify compiled prefabs in a live game session:</p>
+<ol>
+<li><strong>Check Generation Reset</strong>: Deploying a new build updates the generation hash in <code>cache.txt</code>. On initial screen opening, all movies recompile once in the background.</li>
+<li><strong>Verify Cache Stability</strong>: Re-opening the same screen, or restarting the game with the same mod build, must show <code>0</code> recompilations. <code>CompiledPrefabs.zip</code> must remain unchanged.</li>
+<li><strong>Inspect Failure Logs</strong>: The folder <code>Modules/Bannerlord.UIExtenderEx/CompiledPrefabs/Failed/</code> must remain empty.</li>
+<li><strong>Dump Generated Source Code</strong>: Set <code>DumpGeneratedCode=&quot;true&quot;</code> in <code>SubModule.xml</code> to inspect the generated C# files under <code>CompiledPrefabs/Sources/&lt;Movie&gt;/&lt;ViewModel&gt;/</code>.</li>
+</ol>
+<hr>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="Pipeline.html">Pipeline</a>: Compilation lifecycle, background workers, and caching.</li>
+<li><a href="Generator.html">Code Generator</a>: Emission rules, mixin bindings, and dynamic fallbacks.</li>
+<li><a href="XmlDeviations.html">Deviations from the XML Loader</a>: Documented differences between XML and compiled execution.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/Testing.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

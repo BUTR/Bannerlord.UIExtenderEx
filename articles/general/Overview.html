@@ -1,0 +1,255 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Overview | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Overview | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/general/Overview.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="overview">Overview</h1>
+
+<p><strong>UIExtenderEx</strong> is an extension framework for <em>Mount &amp; Blade II: Bannerlord</em> that enables mod developers to cleanly extend, customize, and inject UI elements and logic into the game's Gauntlet UI system without conflicting with other mods.</p>
+<p>In Bannerlord, user interface screens and widgets are tightly bound to the game's internal data sources. Without a dedicated framework, modifying an existing screen often requires overwriting base game XML files or writing fragile, invasive runtime patches. UIExtenderEx provides a structured, non-destructive architecture that allows multiple mods to modify the same screens simultaneously.</p>
+<hr>
+<h2 id="gauntlet-ui-and-the-mvvm-pattern">Gauntlet UI and the MVVM Pattern</h2>
+<p>TaleWorlds' Gauntlet UI framework is built around the <strong>Model-View-ViewModel (MVVM)</strong> architectural pattern, separating visual presentation from game logic:</p>
+<ul>
+<li><strong>Model (Game State):</strong> Represents the underlying game state, entities, and campaign systems (such as <code>Hero</code>, <code>Settlement</code>, <code>Clan</code>, or campaign behaviors).</li>
+<li><strong>ViewModel (Presentation Logic):</strong> C# classes inheriting from <code>TaleWorlds.Library.ViewModel</code> that expose reactive properties (annotated with <code>[DataSourceProperty]</code>) and command callbacks (annotated with <code>[DataSourceMethod]</code>) for the UI.</li>
+<li><strong>View (Visual Layout):</strong> Gauntlet Movie XML prefabs declaring the widget hierarchy, visual styling, layout constraints, and data bindings (<code>@PropertyName</code>).</li>
+</ul>
+<p>UIExtenderEx provides dedicated extension mechanisms for the <strong>View</strong> and the <strong>ViewModel</strong>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Layer</th>
+<th style="text-align: left;">In Bannerlord</th>
+<th style="text-align: left;">How UIExtenderEx Extends It</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Model</strong></td>
+<td style="text-align: left;">Core game state (<code>Hero</code>, <code>Settlement</code>, <code>Clan</code>, campaign behaviors)</td>
+<td style="text-align: left;"><em>Not extended directly.</em> Mixins read and modify game state through the game's standard APIs.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ViewModel</strong></td>
+<td style="text-align: left;"><code>ViewModel</code> subclasses with <code>[DataSourceProperty]</code> and <code>[DataSourceMethod]</code> members</td>
+<td style="text-align: left;"><strong><a href="../v2/ViewModelMixin.html">ViewModel Mixins</a>:</strong> <code>[ViewModelMixin]</code> classes derived from <code>BaseViewModelMixin&lt;TViewModel&gt;</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>View</strong></td>
+<td style="text-align: left;">Prefabs: Movie XML templates and widget definitions</td>
+<td style="text-align: left;"><strong><a href="../v2/Overview.html">Prefab Extensions</a>:</strong> <code>[PrefabExtension]</code> patch classes that insert, set, or modify XML nodes.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="the-two-core-pillars">The Two Core Pillars</h2>
+<p>Modifying a Bannerlord screen typically requires two coordinated parts:</p>
+<ol>
+<li><strong>Injecting visual widgets</strong> into a screen's prefab (the View).</li>
+<li><strong>Providing data and event handlers</strong> for those widgets in the screen's ViewModel.</li>
+</ol>
+<h3 id="1-prefabs-are-the-view">1. Prefabs are the View</h3>
+<p>In Gauntlet, a <strong>prefab</strong> is an XML file defining the visual elements of a screen or UI component: the widget hierarchy, layout properties, brush styles, and data bindings (using <code>@Name</code>). Prefabs contain no business logic of their own. A <strong>movie</strong> is a top-level prefab loaded by a screen with a specific <code>ViewModel</code> instance as its data context.</p>
+<p>A <strong>Prefab Extension</strong> modifies this XML structure before Gauntlet constructs the movie. Using targeted XPath selectors, your mod can:</p>
+<ul>
+<li>Insert new widgets (such as buttons, text labels, lists, or custom widgets).</li>
+<li>Modify or set attributes on existing widgets (such as changing colors, sizes, or visibility bindings).</li>
+<li>Replace or remove existing XML nodes.</li>
+</ul>
+<p>Any widget you insert can bind to any property or method on the screen's ViewModel—including custom members contributed by your mixins.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Even with <strong><a href="CompiledPrefabs.html">Compiled Prefabs</a></strong>—where Gauntlet runs ahead-of-time compiled C# classes instead of parsing XML at runtime—UIExtenderEx compiles patched XML into optimized C# assemblies on the fly, ensuring your extensions work seamlessly without sacrificing performance.</p>
+</div>
+<h3 id="2-mixins-extend-the-viewmodel">2. Mixins Extend the ViewModel</h3>
+<p>Because the game engine instantiates its own <code>ViewModel</code> classes directly, mods cannot simply substitute a derived subclass. <strong>ViewModel Mixins</strong> solve this challenge:</p>
+<ul>
+<li>A mixin class attaches automatically to every runtime instance of its target <code>ViewModel</code>.</li>
+<li>Properties marked with <code>[DataSourceProperty]</code> and methods marked with <code>[DataSourceMethod]</code> on your mixin are exposed as if they were native members of that <code>ViewModel</code>.</li>
+<li>Injected XML widgets bind to these mixin members using standard <code>@Name</code> syntax, exactly like vanilla properties.</li>
+<li>Inside the mixin, <code>base.ViewModel</code> provides direct access to the target game <code>ViewModel</code> instance, allowing you to inspect game data, execute actions, and notify the UI of state changes using <code>OnPropertyChanged()</code>.</li>
+</ul>
+<h3 id="3-how-the-view-and-viewmodel-connect">3. How the View and ViewModel Connect</h3>
+<p>A typical UI modification connects both halves through <strong>data binding</strong>:</p>
+<ul>
+<li>A <strong>Prefab Extension</strong> adds a widget (for example, a button bound via <code>Command.Click=&quot;@OnCustomButtonClicked&quot;</code> and <code>Text=&quot;@CustomButtonLabel&quot;</code>).</li>
+<li>A <strong>ViewModel Mixin</strong> targeting that screen's ViewModel defines <code>OnCustomButtonClicked()</code> and <code>CustomButtonLabel</code>.</li>
+<li>The binding names (<code>@OnCustomButtonClicked</code>, <code>@CustomButtonLabel</code>) form the contract linking your visual widgets to your C# logic.</li>
+</ul>
+<hr>
+<h2 id="getting-started-registering-your-mod">Getting Started: Registering Your Mod</h2>
+<p>To use UIExtenderEx, create a <code>UIExtender</code> instance in your mod's <code>MBSubModuleBase</code> class, register your assembly containing your patches and mixins, and enable the extender:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx;
+using TaleWorlds.MountAndBlade;
+
+public class SubModule : MBSubModuleBase
+{
+    // Create an extender instance identified by a unique name for your mod
+    private static readonly UIExtender Extender = UIExtender.Create(&quot;MyModId&quot;);
+
+    protected override void OnSubModuleLoad()
+    {
+        base.OnSubModuleLoad();
+
+        // Register all mixins and prefab patches defined in this assembly
+        Extender.Register(typeof(SubModule).Assembly);
+
+        // Enable the registered extensions
+        Extender.Enable();
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Unique Identifier:</strong> The name passed to <code>UIExtender.Create(...)</code> uniquely identifies your mod's extender. This name allows <a href="InteractingWithOtherMods.html">other mods</a> to query, enable, or disable your extensions if cross-mod compatibility requires it.</li>
+<li><strong>Assembly Registration:</strong> Calling <code>Extender.Register(...)</code> scans the assembly for classes decorated with <code>[PrefabExtension]</code> or <code>[ViewModelMixin]</code> and prepares them for application.</li>
+<li><strong>Enabling:</strong> Calling <code>Extender.Enable()</code> activates your patches so Gauntlet incorporates them whenever affected screens load.</li>
+</ul>
+<hr>
+<h2 id="advanced-capabilities">Advanced Capabilities</h2>
+<p>Beyond basic prefab patching and mixin properties, UIExtenderEx provides several advanced tools:</p>
+<ul>
+<li><p><strong>ViewModel Method Overrides (<code>[BUTRViewModelOverride]</code>):</strong><br>
+Intercept or replace an existing method on a game ViewModel. When decorated with <code>[BUTRViewModelOverride]</code>, your mixin method replaces the original method for all callers (including TaleWorlds' internal code) and receives a delegate to invoke the original implementation. See <a href="../v3/Mixins.html#taking-over-a-viewmodel-method">Mixin Hooks</a>.</p>
+</li>
+<li><p><strong>Fast Private Member Access (<code>[BUTRUnsafeAccessor]</code>):</strong><br>
+Access private fields or methods on TaleWorlds game types without reflection overhead. Define a <code>static</code> stub method annotated with <code>[BUTRUnsafeAccessor]</code>, and UIExtenderEx replaces its body with high-speed IL accessors during registration. See <a href="../v3/Mixins.html#reaching-private-members">Mixin Hooks</a>.</p>
+</li>
+<li><p><strong>Compiled Prefabs:</strong><br>
+Bannerlord optimizes UI loading speeds by compiling vanilla prefabs to C# ahead of time. UIExtenderEx compiles patched XML into C# classes at runtime, providing near-vanilla load times for modded screens. See <a href="CompiledPrefabs.html">Compiled Prefabs</a>.</p>
+</li>
+<li><p><strong>Runtime Widget and Prefab Registration:</strong><br>
+Register custom C# widget classes or dynamic XML prefabs created in code at runtime through <code>WidgetFactoryManager</code>. See <a href="CompiledPrefabs.html#widget-classes-and-prefabs-registered-at-runtime">Widget classes and prefabs registered at runtime</a>.</p>
+</li>
+<li><p><strong>Roslyn Analyzers (<code>Bannerlord.UIExtenderEx.Analyzers</code>):</strong><br>
+A dedicated analyzer package that verifies your XPath queries, mixin signatures, and binding targets against base game prefabs at compile time, catching errors before you launch the game. See <a href="Analyzers.html">Analyzers</a>.</p>
+</li>
+</ul>
+<hr>
+<h2 id="where-to-go-next">Where to Go Next</h2>
+<ul>
+<li><strong><a href="../v3/Overview.html">UIExtenderEx 3.0</a>:</strong> What 3.0 adds, how to upgrade from 2.x, and worked examples from MCM and Diplomacy.</li>
+<li><strong><a href="../v2/Overview.html">API v2 Guide</a>:</strong> The modern API for writing prefab extension patches (<code>PrefabExtensionInsertPatch</code> and <code>PrefabExtensionSetAttributePatch</code>).</li>
+<li><strong><a href="../v2/ViewModelMixin.html">ViewModel Mixins Guide</a>:</strong> Detailed guide on creating mixins, handling property change notifications, and accessing target ViewModels.</li>
+<li><strong><a href="InteractingWithOtherMods.html">Interacting With Other Mods</a>:</strong> Learn how to selectively enable, disable, or coordinate with extensions registered by other mods.</li>
+<li><strong><a href="CompiledPrefabs.html">Compiled Prefabs Deep Dive</a>:</strong> Technical details on how UIExtenderEx compiles and caches patched prefabs, along with troubleshooting and configuration options.</li>
+<li><strong><a href="Analyzers.html">Analyzer Diagnostics Reference</a>:</strong> Complete catalog of compile-time diagnostic rules (<code>UIX0001</code>–<code>UIX0030</code>) and quick fixes.</li>
+<li><strong><a href="../v1/Overview.html">API v1 Guide (Legacy)</a>:</strong> Reference documentation for the legacy v1 prefab patch system.</li>
+<li><strong><a href="../runtime/Overview.html">Architecture &amp; Internals</a>:</strong> In-depth documentation on the internal structure and design of UIExtenderEx.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/general/Overview.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

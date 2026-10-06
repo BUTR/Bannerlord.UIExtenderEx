@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Prefab Links | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Prefab Links | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/PrefabLink.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="prefab-links">Prefab Links</h1>
+
+<p>In UIExtenderEx, UI extensions are decoupled into two distinct layers:</p>
+<ul>
+<li>A <strong><a href="PrefabExtensionInsertPatch.html">Prefab Patch</a></strong> that injects or modifies Gauntlet XML widgets (the View).</li>
+<li>A <strong><a href="ViewModelMixin.html">ViewModel Mixin</a></strong> that injects properties and commands into the screen's ViewModel.</li>
+</ul>
+<p>Because XML files and C# classes are separate, the C# compiler cannot naturally verify whether the property names in your XML match the members declared on your ViewModel or mixin.</p>
+<p>The <code>[assembly: PrefabLink]</code> attribute bridges this gap: it explicitly informs the <a href="../general/Analyzers.html">Roslyn Analyzers</a> which ViewModel and mixin provide the data context for your prefab patch or custom prefab XML.</p>
+<hr>
+<h2 id="anatomy-of-assembly-prefablink">Anatomy of <code>[assembly: PrefabLink]</code></h2>
+<p>Assembly-level attributes can be placed in any C# file within your project. A common best practice is to group all links into a single file (such as <code>UILinks.cs</code>), providing a centralized manifest of every screen modified by your mod.</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using TaleWorlds.MountAndBlade.ViewModelCollection.GameOptions;
+
+// Links a prefab patch to its target ViewModel and specific Mixin
+[assembly: PrefabLink(typeof(ModOptionsPagePatch), typeof(OptionsVM), typeof(OptionsVMMixin))]
+
+// Links a standalone custom prefab to its root ViewModel data context
+[assembly: PrefabLink(&quot;ModOptionsView_MCM&quot;, typeof(ModOptionsVM))]
+
+namespace MyMod;
+
+[ViewModelMixin]
+internal sealed class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+{
+    public OptionsVMMixin(OptionsVM vm) : base(vm) { }
+
+    [DataSourceProperty]
+    public ModOptionsVM ModOptions { get; } = new();
+
+    [DataSourceProperty]
+    public int PanelWidth { get; set; }
+}
+
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::Widget[@Id='OptionsPanel']/Children&quot;)]
+internal sealed class ModOptionsPagePatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Child;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;ModOptionsView_MCM DataSource=\&quot;{ModOptions}\&quot; Width=\&quot;@PanelWidth\&quot; /&gt;&quot;;
+}
+</code></pre>
+<hr>
+<h2 id="attribute-parameters">Attribute Parameters</h2>
+<p>The <code>[assembly: PrefabLink]</code> attribute provides flexible overloads depending on whether you are linking a prefab patch or a custom standalone prefab:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Patch or Prefab</strong></td>
+<td style="text-align: left;"><code>Type</code> or <code>string</code></td>
+<td style="text-align: left;"><strong>For patches (<code>Type</code>):</strong> The C# patch class decorated with <code>[PrefabExtension]</code> (inheriting from <code>PrefabExtensionInsertPatch</code>, <code>PrefabExtensionSetAttributePatch</code>, or a v1 patch).<br><strong>For custom prefabs (<code>string</code>):</strong> The name of your custom prefab registered via <code>WidgetFactoryManager.CreateAndRegister</code> or the XML file name.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Target ViewModel</strong></td>
+<td style="text-align: left;"><code>Type</code></td>
+<td style="text-align: left;">The <code>ViewModel</code> type acting as the data context at the target insertion point. For prefab patches, this is the ViewModel active at the node matched by the XPath. For custom prefabs, this is the ViewModel at the prefab's root.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Target Mixin</strong> <em>(Optional)</em></td>
+<td style="text-align: left;"><code>Type</code></td>
+<td style="text-align: left;">The specific <code>[ViewModelMixin]</code> class providing custom properties or commands to the XML. The mixin must be attached to the target ViewModel (either directly targeting it or targeting an inherited base class with <code>handleDerived: true</code>).</td>
+</tr>
+</tbody>
+</table>
+<div class="NOTE">
+<h5>Note</h5>
+<p>If a single prefab patch binds members from multiple mixins attached to the same ViewModel, you can define multiple <code>[assembly: PrefabLink]</code> attributes for that patch, one for each mixin.</p>
+</div>
+<hr>
+<h2 id="how-roslyn-analyzers-use-prefab-links">How Roslyn Analyzers Use Prefab Links</h2>
+<p><code>[assembly: PrefabLink]</code> exists purely as compile-time metadata. It has <strong>zero runtime overhead</strong> and does not change how UIExtenderEx loads or executes patches in the game.</p>
+<p>When you build your mod, the <a href="../general/Analyzers.html">Bannerlord.UIExtenderEx.Analyzers</a> package inspects these attributes to perform comprehensive validation:</p>
+<ul>
+<li><strong>Binding Verification (<code>UIX0015</code>):</strong> Checks every <code>@PropertyName</code> binding and command callback in the injected XML against the declared ViewModel and mixin. If a property is misspelled or missing, the build emits a warning or error.</li>
+<li><strong>Link Integrity (<code>UIX0018</code>):</strong> Verifies that the specified patch or prefab exists, that the ViewModel inherits from <code>TaleWorlds.Library.ViewModel</code>, and that the mixin is actually configured to attach to that ViewModel.</li>
+<li><strong>Stale Link Detection (<code>UIX0019</code>):</strong> Ensures that the XML actually binds at least one member from the specified mixin. If a refactor removes the bindings, the analyzer alerts you that the link is obsolete.</li>
+</ul>
+<hr>
+<h2 id="automatic-inference-vs-explicit-links">Automatic Inference vs. Explicit Links</h2>
+<p>In many cases, the Roslyn analyzer can automatically infer which ViewModel a patch binds by scanning your mixins for matching property names.</p>
+<p>However, writing explicit <code>[assembly: PrefabLink]</code> annotations is recommended in the following scenarios:</p>
+<ol>
+<li><strong>Patches Binding Only Native Properties:</strong> If your injected XML binds exclusively to vanilla game properties on the base ViewModel (without using any custom mixin members), the analyzer cannot infer the ViewModel and emits <code>UIX0016</code>. An explicit link resolves this immediately.</li>
+<li><strong>Ambiguous Mixin Bindings:</strong> If multiple mixins define properties with identical names (such as <code>IsEnabled</code> or <code>Title</code>), automated inference might choose the wrong ViewModel. An explicit link guarantees accurate validation.</li>
+<li><strong>Custom Standalone Prefabs:</strong> Custom prefabs loaded dynamically by game code (such as custom panels or dialog windows) cannot be traced automatically by the analyzer. Adding a string-based prefab link enables full compile-time checking of the custom prefab XML.</li>
+<li><strong>Refactoring Safety:</strong> Explicit links guarantee that if you rename a mixin property or move a patch to a different screen, the compiler immediately flags broken bindings rather than silently guessing.</li>
+</ol>
+<hr>
+<h2 id="version-compatibility">Version Compatibility</h2>
+<ul>
+<li><strong>UIExtenderEx 3.0+:</strong> The <code>PrefabLinkAttribute</code> is natively declared within the core assembly (<code>Bannerlord.UIExtenderEx.Attributes</code>).</li>
+<li><strong>UIExtenderEx 2.x:</strong> When using the analyzer package with UIExtenderEx 2.x, the analyzer automatically injects the attribute definition as an internal type into your compilation, leaving no residual footprint in your final binary.</li>
+</ul>
+<p>Your <code>[assembly: PrefabLink]</code> declarations remain fully source-compatible across both versions.</p>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v2/PrefabLink.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>UIExtenderEx Documentation | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="UIExtenderEx Documentation | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="favicon.ico">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/index.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="uiextenderex-documentation">UIExtenderEx Documentation</h1>
+
+<p>Welcome to the official documentation for <strong>UIExtenderEx</strong>, the UI extension and runtime optimization framework for <em>Mount &amp; Blade II: Bannerlord</em>.</p>
+<p>UIExtenderEx allows multiple mods to cleanly extend, customize, and inject visual UI elements and reactive business logic into TaleWorlds' <strong>Gauntlet UI</strong> system—without conflicting with other mods or destructively overwriting base game XML files.</p>
+<hr>
+<h2 id="overview">Overview</h2>
+<h3 id="for-players">For Players</h3>
+<p>UIExtenderEx is a shared dependency framework required by mods that modify or extend the user interface. It provides no standalone visual changes on its own.</p>
+<h3 id="installation--module-load-order">Installation &amp; Module Load Order</h3>
+<p>In your game launcher (or mod manager such as Novus or Vortex), place <code>Bannerlord.UIExtenderEx</code> near the top of the module load order, directly after <strong><code>Bannerlord.Harmony</code></strong> or <strong><code>Bannerlord.ButterLib</code></strong>:</p>
+<pre><code class="lang-text">1. Bannerlord.Harmony
+2. Bannerlord.ButterLib
+3. Bannerlord.UIExtenderEx
+4. Native / SandBoxCore / ... (Official Game Modules)
+5. Mod Modules...
+</code></pre>
+<hr>
+<h2 id="key-features">Key Features</h2>
+<ul>
+<li><strong>🧩 Non-Destructive Prefab Extensions (View):</strong> Add new widgets, modify attributes, or replace/remove elements across vanilla screens using targeted XPath queries (<a href="articles/v2/Overview.html">API v2 Guide</a>).</li>
+<li><strong>🔄 Reactive ViewModel Mixins (ViewModel):</strong> Dynamically attach custom properties (<code>[DataSourceProperty]</code>), UI commands (<code>[DataSourceMethod]</code>), and lifecycle callbacks to native game ViewModels without subclassing (<a href="articles/v2/ViewModelMixin.html">ViewModel Mixins</a>).</li>
+<li><strong>⚡ Compiled Prefabs Engine (3.0+):</strong> Maintains vanilla Bannerlord's fast pre-compiled UI loading speeds. Patched XML trees are dynamically compiled into optimized C# assemblies on the fly and cached, eliminating runtime XML parsing stutters (<a href="articles/general/CompiledPrefabs.html">Compiled Prefabs</a>).</li>
+<li><strong>🪝 Native 3.0 Mixin Hooks (Zero Harmony Required):</strong> Intercept and override game ViewModel methods across all callers (<a href="articles/v3/Mixins.html#taking-over-a-viewmodel-method"><code>[BUTRViewModelOverride]</code></a>), access private fields with zero-overhead IL stubs (<a href="articles/v3/Mixins.html#reaching-private-members"><code>[BUTRUnsafeAccessor]</code></a>), and capture all nine typed property notification variants (<a href="articles/v3/Mixins.html#hearing-every-notification"><code>OnViewModelPropertyChanged</code></a>).</li>
+<li><strong>🛡️ Roslyn Compile-Time Analyzers:</strong> Real-time IDE diagnostics and automated code fixes (<a href="articles/general/Analyzers.html"><code>UIX0001</code>–<code>UIX0030</code></a>) in Visual Studio and JetBrains Rider to catch invalid XPaths, mistyped bindings, and multi-game-version incompatibilities before launching the game.</li>
+</ul>
+<hr>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="1-add-nuget-references">1. Add NuGet References</h3>
+<p>Install <code>Bannerlord.UIExtenderEx</code> and the companion analyzer package in your mod's <code>.csproj</code>:</p>
+<pre><code class="lang-xml">&lt;ItemGroup&gt;
+  &lt;PackageReference Include=&quot;Bannerlord.UIExtenderEx&quot; Version=&quot;3.0.*&quot; /&gt;
+  &lt;PackageReference Include=&quot;Bannerlord.UIExtenderEx.Analyzers&quot; Version=&quot;3.0.*&quot; PrivateAssets=&quot;all&quot; /&gt;
+&lt;/ItemGroup&gt;
+</code></pre>
+<h3 id="2-register-your-extender">2. Register Your Extender</h3>
+<p>Initialize and enable your extender inside your <code>MBSubModuleBase</code> class:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx;
+using TaleWorlds.MountAndBlade;
+
+public class SubModule : MBSubModuleBase
+{
+    private static readonly UIExtender Extender = UIExtender.Create(&quot;MyModUniqueId&quot;);
+
+    protected override void OnSubModuleLoad()
+    {
+        base.OnSubModuleLoad();
+
+        // Scan this assembly for [PrefabExtension] and [ViewModelMixin] classes
+        Extender.Register(typeof(SubModule).Assembly);
+        Extender.Enable();
+    }
+}
+</code></pre>
+<h3 id="3-inject-a-widget--bind-logic">3. Inject a Widget &amp; Bind Logic</h3>
+<p>Create a prefab patch to inject your visual widget and a ViewModel mixin to provide data:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs2;
+using Bannerlord.UIExtenderEx.ViewModels;
+using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade.ViewModelCollection.GameOptions;
+
+// 1. Prefab Patch: Insert custom button into the Options screen
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::OptionsScreenWidget[@Id='Options']/Children&quot;)]
+internal sealed class MyOptionsButtonPatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Child;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&quot;&quot;
+        &lt;ButtonWidget WidthSizePolicy=&quot;Fixed&quot; HeightSizePolicy=&quot;Fixed&quot;
+                      SuggestedWidth=&quot;200&quot; SuggestedHeight=&quot;40&quot;
+                      Command.Click=&quot;@OnCustomButtonClicked&quot;&gt;
+          &lt;Children&gt;
+            &lt;TextWidget WidthSizePolicy=&quot;CoverChildren&quot; HeightSizePolicy=&quot;CoverChildren&quot;
+                        Text=&quot;@CustomButtonLabel&quot; /&gt;
+          &lt;/Children&gt;
+        &lt;/ButtonWidget&gt;
+        &quot;&quot;&quot;;
+}
+
+// 2. ViewModel Mixin: Provide data and click handler
+[ViewModelMixin]
+internal sealed class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+{
+    public OptionsVMMixin(OptionsVM vm) : base(vm) { }
+
+    [DataSourceProperty]
+    public string CustomButtonLabel =&gt; &quot;Click Me!&quot;;
+
+    [DataSourceMethod]
+    public void OnCustomButtonClicked()
+    {
+        InformationManager.DisplayMessage(new InformationMessage(&quot;Custom button clicked!&quot;));
+    }
+}
+</code></pre>
+<hr>
+<h2 id="pre-compiled-prefabs--configuration">Pre-Compiled Prefabs &amp; Configuration</h2>
+<p>TaleWorlds optimizes UI loading speeds by compiling vanilla XML prefabs into C# assemblies ahead of time (AutoGens). In versions prior to 3.0, UIExtenderEx forced all screens to parse XML dynamically, introducing UI load stutter.</p>
+<p>In UIExtenderEx 3.0+:</p>
+<ul>
+<li><strong>Untouched screens</strong> execute TaleWorlds' native pre-compiled C# classes.</li>
+<li><strong>Patched screens</strong> compile on the fly in the background via an embedded, isolated Roslyn compiler and cache into <code>Modules/Bannerlord.UIExtenderEx/CompiledPrefabs</code>. Subsequent opens use the fast compiled variant directly.</li>
+</ul>
+<h3 id="settings-configuration">Settings Configuration</h3>
+<p>Settings can be adjusted in the <code>&lt;Settings&gt;</code> section of <code>SubModule.xml</code> or configured in-game via the <a href="https://github.com/Aragas/Bannerlord.MBOptionScreen">Mod Configuration Menu (MCM)</a>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Setting</th>
+<th style="text-align: left;">Default</th>
+<th style="text-align: left;">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>CompiledPrefabs</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">Enables compiling patched movies to C# at runtime. If <code>false</code>, patched movies always load via XML fallback.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>RecordTimings</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Writes movie load, compile, and warm-up timings to <code>CompiledPrefabs/Timings/</code>, one session file at a time. For investigating load times.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DumpGeneratedCode</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Writes generated C# source code files to <code>CompiledPrefabs/Sources/</code> for inspection.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DumpXML</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Writes the final patched XML document of every modified movie to <code>Modules/Bannerlord.UIExtenderEx/Dumps/</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>DisableGeneratedPrefabs</code></td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">Reverts to pre-v3.0 behavior: disables all pre-compiled prefabs across the game, forcing every movie through the XML parser. Useful only for diagnostic debugging.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="documentation-portals">Documentation Portals</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Portal</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><a href="articles/general/Overview.html">General Articles</a></strong></td>
+<td style="text-align: left;">Core MVVM concepts, multi-mod coordination, compiled prefabs introduction, and Roslyn analyzer rules.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="articles/v3/Overview.html">UIExtenderEx 3.0 Guide</a></strong></td>
+<td style="text-align: left;">What's new in 3.0, migration steps from 2.x, and real-world case studies (<a href="articles/v3/MCM.html">MCM</a>, <a href="articles/v3/Diplomacy.html">Diplomacy</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="articles/v2/Overview.html">API v2 Guide</a></strong></td>
+<td style="text-align: left;">Guide to modern prefab patches (<code>InsertPatch</code>, <code>SetAttributePatch</code>), mixins, and compile-time <code>[PrefabLink]</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="articles/v1/Overview.html">API v1 Guide (Legacy)</a></strong></td>
+<td style="text-align: left;">Reference for the legacy v1 prefab API and how to upgrade to modern v2 patches.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="articles/runtime/Overview.html">Core Internals</a></strong></td>
+<td style="text-align: left;">Architecture overview, execution lifecycles, global Harmony hooks, and thread-safety models.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a href="articles/compiled-prefabs/Overview.html">Compiled Prefabs Deep Dive</a></strong></td>
+<td style="text-align: left;">In-depth documentation on Roslyn code generation, caching pipeline, XML loader parity, and test oracles.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><a class="xref" href="api/Bannerlord.UIExtenderEx.html">API Reference</a></strong></td>
+<td style="text-align: left;">Complete class, interface, and attribute documentation generated directly from source code XML doc comments.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="community--resources">Community &amp; Resources</h2>
+<ul>
+<li><strong>GitHub Repository:</strong> <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx">BUTR/Bannerlord.UIExtenderEx</a></li>
+<li><strong>NexusMods:</strong> <a href="https://www.nexusmods.com/mountandblade2bannerlord/mods/2102">UIExtenderEx on NexusMods</a></li>
+<li><strong>Steam Workshop:</strong> <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2859222409">UIExtenderEx on Steam Workshop</a></li>
+<li><strong>Official Modding Documentation:</strong> <a href="https://moddocs.bannerlord.com/">moddocs.bannerlord.com</a></li>
+<li><strong>Community Modding Documentation:</strong> <a href="https://docs.bannerlordmodding.lt/">docs.bannerlordmodding.lt</a></li>
+<li><strong>BUTR Discord:</strong> <a href="https://discord.gg/banu-sarrana">Join the Bannerlord Modding Community</a></li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/index.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

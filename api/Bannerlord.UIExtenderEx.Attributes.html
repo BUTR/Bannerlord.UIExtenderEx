@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Namespace Bannerlord.UIExtenderEx.Attributes | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Namespace Bannerlord.UIExtenderEx.Attributes | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Bannerlord.UIExtenderEx.Attributes">
+
+  <h1 id="Bannerlord_UIExtenderEx_Attributes" data-uid="Bannerlord.UIExtenderEx.Attributes" class="text-break">Namespace Bannerlord.UIExtenderEx.Attributes</h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="markdown level0 remarks"></div>
+
+    <h3 id="classes">
+Classes
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.BUTRUnsafeAccessorAttribute.html">BUTRUnsafeAccessorAttribute</a></dt>
+      <dd><p>Marks a static stub method to provide direct access to private or internal members across assembly boundaries.</p>
+<p>
+When the declaring assembly is registered, UIExtenderEx transpiles the stub's body to emit direct access IL
+bypassing runtime visibility checks. If the targeted member cannot be resolved, the stub retains its original
+placeholder body and logs a diagnostic warning.
+</p>
+<p>
+Stub methods must provide a placeholder body (such as <code>throw new NotImplementedException();</code>) and should be decorated
+with <code>[MethodImpl(MethodImplOptions.NoInlining)]</code> to prevent call-site inlining prior to transpilation. Target resolution
+matches <a class="xref" href="Bannerlord.UIExtenderEx.Attributes.BUTRUnsafeAccessorAttribute.html#Bannerlord_UIExtenderEx_Attributes_BUTRUnsafeAccessorAttribute_Name">Name</a> (or the stub method name if omitted), parameter types, and return type.
+</p>
+<p>
+Modeled after .NET 8's <code>System.Runtime.CompilerServices.UnsafeAccessorAttribute</code> for compatibility with .NET Framework 4.7.2
+and .NET 6.0 runtimes.
+</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.BUTRViewModelOverrideAttribute.html">BUTRViewModelOverrideAttribute</a></dt>
+      <dd><p>Marks a mixin method to intercept and override an instance method on the extended host ViewModel.</p>
+<p>
+The override method signature must accept all parameters of the target host method, followed by an additional
+delegate parameter (<code>original</code>) matching the target method's parameter list. Calling <code>original</code> invokes
+the next chained override in registration order or the original host implementation once the chain completes.
+Omitting the invocation suppresses subsequent overrides and the original host method body.
+</p>
+<p>
+Only instance methods returning <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/void">void</a> and containing no <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/ref">ref</a> or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/out">out</a>
+parameters can be intercepted. Overrides apply across all caller invocations (Gauntlet prefab command bindings,
+hotkeys, and direct engine calls) on ViewModel instances where the mixin is enabled.
+</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.BaseUIExtenderAttribute.html">BaseUIExtenderAttribute</a></dt>
+      <dd><p>Serves as the abstract base class for all UIExtenderEx extension attributes.</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.DataSourceMethodAttribute.html">DataSourceMethodAttribute</a></dt>
+      <dd><p>Marks a public mixin method as an invokable Gauntlet command method exposed in the host ViewModel's dynamic binding table.</p>
+<p>
+Equivalent to TaleWorlds' <code>[DataSourceProperty]</code> attribute for properties, registering the method to handle Gauntlet UI button and command bindings.
+</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.PrefabExtensionAttribute.html">PrefabExtensionAttribute</a></dt>
+      <dd><p>Marks a class as a prefab XML extension patch targeting a specific Gauntlet movie.</p>
+<p>
+Patch classes must inherit from one of the prefab patch base types (such as <a class="xref" href="Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionInsertPatch.html">PrefabExtensionInsertPatch</a>
+or <a class="xref" href="Bannerlord.UIExtenderEx.Prefabs2.PrefabExtensionSetAttributePatch.html">PrefabExtensionSetAttributePatch</a>).
+</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.PrefabLinkAttribute.html">PrefabLinkAttribute</a></dt>
+      <dd><p>Links a prefab patch or standalone mod prefab to its bound ViewModel type and, optionally, to the specific mixin type whose members it binds.</p>
+<p>
+Consumed by <code>Bannerlord.UIExtenderEx.Analyzers</code> at build time to perform compile-time type checking, data-binding validation,
+and diagnostics across XML prefabs, ViewModels, and mixins. Ignored by UIExtenderEx at runtime.
+</p>
+<p>
+For prefab patches, <a class="xref" href="Bannerlord.UIExtenderEx.Attributes.PrefabLinkAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabLinkAttribute_ViewModel">ViewModel</a> corresponds to the active data source scope at the target injection node. For standalone
+prefabs, it corresponds to the root data source scope. If specified, <a class="xref" href="Bannerlord.UIExtenderEx.Attributes.PrefabLinkAttribute.html#Bannerlord_UIExtenderEx_Attributes_PrefabLinkAttribute_Mixin">Mixin</a> must target the host ViewModel type or a base
+type when <code>handleDerived: true</code> is configured.
+</p>
+</dd>
+    </dl>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.ViewModelMixinAttribute.html">ViewModelMixinAttribute</a></dt>
+      <dd><p>Marks a class as a ViewModel mixin extending a target <a class="xref" href="https://bannerlordapi.butr.link/v/1.3.4/api/core/TaleWorlds.Library.ViewModel.html">ViewModel</a>.</p>
+<p>
+Mixin classes must inherit from <a class="xref" href="Bannerlord.UIExtenderEx.ViewModels.BaseViewModelMixin-1.html">BaseViewModelMixin&lt;TViewModel&gt;</a>. When attached, the mixin exposes
+its decorated properties and methods to the host ViewModel's Gauntlet data-binding context.
+</p>
+</dd>
+    </dl>
+    <h3 id="enums">
+Enums
+</h3>
+    <dl class="jumplist">
+      <dt><a class="xref" href="Bannerlord.UIExtenderEx.Attributes.BUTRAccessorKind.html">BUTRAccessorKind</a></dt>
+      <dd><p>Specifies the target member kind accessed by a <a class="xref" href="Bannerlord.UIExtenderEx.Attributes.BUTRUnsafeAccessorAttribute.html">BUTRUnsafeAccessorAttribute</a> method stub.</p>
+</dd>
+    </dl>
+
+
+<hr><div class="last-modified"><p>This page was last modified at 10/06/2026 11:31:10 +00:00 (UTC).</p></div></article>
+
+        <div class="contribution d-print-none">
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Worked Example: Mod Configuration Menu (MCM) | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Worked Example: Mod Configuration Menu (MCM) | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v3/MCM.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="worked-example-mod-configuration-menu-mcm">Worked Example: Mod Configuration Menu (MCM)</h1>
+
+<p>The <a href="https://github.com/Aragas/Bannerlord.MBOptionScreen">Mod Configuration Menu (MCM)</a> is one of the most widely used UI mods in <em>Mount &amp; Blade II: Bannerlord</em>, providing a unified settings menu for the modding community directly within the game's native <strong>Options</strong> screen.</p>
+<p>MCM's implementation on <code>OptionsVM</code> is the definitive real-world demonstration of why UIExtenderEx 3.0's mixin hooks were created: in UIExtenderEx 2.x, achieving this integration required an invasive set of Harmony patches, reverse patches, reflection delegates, and dummy properties. In 3.0, <strong>all of the mixin's Harmony patches were removed</strong> and replaced with clean, native mixin hooks. (MCM still patches the options screens for other reasons, such as blocking tab switches while a search is active.)</p>
+<hr>
+<h2 id="the-prefab-patches">The Prefab Patches</h2>
+<p>MCM injects its custom widgets into the native <code>Options</code> movie. Because prefab patching semantics did not break between 2.x and 3.0, these patches remain essentially identical:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.Prefabs2;
+using System.Collections.Generic;
+
+// 1. Inserts the &quot;Mod Options&quot; tab toggle button into the top tab bar
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::ListPanel[@Id='TabToggleList']/Children/OptionsTabToggle[5]&quot;)]
+internal sealed class OptionsTabTogglePatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Prepend;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&quot;&quot;
+        &lt;OptionsTabToggle DataSource=&quot;{ModOptions}&quot;
+                          PositionYOffset=&quot;2&quot;
+                          Parameter.ButtonBrush=&quot;Header.Tab.Center&quot;
+                          Parameter.TabName=&quot;ModOptionsPage&quot; /&gt;
+        &quot;&quot;&quot;;
+}
+
+// 2. Inserts the settings page view container into the main TabControl
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::TabControl[@Id='TabControl']/Children/*[5]&quot;)]
+internal sealed class OptionsPagePatch : PrefabExtensionInsertPatch
+{
+    public override InsertType Type =&gt; InsertType.Prepend;
+
+    [PrefabExtensionText]
+    public string Content =&gt; &quot;&lt;ModOptionsPageView Id=\&quot;ModOptionsPage\&quot; DataSource=\&quot;{ModOptions}\&quot; /&gt;&quot;;
+}
+
+// 3. Dynamically binds the description panel width so MCM can hide it when Mod Options is active
+[PrefabExtension(&quot;Options&quot;, &quot;descendant::Widget[@Id='DescriptionsRightPanel']&quot;)]
+internal sealed class OptionsDescriptionPanelPatch : PrefabExtensionSetAttributePatch
+{
+    public override List&lt;Attribute&gt; Attributes =&gt; [new(&quot;SuggestedWidth&quot;, &quot;@DescriptionWidth&quot;)];
+}
+</code></pre>
+<hr>
+<h2 id="architectural-comparison-2x-vs-30">Architectural Comparison: 2.x vs. 3.0</h2>
+<h3 id="the-legacy-2x-architecture">The Legacy 2.x Architecture</h3>
+<p>In UIExtenderEx 2.x, a mixin could only expose new properties and methods. Any deeper integration with the host screen required external patching:</p>
+<ul>
+<li><strong>Private Category List:</strong> MCM had to use <code>AccessTools2.FieldRefAccess</code> reflection delegates to insert its <code>ModOptions</code> ViewModel into the private <code>List&lt;ViewModel&gt; _categories</code> field of <code>OptionsVM</code>.</li>
+<li><strong>Tab Switch Notifications:</strong> TaleWorlds updates the active tab using a typed event for <code>CategoryIndex</code>. Because standard <code>PropertyChanged</code> events do not receive typed notifications, MCM had to maintain a Harmony postfix on the <code>CategoryIndex</code> property setter.</li>
+<li><strong>Saving &amp; Canceling:</strong> MCM needed to intercept Done and Cancel actions. Standard mixin methods only redirected clicks on UI buttons; keyboard shortcuts (like Escape or Enter) and controller shortcuts bypassed the mixin entirely. MCM was forced to use Harmony postfixes, reverse patches, and delegate forwarding.</li>
+<li><strong>Static Context Leaks:</strong> Because Harmony postfixes are static, MCM had to add a dummy <code>WeakReference&lt;OptionsVMMixin&gt;</code> property named <code>MCMMixin</code> to <code>OptionsVM</code> so static patches could find the active mixin instance. A second one, <code>ModOptionsSelected</code>, carried the selected-tab state from the <code>CategoryIndex</code> postfix back into the mixin.</li>
+</ul>
+<p>In total, 2.x required a dedicated Harmony instance, 1 reverse patch, 3 postfixes, 3 reflection delegates (<code>ExecuteDone</code>, <code>ExecuteCancel</code> and the <code>_categories</code> field), and 2 dummy properties on <code>OptionsVM</code>.</p>
+<hr>
+<h3 id="the-modern-30-architecture">The Modern 3.0 Architecture</h3>
+<p>With UIExtenderEx 3.0, all of this boilerplate is replaced by native mixin hooks directly inside <code>OptionsVMMixin</code>:</p>
+<pre><code class="lang-csharp">using Bannerlord.UIExtenderEx.Attributes;
+using Bannerlord.UIExtenderEx.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade.ViewModelCollection.GameOptions;
+
+namespace MCM.UI.UIExtenderEx;
+
+[ViewModelMixin(nameof(OptionsVM.RefreshValues))]
+internal sealed class OptionsVMMixin : BaseViewModelMixin&lt;OptionsVM&gt;
+{
+    // High-speed, zero-reflection accessor for the private _categories field
+    [BUTRUnsafeAccessor(BUTRAccessorKind.Field, Name = &quot;_categories&quot;)]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ref List&lt;ViewModel&gt; Categories(OptionsVM instance) =&gt; throw new NotImplementedException();
+
+    private int _descriptionWidth = 650;
+
+    [DataSourceProperty]
+    public ModOptionsVM ModOptions { get; } = new();
+
+    [DataSourceProperty]
+    public int DescriptionWidth
+    {
+        get =&gt; _descriptionWidth;
+        private set =&gt; SetField(ref _descriptionWidth, value);
+    }
+
+    public OptionsVMMixin(OptionsVM vm) : base(vm)
+    {
+        // Insert custom category directly into the private collection, at the index its tab has on screen:
+        // the prefab patches put the MCM tab before GameKey, the fifth tab
+        Categories(vm).Insert(4, ModOptions);
+    }
+
+    // Called automatically after OptionsVM.RefreshValues finishes executing
+    public override void OnRefresh() =&gt; ModOptions.RefreshValues();
+
+    // Catches all typed property changes from OptionsVM (including CategoryIndex)
+    protected override void OnViewModelPropertyChanged(string propertyName)
+    {
+        if (propertyName != nameof(OptionsVM.CategoryIndex) || ViewModel is not { } vm)
+            return;
+
+        var isMcmSelected = vm.CategoryIndex == 4;
+        ModOptions.IsDisabled = !isMcmSelected;
+        DescriptionWidth = isMcmSelected ? 0 : 650;
+    }
+
+    // Intercepts Done, Cancel, and Close across ALL callers (UI buttons, hotkeys, Esc key)
+
+    [BUTRViewModelOverride(nameof(OptionsVM.ExecuteDone))]
+    private void ExecuteDone(Action original) =&gt; ModOptions.ExecuteDoneInternal(false, original);
+
+    [BUTRViewModelOverride(nameof(OptionsVM.ExecuteCancel))]
+    private void ExecuteCancel(Action original) =&gt; ModOptions.ExecuteCancelInternal(false, original);
+
+    [BUTRViewModelOverride(nameof(OptionsVM.ExecuteCloseOptions))]
+    private void ExecuteCloseOptions(Action original)
+    {
+        ModOptions.ExecuteCancelInternal(false);
+        original();
+    }
+}
+</code></pre>
+<hr>
+<h2 id="key-benefits-achieved">Key Benefits Achieved</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Challenge</th>
+<th style="text-align: left;">2.x Solution</th>
+<th style="text-align: left;">3.0 Modern Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Access private <code>_categories</code></strong></td>
+<td style="text-align: left;"><code>AccessTools2.FieldRefAccess</code></td>
+<td style="text-align: left;"><a href="Mixins.html#reaching-private-members"><code>[BUTRUnsafeAccessor]</code></a> (IL stub validated at startup)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Screen refresh synchronization</strong></td>
+<td style="text-align: left;">Harmony postfix on <code>RefreshValues</code></td>
+<td style="text-align: left;"><code>[ViewModelMixin(nameof(OptionsVM.RefreshValues))]</code> with <code>OnRefresh()</code> (see <a href="Mixins.html#the-refresh-rule">The refresh rule</a>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Detect tab switching</strong></td>
+<td style="text-align: left;">Harmony postfix on <code>CategoryIndex</code> setter</td>
+<td style="text-align: left;"><a href="Mixins.html#hearing-every-notification"><code>OnViewModelPropertyChanged</code></a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Intercept Done &amp; Cancel</strong></td>
+<td style="text-align: left;">Mixin methods + Harmony postfixes + reverse patches</td>
+<td style="text-align: left;"><a href="Mixins.html#taking-over-a-viewmodel-method"><code>[BUTRViewModelOverride]</code></a> (covers hotkeys and UI alike)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Locating mixin from patches</strong></td>
+<td style="text-align: left;">Dummy <code>MCMMixin</code> property on <code>OptionsVM</code></td>
+<td style="text-align: left;">Not needed; hooks live directly on the mixin instance</td>
+</tr>
+</tbody>
+</table>
+<p>By migrating to UIExtenderEx 3.0:</p>
+<ul>
+<li><strong>Zero Harmony Footprint:</strong> MCM no longer patches any methods on <code>OptionsVM</code>.</li>
+<li><strong>Universal Input Coverage:</strong> Keyboard shortcuts (such as the Escape key) and controller inputs cleanly trigger MCM's save and cancel logic.</li>
+<li><strong>Analyzer Safety:</strong> Roslyn analyzers validate all bindings without false-positive collision warnings (<code>UIX0001</code>).</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/v3/MCM.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

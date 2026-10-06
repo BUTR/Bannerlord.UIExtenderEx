@@ -1,0 +1,331 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Core Architecture: Lifecycle | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Core Architecture: Lifecycle | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/runtime/Lifecycle.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="core-architecture-lifecycle">Core Architecture: Lifecycle</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It details the execution lifecycle of the core library, from engine initialization through module registration, activation, and teardown.
+For the high-level architecture and type definitions, see <a href="Overview.html">Overview</a>.</p>
+</div>
+<p>A module's extensions transition through four lifecycle states:</p>
+<ol>
+<li><strong>Registered:</strong> Extension types (prefab patches, ViewModel mixins, accessor stubs) are discovered, instantiated, and validated. Necessary Harmony hooks are applied, but all extensions remain <strong>inactive</strong> (disabled).</li>
+<li><strong>Enabled:</strong> Patches and mixins are activated. The prefab cache is flagged to reload affected movies on their next instantiation, and newly created ViewModels attach active mixins.</li>
+<li><strong>Disabled:</strong> Patches and mixins are deactivated. Prefabs are invalidated for subsequent loads, and method overrides immediately stop intercepting execution.</li>
+<li><strong>Deregistered:</strong> The module's runtime state and caches are cleared, and the runtime is removed from the active execution list.</li>
+</ol>
+<p>All process-wide infrastructure (assembly pre-loading, global Harmony patches, and prefab runtime discovery) is initialized before any mod registers its extensions.</p>
+<hr>
+<h2 id="startup-sequence">Startup Sequence</h2>
+<p>UIExtenderEx's <code>SubModule.xml</code> defines four separate <code>SubModule</code> entries executed in sequence:</p>
+<ol>
+<li><strong>Core SubModule:</strong> <code>Bannerlord.UIExtenderEx.SubModule</code></li>
+<li><strong>XML Prefab Runtime:</strong> <code>Bannerlord.UIExtenderEx.XmlPrefabs.SubModule</code></li>
+<li><strong>Game Prefab Runtime:</strong> <code>Bannerlord.UIExtenderEx.GamePrefabs.SubModule</code></li>
+<li><strong>Compiled Prefab Runtime:</strong> <code>Bannerlord.UIExtenderEx.CompiledPrefabs.SubModule</code></li>
+</ol>
+<p>TaleWorlds' engine loads modules in two distinct phases: first invoking the constructor of every <code>SubModule</code> in dependency load order, followed by invoking <code>OnSubModuleLoad</code> on each in the same order. Because UIExtenderEx specifies load-before dependencies on <code>Native</code> and dependent mods, its lifecycle begins prior to standard game modules.</p>
+<pre><code class="lang-mermaid">sequenceDiagram
+    autonumber
+    participant Game as Game Engine
+    participant CoreSub as Core SubModule
+    participant UIX as UIExtender (Type Initializer)
+    participant Runtimes as Prefab Runtimes&lt;br/&gt;(Xml / Game / Compiled)
+    participant Mod as Mod SubModule
+
+    Note over Game: Phase 1: Construction of SubModules (Load Order)
+    Game-&gt;&gt;CoreSub: static constructor
+    Note over CoreSub: If DisableGeneratedPrefabs is set:&lt;br/&gt;force-load TaleWorlds.Engine.GauntletUI&lt;br/&gt;UIConfig.DoNotUseGeneratedPrefabs = true
+    Game-&gt;&gt;CoreSub: constructor -&gt; ValidateLoadOrder()
+    Game-&gt;&gt;Runtimes: constructors -&gt; Install()
+    Note over Runtimes: XmlPrefabs: installs engine XML fixes&lt;br/&gt;GamePrefabs / CompiledPrefabs: PrefabRuntimes.Register(...)
+    Game-&gt;&gt;Mod: constructor
+
+    Note over Game: Phase 2: OnSubModuleLoad (Load Order)
+    Game-&gt;&gt;CoreSub: OnSubModuleLoad()
+    CoreSub-&gt;&gt;UIX: RuntimeHelpers.RunClassConstructor(typeof(UIExtender))&lt;br/&gt;(skipped if DisableGeneratedPrefabs is enabled)
+    Note over UIX: Load patched game assemblies&lt;br/&gt;Install global Harmony patches
+    Game-&gt;&gt;Runtimes: OnSubModuleLoad() (Compiled runtime warms up)
+    Game-&gt;&gt;Mod: OnSubModuleLoad()
+    Mod-&gt;&gt;UIX: UIExtender.Create(&quot;ModId&quot;)
+    Mod-&gt;&gt;UIX: Register(assembly)
+    Mod-&gt;&gt;UIX: Enable()
+</code></pre>
+<h3 id="detailed-startup-steps">Detailed Startup Steps</h3>
+<ol>
+<li><p><strong>Core Static Constructor:</strong></p>
+<ul>
+<li>Evaluates the <code>DisableGeneratedPrefabs</code> setting.</li>
+<li>If enabled, it force-loads <code>TaleWorlds.Engine.GauntletUI</code> and sets <code>UIConfig.DoNotUseGeneratedPrefabs = true</code>. This acts as an immediate compatibility escape hatch, restoring the pre-v3.0.0 behavior where all UI movies are parsed directly from XML.</li>
+</ul>
+</li>
+<li><p><strong>Core Constructor (<code>ValidateLoadOrder</code>):</strong></p>
+<ul>
+<li>Verifies module load order using <code>ModuleInfoHelper.ValidateLoadOrder</code>.</li>
+<li>If UIExtenderEx is placed improperly relative to its dependencies, it displays a diagnostic dialog prompting the user to terminate the process before corrupted state can propagate.</li>
+</ul>
+</li>
+<li><p><strong>Prefab Runtime Installation:</strong></p>
+<ul>
+<li>In their constructors, the Game and Compiled runtimes install their baseline hooks and register via <code>PrefabRuntimes.Register(...)</code>. In contrast, <code>XmlPrefabs</code> only installs loader fixes and registers no runtime; any movie claimed by neither runtime falls back to the game's native XML loader.</li>
+<li>Runtimes are queried in registration order (<code>SubModule.xml</code> order), ensuring the <code>GamePrefabRuntime</code> evaluates pristine prefabs before <code>CompiledPrefabRuntime</code> attempts code generation. See <a href="../compiled-prefabs/Overview.html#lifecycle--startup-sequence">Compiled Prefabs: Lifecycle</a>.</li>
+</ul>
+</li>
+<li><p><strong>Core <code>OnSubModuleLoad</code>:</strong></p>
+<ul>
+<li>Executes <code>RuntimeHelpers.RunClassConstructor(typeof(UIExtender).TypeHandle)</code>.</li>
+<li>This triggers <code>UIExtender</code>'s static constructor eagerly, ensuring that global Harmony hooks (specifically <code>GauntletMoviePatch</code>, which controls the movie switch) are active before the compiled runtime's background warm-up verifies engine capabilities via <code>PrefabRuntimes.IsMovieSwitchInstalled</code>.</li>
+<li>If <code>DisableGeneratedPrefabs</code> is active, this eager initialization is skipped. In that case, <code>UIExtender</code>'s static constructor runs lazily upon the first call to <code>UIExtender.Create(...)</code>.</li>
+</ul>
+</li>
+<li><p><strong>Mod SubModule Initialization:</strong></p>
+<ul>
+<li>Dependent mods create their extender instance, register their assemblies, and enable their extensions—typically inside their own <code>OnSubModuleLoad</code> method.</li>
+<li>Modules with late-binding UI (such as MCM) may register during <code>OnBeforeInitialModuleScreenSetAsRoot</code>. Registering at a later stage is supported; newly registered prefab patches apply to all movies loaded thereafter, while mixins attach to ViewModels instantiated after activation.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="registration-phase">Registration Phase</h2>
+<p>Mod authors invoke <code>UIExtender.Register(Assembly)</code> or <code>UIExtender.Register(IEnumerable&lt;Type&gt;)</code> to declare their extensions.</p>
+<pre><code class="lang-mermaid">sequenceDiagram
+    autonumber
+    participant Mod as Mod Code
+    participant UIX as UIExtender
+    participant Acc as UnsafeAccessorPatch
+    participant Rt as UIExtenderRuntime
+    participant PC as PrefabComponent
+    participant VC as ViewModelComponent
+
+    Mod-&gt;&gt;UIX: Register(assembly)
+    UIX-&gt;&gt;UIX: LoadableTypes(assembly)
+    Note over UIX: Skips types that throw ReflectionTypeLoadException&lt;br/&gt;and logs warnings to trace
+    UIX-&gt;&gt;UIX: Check if moduleName is already registered&lt;br/&gt;(Duplicate -&gt; error and abort)
+    UIX-&gt;&gt;Rt: new UIExtenderRuntime(moduleName)
+    UIX-&gt;&gt;UIX: Store in Instances dictionary&lt;br/&gt;Atomically publish runtime to _runtimes
+    UIX-&gt;&gt;Acc: Register(all loadable types)
+    Note over Acc: Scan and patch [BUTRUnsafeAccessor] stubs
+    UIX-&gt;&gt;Rt: Register(types with BaseUIExtenderAttribute)
+
+    loop For each attribute on each extension type
+        alt [PrefabExtension]
+            Rt-&gt;&gt;Rt: Instantiate patch via parameterless constructor
+            Rt-&gt;&gt;PC: RegisterPatch(movie, xpath, patch)
+            Note over PC: Added to MoviePatches[movie] (initially disabled)
+        else [ViewModelMixin]
+            Rt-&gt;&gt;VC: RegisterViewModelMixin(type, refreshMethodName, handleDerived)
+            Note over VC: Resolve targets, report collisions,&lt;br/&gt;record overrides, apply ViewModelWithMixinPatch&lt;br/&gt;(initially disabled)
+        end
+    end
+</code></pre>
+<h3 id="key-registration-rules--invariants">Key Registration Rules &amp; Invariants</h3>
+<ul>
+<li><p><strong>Registration Enables Nothing:</strong>
+Every discovered prefab patch and ViewModel mixin is registered in a <strong>disabled</strong> state (<code>_enabledPatches[type] = false</code>, <code>_mixinTypeEnabled[type] = false</code>). A mod that calls <code>Register</code> without subsequent <code>Enable</code> introduces no behavior changes to the game.</p>
+</li>
+<li><p><strong>Harmony Patches Apply During Registration:</strong>
+Dynamic Harmony patches are applied immediately during <code>Register</code>, rather than deferred to <code>Enable</code>. This includes constructor, refresh, and finalize hooks on targeted ViewModel types (<code>ViewModelWithMixinPatch</code>), method overrides (<code>ViewModelOverridePatch</code>), and IL rewrite of <code>[BUTRUnsafeAccessor]</code> stubs. Deferring would incur unpredictable JIT overhead during gameplay; subsequent <code>Enable</code> and <code>Disable</code> calls simply toggle boolean flags.</p>
+</li>
+<li><p><strong>Resilient Type Loading:</strong>
+When loading types via <code>assembly.GetTypes()</code>, missing optional dependencies (e.g. a mixin targeting a DLC ViewModel on an installation where the DLC is absent) cause a <code>ReflectionTypeLoadException</code>. UIExtenderEx catches this exception, logs each loader failure to the trace diagnostics, and proceeds to register all successfully loaded types.</p>
+</li>
+<li><p><strong>Global Unsafe Accessor Discovery:</strong>
+All loadable types in the assembly are scanned for <code>[BUTRUnsafeAccessor]</code> stubs, not just classes marked with extension attributes. This allows developers to place private accessor stubs within utility or helper classes.</p>
+</li>
+<li><p><strong>Early Runtime Publication:</strong>
+The <code>UIExtenderRuntime</code> instance is appended to the lock-free <code>_runtimes</code> array before its types are registered. Because all newly registered components start disabled, ongoing game engine operations can safely query the published list without observing uninitialized or half-configured extensions.</p>
+</li>
+<li><p><strong>Constructor Requirements for Prefab Patches:</strong>
+Prefab patch classes must define a public parameterless constructor and inherit from one of the supported patch base classes. If a constructor is missing or unsupported, UIExtenderEx emits a failure diagnostic via <code>MessageUtils.Fail</code>.</p>
+</li>
+<li><p><strong>Diagnostics Channeling:</strong>
+Issues with mixin declarations (such as abstract target types without <code>HandleDerived = true</code>, member name collisions, or malformed override signatures) are written to the diagnostic trace log rather than shown to end users. The only exception is when a mixin's target ViewModel cannot be determined; this triggers <code>MessageUtils.Fail</code>, which logs the failure and displays a red in-game message. These issues are flagged to mod developers at compile time via Roslyn analyzers. See <a href="../v3/Mixins.html#what-registration-reports">Mixin Hooks: What registration reports</a>.</p>
+</li>
+<li><p><strong>Unique Module Name Enforcement:</strong>
+A given module name can only be registered once. Attempting to register an already-registered name displays an error message and aborts without creating a runtime.</p>
+</li>
+</ul>
+<hr>
+<h2 id="enable-and-disable">Enable and Disable</h2>
+<p>The <code>Enable()</code> and <code>Disable()</code> methods control the active state of registered extensions:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method Call</th>
+<th style="text-align: left;"><code>ViewModelComponent</code> Impact</th>
+<th style="text-align: left;"><code>PrefabComponent</code> Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Enable()</code> / <code>Disable()</code></td>
+<td style="text-align: left;">Sets <code>_mixinTypeEnabled[type]</code> for all registered mixins, then raises <code>PrefabSource.EnvironmentChanged</code>.</td>
+<td style="text-align: left;">Sets <code>_enabledPatches[type]</code> for all registered patches, then calls <code>WidgetFactoryManager.ReloadOnNextUse</code> for all patched movies.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Enable(Type)</code> / <code>Disable(Type)</code></td>
+<td style="text-align: left;">Updates the enable flag for the specified mixin type (if present), then raises <code>EnvironmentChanged</code>.</td>
+<td style="text-align: left;">Updates the enable flag for the specified patch type (if present), then reloads affected movies via <code>ReloadOnNextUse</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The single-type overloads (<code>Enable(Type)</code> / <code>Disable(Type)</code>) query both components sequentially. The component that does not recognize the type silently ignores the request.</p>
+<h3 id="impact-on-active-ui-and-instantiated-objects">Impact on Active UI and Instantiated Objects</h3>
+<p>Toggling extension state does not retroactively modify screens or widgets currently rendered:</p>
+<ul>
+<li><p><strong>Prefab Invalidation:</strong>
+<code>WidgetFactoryManager.ReloadOnNextUse(movieNames)</code> evicts cached prefab templates from the game's internal <code>_liveCustomTypes</code> and <code>_liveInstanceTracker</code> tables and raises <code>PrefabSource.ReloadRequested</code>. The next time a UI movie requires that prefab, it re-parses the XML document with the patches currently enabled. UI screens that are already open remain undisturbed.</p>
+</li>
+<li><p><strong>ViewModel Mixin Attachment:</strong>
+Only <code>ViewModel</code> instances constructed <strong>after</strong> <code>Enable()</code> receive newly activated mixins. ViewModels instantiated while a mixin was disabled will not possess the mixin. Conversely, ViewModels that already have an attached mixin retain it even after <code>Disable()</code>, continuing to receive <code>OnRefresh</code> and <code>OnFinalize</code> callbacks.</p>
+</li>
+<li><p><strong>Immediate Method Override Cutoff:</strong>
+<code>[BUTRViewModelOverride]</code> methods are the exception to the above retention rule. The override execution chain checks <code>_mixinTypeEnabled</code> dynamically on every invocation. Consequently, calling <code>Disable()</code> immediately causes method overrides to bypass the mixin and invoke the base game method.</p>
+</li>
+<li><p><strong>Prefab Runtime Cache Invalidation:</strong>
+Raising <code>PrefabSource.EnvironmentChanged</code> and <code>PrefabSource.ReloadRequested</code> notifies the compiled prefab runtime (<code>CompiledPrefabs</code>) that cached pre-compiled assemblies may be out of date, triggering recompilation or cache eviction as needed.</p>
+</li>
+</ul>
+<hr>
+<p><a id="deregister"></a></p>
+<h2 id="deregister">Deregister</h2>
+<p>When a mod shuts down or unloads, it calls <code>UIExtender.Deregister()</code>. This cleanly reverses the registration process:</p>
+<ol>
+<li><strong>Prefab State Cleanup:</strong>
+<code>PrefabComponent.Deregister()</code> captures the list of movies modified by its patches, clears its internal patch tables, and calls <code>WidgetFactoryManager.ReloadOnNextUse(movies)</code>. This ensures subsequent movie loads parse clean XML without this module's modifications.</li>
+<li><strong>ViewModel State Cleanup:</strong>
+<code>ViewModelComponent.Deregister()</code> clears its mixin registries, property/method reflection caches, and override dictionaries, then triggers <code>PrefabSource.RaiseEnvironmentChanged()</code>.</li>
+<li><strong>Runtime Retirement &amp; Instance Removal:</strong>
+The <code>UIExtender</code> instance is removed from <code>Instances</code>, and its <code>UIExtenderRuntime</code> is atomically removed from <code>UIExtender._runtimes</code>. The module name is released, allowing it to be registered again if needed.</li>
+</ol>
+<h3 id="what-persists-after-deregistration">What Persists After Deregistration</h3>
+<p>To avoid unstable Harmony unpatching during runtime execution, certain elements persist safely:</p>
+<ul>
+<li><p><strong>Shared Harmony Hooks:</strong>
+The Harmony hooks on <code>ViewModel</code> constructors, <code>OnFinalize</code>, and refresh methods remain installed. These hooks iterate over active runtimes and perform no work for types without registered mixins. Accessor stubs retain their generated IL implementations.</p>
+</li>
+<li><p><strong>Active Mixins on Existing ViewModels:</strong>
+Any <code>ViewModel</code> instance that already instantiated a mixin retains that mixin until the ViewModel is garbage collected. While property refreshes and method overrides cease execution, mixins must still be cleaned up when the ViewModel closes.</p>
+<p>To ensure <code>OnFinalize()</code> and event unsubscriptions still execute, the deregistered <code>ViewModelComponent</code> is added to a static collection: <code>ViewModelComponent.Retired</code>. The global finalize hook queries active runtimes first, followed by <code>ViewModelComponent.Retired</code>. Because per-instance state is held in a <code>ConditionalWeakTable</code>, references automatically evaporate when ViewModels are collected, leaving behind only empty dictionary shells.</p>
+</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/runtime/Lifecycle.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

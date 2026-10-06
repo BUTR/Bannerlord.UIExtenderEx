@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Handling Discrepancies from the XML Loader | UIExtenderEx Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Handling Discrepancies from the XML Loader | UIExtenderEx Documentation ">
+      
+      
+      <link rel="icon" href="../../favicon.ico">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/HandlingDifferences.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="UIExtenderEx">
+            UIExtenderEx
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="handling-discrepancies-from-the-xml-loader">Handling Discrepancies from the XML Loader</h1>
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>This article is written for <strong>UIExtenderEx maintainers and core contributors</strong>.
+It defines the governance rules and triage process for addressing behavioral differences between compiled C# prefabs and Gauntlet's runtime XML loader.
+For the authoritative catalog of active exceptions, see <a href="XmlDeviations.html">Deviations from the XML Loader</a>.</p>
+</div>
+<hr>
+<h2 id="1-the-core-triage-principles">1. The Core Triage Principles</h2>
+<p>Compiled prefabs must replicate the behavior of Gauntlet UI's runtime XML loader as closely as possible. When a discrepancy is discovered—whether through automated test oracles, the prefab fuzzer, code review, or user bug reports—it is evaluated against three hierarchical rules:</p>
+<pre><code>[Discrepancy Discovered]
+        │
+        ▼
+   Does XML fail?
+   ├── No ──────────► Rule 3: Replicate XML behavior. (Optional: emit analyzer warning).
+   └── Yes
+        │
+        ▼
+   Can a Roslyn analyzer statically prevent it in user mods?
+   ├── Yes ─────────► Rule 1: Fix in compiled prefab + emit compile-time analyzer error.
+   └── No ──────────► Rule 2: Replicate XML failure (ensures fallback compatibility).
+</code></pre>
+<h3 id="rule-1-correct-with-analyzer-guard">Rule 1: Correct with Analyzer Guard</h3>
+<p><em>Where the XML loader fails, and that failure is demonstrably incorrect for a UI framework, the compiled prefab executes the correct behavior, <strong>provided that an accompanying Roslyn analyzer rule flags the construct at compile time</strong>.</em></p>
+<p>Both conditions are mandatory:</p>
+<ul>
+<li>The analyzer ensures that any mod compiled against modern UIExtenderEx analyzers will never ship the problematic construct, guaranteeing the mod behaves identically in XML and compiled modes.</li>
+<li>Unupdated mods running compiled prefabs benefit from the corrected, stable behavior rather than experiencing unexpected crashes or dropped values.</li>
+</ul>
+<h3 id="rule-2-xml-parity-as-the-safe-fallback">Rule 2: XML Parity as the Safe Fallback</h3>
+<p><em>Where compile-time static analysis cannot guarantee detection, the compiled prefab must replicate the XML loader's behavior, including its failures.</em></p>
+<p>Because any movie can fall back to the XML loader at runtime (e.g., if compiled prefabs are disabled, an environment error occurs, or generation fails), a mod that succeeds in compiled mode but crashes in XML mode creates an unacceptable runtime failure for end users.</p>
+<h3 id="rule-3-never-stricter-than-xml">Rule 3: Never Stricter than XML</h3>
+<p><em>The compiled prefab must never be stricter than the XML loader.</em></p>
+<p>If a construct functions under the XML loader, existing mods may already rely on it in production. Compiled prefabs must continue supporting it at runtime. If the pattern is undesirable or error-prone, a Roslyn analyzer warning should guide developers away from it in new code without breaking existing deployments.</p>
+<hr>
+<h2 id="2-decision-framework">2. Decision Framework</h2>
+<p>When evaluating a newly reported behavioral difference, work through the following questions:</p>
+<h3 id="1-does-the-xml-loader-fail">1. Does the XML loader fail?</h3>
+<ul>
+<li>Does Gauntlet throw an exception, refuse to open the screen, or silently discard values?</li>
+<li>If XML succeeds, <strong>Rule 3 applies</strong>: The compiled prefab must produce the same result as XML. If the construct is problematic, consider an informational analyzer diagnostic.</li>
+</ul>
+<h3 id="2-is-the-failure-a-bug-in-gauntlet-or-an-error-in-the-prefab">2. Is the failure a bug in Gauntlet, or an error in the prefab?</h3>
+<ul>
+<li>An unhandled exception triggered by a widget's property setter during normal databinding is a framework flaw; a screen should not fail to open over a single non-critical binding error.</li>
+<li>Conversely, silently substituting an invalid value with an arbitrary fallback is not a &quot;fix.&quot; Any deviation under Rule 1 must represent the unambiguously correct UI behavior.</li>
+</ul>
+<h3 id="3-can-a-roslyn-analyzer-reliably-detect-it-at-compile-time">3. Can a Roslyn analyzer reliably detect it at compile time?</h3>
+<ul>
+<li>Static detection is feasible when the construct is visible within the mod's own prefab XML and ViewModel classes, or against the reference assembly metadata provided by BUTR's game packages (e.g., <code>Bannerlord.ReferenceAssemblies</code>).</li>
+<li>Static detection is <strong>not</strong> feasible if the behavior depends on dynamic runtime values, external mods, texture packs, or reflection. If compile-time detection cannot be guaranteed, <strong>Rule 2 applies</strong> (replicate XML behavior).</li>
+</ul>
+<h3 id="4-is-declining-code-generation-justified">4. Is declining code generation justified?</h3>
+<ul>
+<li>A movie that declines code generation falls back to XML. While the player experiences slower XML loading, functionality is preserved.</li>
+<li>However, <strong>a decline is considered a defect, not a pass</strong>. If the XML loader can parse and render a prefab, the code generator is expected to support it. Test oracles flag unhandled declines as failures (<code>OracleOutcome.NotGenerated</code>).</li>
+<li>A permanent decline must be explicitly approved by maintainers, documented in <code>OracleDeclines.Intended</code>, and covered by automated regression tests.</li>
+</ul>
+<hr>
+<h2 id="3-protocol-for-adopting-an-intentional-deviation">3. Protocol for Adopting an Intentional Deviation</h2>
+<p>When maintainers approve an intentional deviation under Rule 1, the following steps must be completed:</p>
+<ol>
+<li><strong>Maintainer Approval</strong>: Document the technical rationale for diverging from the XML loader.</li>
+<li><strong>Regression Testing</strong>: Write an integration test pinning both behaviors:
+<ul>
+<li>Verifying what the XML loader does.</li>
+<li>Verifying what the compiled prefab does instead.</li>
+</ul>
+</li>
+<li><strong>Oracle Exemption</strong>: Register the discrepancy in the test oracles (e.g., <code>BindingLoaderOracle.IntendedDeviations</code> or <code>LoaderOracle.IgnoredProperties</code>) so automated test runs remain green.</li>
+<li><strong>Documentation</strong>: Add a detailed entry in <a href="XmlDeviations.html">Deviations from the XML Loader</a>, citing the corresponding Roslyn analyzer diagnostic ID (<code>UIX...</code>).</li>
+<li><strong>Analyzer Implementation</strong>: Implement and publish the diagnostic rule in <code>Bannerlord.UIExtenderEx.Analyzers</code>.</li>
+</ol>
+<h3 id="documented-exceptions-to-the-analyzer-requirement">Documented Exceptions to the Analyzer Requirement</h3>
+<p>Maintainers may permit an intentional deviation without a corresponding analyzer rule under two narrowly defined exceptions:</p>
+<ol>
+<li><strong>Benign Local State Parity</strong>: The discrepancy involves internal widget-local state that is never exposed to ViewModels or databinding, and the construct is present throughout TaleWorlds' own native prefabs:
+<ul>
+<li><em>Example</em>: <a href="XmlDeviations.html#8-list-reached-out-of-replaced-child-scope-is-not-rebuilt">A list reached back out of a replaced child is not rebuilt</a></li>
+<li><em>Example</em>: <a href="XmlDeviations.html#9-list-with-path-prefix-sharing-replaced-property-name-is-not-rebuilt">A list whose path begins with a replaced property's name is not rebuilt</a></li>
+</ul>
+</li>
+<li><strong>Unanalyzable Engine Defects</strong>: The compiled prefab implements the correct behavior, the XML loader's result is caused by an internal Gauntlet bug, and writing a static analyzer rule would require hardcoding game-version-specific engine implementation quirks that do not belong in public SDK analyzers:
+<ul>
+<li><em>Example</em>: <a href="XmlDeviations.html#10-disconnected-widgets-do-not-write-back-reset-values">A widget leaving the tree writes nothing back</a></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="XmlDeviations.html">Deviations from the XML Loader</a>: Authoritative catalog of all intentional differences and analyzer diagnostics.</li>
+<li><a href="Generator.html">Code Generator</a>: Generator architecture, data sources, and member resolution.</li>
+<li><a href="Testing.html">Testing</a>: Automated verification, test oracles, and corpus test suites.</li>
+</ul>
+
+<hr><div class="last-modified"><p>This page was last modified at 10/05/2026 13:34:58 +03:00 (UTC).</p><details><summary style="display: list-item;">Commit Message</summary><div><pre><code>Author:    Vitalii Mikhailov
+Commit:    f3b725a97c3f299c20e56b5f206e27142ec15edd
+</code></pre><pre><code>* Added C# Auto-Generated XML prefab compilation for patched and dynamic movies, matching vanilla UI performance
+
+* Added name-based property binding fallback for ViewModel subtypes not declared on the parent
+* Improved unparseable prefab error logging with name and file details
+* Fixed game crash with 3-segment attribute paths
+* Added Bannerlord.UIExtenderE...</code></pre></div></details></div></article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/dev/docs/articles/compiled-prefabs/HandlingDifferences.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          © 2020-2026 Bannerlord's Unofficial Tools & Resources
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
