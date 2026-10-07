@@ -14,12 +14,6 @@
     <PackageReference Include="Lib.Harmony" Version="$(HarmonyVersion)" PrivateAssets="all" IncludeAssets="compile" />
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core" Version="$(GameVersion).*" PrivateAssets="all" IncludeAssets="compile" GeneratePathProperty="true" />
 
-    <!--
-    Compile-only: PrefabReferenceSet reads typeof(Vector2).Assembly to break a tie between two definitions of
-    System.Numerics.Vector2, and the copy that has to win is the game's, so none of ours may ship.
-    -->
-    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" PrivateAssets="all" ExcludeAssets="runtime" />
-
     <PackageReference Include="Bannerlord.BUTR.Shared" Version="$(BUTRSharedVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <PackageReference Include="Bannerlord.ModuleManager.Source" Version="$(BUTRModuleManagerVersion)" PrivateAssets="all" />
     <PackageReference Include="Harmony.Extensions" Version="$(HarmonyExtensionsVersion)" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />

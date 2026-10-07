@@ -1,4 +1,8 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.3
+Game Versions: v1.3.x,v1.4.x,v1.5.x
+* Fixed 'Method not found: add_Vector2PropertyChanged'
+---------------------------------------------------------------------------------------------------
 Version: 3.0.2
 Game Versions: v1.3.x,v1.4.x,v1.5.x
 * Fixed a crash when Windows blocks one of the prefab runtime DLLs (Smart App Control), UIExtenderEx now carries on without it
