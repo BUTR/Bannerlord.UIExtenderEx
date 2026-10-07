@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using TaleWorlds.GauntletUI;
 using TaleWorlds.GauntletUI.BaseTypes;
 using TaleWorlds.GauntletUI.Data;
 using TaleWorlds.GauntletUI.PrefabSystem;
@@ -138,8 +139,8 @@ public static class PrefabReferenceSet
     /// <summary>
     /// Traverses the transitive dependency graph from seed assemblies to select compilation references from metadata.
     /// <para>
-    /// Resolves potential ambiguities between competing implementations of <c>System.Numerics.Vector2</c> by prioritizing
-    /// the definition referenced by TaleWorlds assemblies.
+    /// Resolves potential ambiguities between competing implementations of <c>System.Numerics.Vector2</c> by keeping
+    /// the one the game's <c>Vector2PropertyChanged</c> carries.
     /// </para>
     /// </summary>
     public static List<PrefabAssemblyReference> Select(IEnumerable<Assembly> seeds)
@@ -148,7 +149,7 @@ public static class PrefabReferenceSet
         // Reading metadata can load the reader itself; Vector2 can also trigger a framework type forwarder.
         // Settle those before taking the loaded-assembly snapshot used for binding precedence.
         var rootReferences = roots.Select(ReadLoaded).ToList();
-        var vector2Home = typeof(System.Numerics.Vector2).Assembly.GetName().Name;
+        var vector2Home = GameVector2Home();
         var loaded = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -158,6 +159,9 @@ public static class PrefabReferenceSet
             if (!loaded.ContainsKey(name))
                 loaded[name] = assembly;
         }
+        // Not whichever copy of its name loaded first: mods ship System.Numerics.Vectors builds that forward to System.Numerics
+        if (CanReference(vector2Home))
+            loaded[vector2Home.GetName().Name] = vector2Home;
 
         var directories = SearchDirectories(roots);
 
@@ -289,28 +293,35 @@ public static class PrefabReferenceSet
     private static bool IsFacade(string name) => name.Equals("netstandard", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Deduplicates conflicting definitions of <c>System.Numerics.Vector2</c> across referenced assemblies.
-    /// Retains the definition most widely referenced by dependencies being compiled against.
+    /// The assembly that defines the <c>System.Numerics.Vector2</c> of the game's <c>Vector2PropertyChanged</c>, which every
+    /// generated subscription to it has to name.
+    /// <para>
+    /// On .NET Framework the game's <c>System.Numerics.Vectors</c> is a netstandard build that defines the type, and the
+    /// framework's <c>System.Numerics</c> defines another; this assembly's own <c>typeof(Vector2)</c> is the framework's.
+    /// </para>
     /// </summary>
-    private static void DropDuplicateVector2(Dictionary<string, PrefabAssemblyReference> selected, string vector2Home)
+    private static Assembly GameVector2Home() =>
+        typeof(PropertyOwnerObject).GetEvent("Vector2PropertyChanged")?.EventHandlerType?.GetGenericArguments() is { Length: 3 } arguments
+            ? arguments[2].Assembly
+            : typeof(System.Numerics.Vector2).Assembly;
+
+    /// <summary>
+    /// Deduplicates conflicting definitions of <c>System.Numerics.Vector2</c> across referenced assemblies, keeping
+    /// <paramref name="vector2Home"/>'s.
+    /// <para>
+    /// Counting which definition the selected assemblies name let mods naming <c>System.Numerics</c> outvote the game, and
+    /// no movie with a <c>Vector2PropertyChanged</c> subscription compiled (CS0012). A forwarding copy of
+    /// <c>System.Numerics.Vectors</c> selected in place of the game's left the framework's the only definition, and every
+    /// such subscription failed with <see cref="MissingMethodException"/>.
+    /// </para>
+    /// </summary>
+    private static void DropDuplicateVector2(Dictionary<string, PrefabAssemblyReference> selected, Assembly vector2Home)
     {
-        var definers = selected.Values.Where(x => x.DefinesVector2).Select(x => x.Name).ToList();
-        if (definers.Count < 2)
-            return;
+        var home = vector2Home.GetName().Name;
+        if (CanReference(vector2Home) && (!selected.TryGetValue(home, out var current) || !string.Equals(current.Path, vector2Home.Location, StringComparison.OrdinalIgnoreCase)))
+            selected[home] = ReadLoaded(vector2Home);
 
-        // How many of the assemblies being compiled against name each definition. The one the generated code will bind
-        // through is the one they name, not the one this assembly's own typeof() happens to answer.
-        var references = selected.Values.SelectMany(x => x.Dependencies).Select(x => x.Name)
-            .GroupBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(x => x.Key, x => x.Count(), StringComparer.OrdinalIgnoreCase);
-
-        var keep = definers
-            .OrderByDescending(x => references.TryGetValue(x, out var count) ? count : 0)
-            .ThenByDescending(x => x.Equals(vector2Home, StringComparison.OrdinalIgnoreCase))
-            .ThenBy(x => x, StringComparer.Ordinal)
-            .First();
-
-        foreach (var name in definers.Where(x => !x.Equals(keep, StringComparison.OrdinalIgnoreCase)))
+        foreach (var name in selected.Values.Where(x => x.DefinesVector2 && !x.Name.Equals(home, StringComparison.OrdinalIgnoreCase)).Select(x => x.Name).ToList())
             selected.Remove(name);
     }
 

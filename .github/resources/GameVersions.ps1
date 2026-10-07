@@ -15,7 +15,7 @@ registry has seen; the workflow still checks the version it got.
 #>
 param(
     [switch] $Current,
-    [string] $Registry = 'https://raw.githubusercontent.com/BUTR/Bannerlord.ReferenceAssemblies/master/builds/261550.json'
+    [string] $Registry = 'https://raw.githubusercontent.com/BUTR/Bannerlord.ReferenceAssemblies/master/builds/steam/261550.json'
 )
 
 $ErrorActionPreference = 'Stop'
