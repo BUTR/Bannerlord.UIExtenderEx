@@ -30,10 +30,26 @@ public sealed class GameCompiledPrefabEnvironment : ICompiledPrefabEnvironment
     private readonly Lazy<string?> _cacheDirectory = new(CreateCacheDirectory);
 
     /// <summary>
-    /// Gets a value indicating whether compiled prefabs are enabled and the Gauntlet movie routing switch patch is active.
+    /// Gets a value indicating whether the runtime honors <c>IgnoresAccessChecksTo</c>, which the generated assembly relies on to bind to
+    /// <c>internal</c> mixins and view models. Mono, which the game runs on under Wine and Proton, ignores the attribute and throws
+    /// <see cref="MethodAccessException"/> on the first non-public member a compiled movie touches.
+    /// </summary>
+    private static readonly bool RuntimeHonorsAccessChecks = CheckRuntimeHonorsAccessChecks();
+
+    private static bool CheckRuntimeHonorsAccessChecks()
+    {
+        if (Type.GetType("Mono.Runtime") is null)
+            return true;
+        Trace.TraceWarning("UIExtenderEx: running on Mono, which ignores IgnoresAccessChecksTo; patched movies load from XML.");
+        return false;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether compiled prefabs are enabled, the runtime honors <c>IgnoresAccessChecksTo</c>, and the Gauntlet movie
+    /// routing switch patch is active.
     /// Prefabs cannot be compiled or preloaded if the movie switch is absent, ensuring unmatched prefabs safely fall back to XML parsing.
     /// </summary>
-    public bool IsEnabled => CompiledPrefabSettings.CompiledPrefabs && PrefabRuntimes.IsMovieSwitchInstalled;
+    public bool IsEnabled => CompiledPrefabSettings.CompiledPrefabs && RuntimeHonorsAccessChecks && PrefabRuntimes.IsMovieSwitchInstalled;
 
     public bool DumpGeneratedCode => CompiledPrefabSettings.DumpGeneratedCode;
 
